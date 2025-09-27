@@ -1,0 +1,59 @@
+combat_maniac2.ogg: Thomas Bangalter - Stress
+combat_vamp2.ogg: Filmmaker - Mystic Circles
+combat_desertrider.ogg: Two Fingers- You Ain't Down
+combat_grenzelhoft.ogg: Helbrede - Sons of Tyr
+combat_jester.ogg: OFF - Pepper Steak
+combat_bandit.ogg: Deus Ex - Battery Park Combat
+combat_bandit2.ogg: Evanora Unlimited - Mithlond (Instrumental)
+combat_werewolf.ogg: Filmmaker - Federal Bestiary
+combat_guard.ogg: Deus Ex The Conspiracy (PS2) / Deus Ex Revision - Hong Kong Canal Combat Theme
+combat_guard3.ogg: Deus Ex The Conspiracy (PS2) / Deus Ex Revision - UNATCO Combat Theme
+combat_guard4.ogg: Deus Ex The Conspiracy (PS2) / Deus Ex Revision - NYC Combat Theme
+combat_guard_bog.ogg: Deus Ex The Conspiracy (PS2) / Deus Ex Revision - UNATCO HQ Combat Theme
+combat_physician.ogg: Michael Anthony - Klaus Schwab Rap (Instrumental)
+combat_bum.ogg: Pathologic (Classic) - Most Combat Theme
+combat_squire.ogg: Dragon's Dogma OST: Tense Combat
+combat_duelist.ogg: Medieval Total War 2 OST: Spanish Battle Theme
+combat_cult.ogg: Igor Kornelyuk - Воланд
+combat_druid.ogg: The Witcher 3: Wild Hunt - Hunt or Be Hunted
+combat_towner.ogg: Jeremy Soule - TESIV Oblivion - Daedra in Flight
+combat_soilson.ogg: Jeremy Soule - TESIV Oblivion - Death Knell
+title1.ogg: Aphex Twin - Stone In Focus
+bath.ogg: Mabisyo - No Baby (Cropped to 1:00)
+tav_tune.ogg: Divinity Original Sin 2 - Black Bull Tavern
+tavern1.ogg: Pathologic 2 - Broken Heart Pub
+tavern2.ogg: Pathologic (Classic) - Broken Heart Pub
+combat_steppe.ogg: Tatar Theme (Hellish Quart OST)
+combat_bandit_brigand: Silent Scream - Lateralis
+combat_bandit_mage: Timestopper Tactics - corru.works
+combat_ascended: TO PIERCE THE BLACK SKY /// ENVY INTERLUDE - UNFORTUNATE DEVELOPMENT
+warscholar.ogg: Butcher's Boulevard - Kristjan Thomas Haaristo
+guitar (7).ogg: https://youtu.be/to2iDSr6_KA
+guitar (8).ogg: https://youtu.be/8B6jOUzBKYc
+guitar (9).ogg: https://youtu.be/tux7GLWmV2M
+guitar (10).ogg: https://open.spotify.com/track/37yQRGfndzGwUUScYOBMyk?si=d2d8c73cb7eb4723
+roundend-vote-sound.ogg: A snippet of Thief Gold Soundtrack: Track 3 - Lord Bafford's Manor
+banditcamp.ogg: Tooth and Tail OST (2017) - Fuel For The Firebrand
+traitor.ogg: Tooth and Tail OST (2017) - Bellafide (Firebrand of The Longcoats)
+Iconoclast.ogg: Valley of Judgement- Lateralis
+dragonden.ogg: Ash Lake Theme - Dark Souls
+inquisitorcombat.ogg: Hellsing OST RAID Track 15 Survival on the Street of Insincerity
+templarofpsydon.ogg: 26 - Duty and Honor II (with Ryan Patrick Buckley) - Chivalry 2 (Original Game Soundtrack)
+combat_holy.ogg: Jesper Kyd - Light of the Imperium
+combat_treasurehunter.ogg: Henry Jackman - Cut To The Chase
+combat_starsugar.ogg: FEMTANYL - DOGMATICA
+combat_ozium.ogg: Light Club - FAHKEET
+combat_shaman2.ogg. Heilung - Elddansurin
+combat_berserker.ogg: Mikolai Stroinski - Eyes of the Wolf
+combat_graggar.ogg: T87-Sulfurhead - Black Powder [https://www.youtube.com/@T87-Sulfurhead]
+combat_baotha.ogg: T87-Sulfurhead - Love Within You (Rough Mix) [https://www.youtube.com/@T87-Sulfurhead]
+combat_heretic.ogg: T87-Sulfurhead - DEMESNE [https://www.youtube.com/@T87-Sulfurhead]
+combat_matthios.ogg: T87-Sulfurhead - Amontillado [https://www.youtube.com/@T87-Sulfurhead]
+combat_dungeoneer.ogg: T87-Sulfurhead - RATEATER [https://www.youtube.com/@T87-Sulfurhead]
+combat_knight.ogg: T87-Sulfurhead - Durandal [https://www.youtube.com/@T87-Sulfurhead]
+combat_warden.ogg: T87-Sulfurhead - Metamorphosis [https://www.youtube.com/@T87-Sulfurhead]
+combat_ManAtArms.ogg: T87-Sulfurhead - Ready or Not [https://www.youtube.com/@T87-Sulfurhead]
+combat_veteran.ogg: T87-Sulfurhead - Good Men Die Young [https://www.youtube.com/@T87-Sulfurhead]
+combat_zybantine.ogg: Crusader Kings 3 Fate of Iberia OST - War "Short"
+combat_swordhunter.ogg: The Only Thing I Know For Real [Acoustic + Demo] [https://youtu.be/XoMueasCaaM]
+combat_sohei.ogg: Rapid As Wildfires by Yu-peng Chen [https://youtu.be/MOOXRR2hiEU]

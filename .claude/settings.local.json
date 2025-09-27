@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__kluster-verify__kluster_code_review_auto"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
