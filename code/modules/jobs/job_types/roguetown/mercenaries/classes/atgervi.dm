@@ -159,6 +159,28 @@
 	icon_state = "atgervi_shaman_gloves"
 	item_state = "atergvi_shaman_gloves"
 
+/obj/item/clothing/gloves/roguetown/plate/atgervi/equipped(mob/user, slot)
+	. = ..()
+	if(slot == SLOT_GLOVES && ishuman(user))
+		var/mob/living/carbon/human/H = user
+		// Replace punch with claw in base_intents
+		for(var/i = 1 to length(H.base_intents))
+			if(H.base_intents[i] == /datum/intent/unarmed/punch)
+				H.base_intents[i] = /datum/intent/unarmed/claw
+				break
+		H.update_a_intents() // Refresh available intents
+
+/obj/item/clothing/gloves/roguetown/plate/atgervi/dropped(mob/user)
+	. = ..()
+	if(ishuman(user))
+		var/mob/living/carbon/human/H = user
+		// Restore punch intent
+		for(var/i = 1 to length(H.base_intents))
+			if(H.base_intents[i] == /datum/intent/unarmed/claw)
+				H.base_intents[i] = /datum/intent/unarmed/punch
+				break
+		H.update_a_intents() // Refresh available intents
+
 /obj/item/clothing/head/roguetown/helmet/bascinet/atgervi
 	name = "owl helmet"
 	desc = "A carefully forged steel helmet in the shape of an owl's face, with added chain to cover the face and neck against many blows."

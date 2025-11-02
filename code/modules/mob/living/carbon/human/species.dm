@@ -1136,6 +1136,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 
 ///This proc handles punching damage. IMPORTANT: Our owner is the TARGET and not the USER in this proc. For whatever reason...
 /datum/species/proc/harm(mob/living/carbon/human/user, mob/living/carbon/human/target, datum/martial_art/attacker_style)
+	set waitfor = FALSE
 	if(HAS_TRAIT(user, TRAIT_PACIFISM))
 		to_chat(user, span_warning("I don't want to harm [target]!"))
 		return FALSE
@@ -1213,8 +1214,15 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 
 		if(!target.lying_attack_check(user))
 			return 0
+		
+		var/bonus_pen = 0
+		bonus_pen = (user.STASTR - 10) * STR_PEN_FACTOR
+		
+		var/d_type = "blunt"
+		if(user.used_intent?.item_d_type)
+			d_type = user.used_intent.item_d_type
 
-		var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = BLUNT_DEFAULT_PENFACTOR, blade_dulling = user.used_intent.blade_class, damage = damage)
+		var/armor_block = target.run_armor_check(selzone, d_type, armor_penetration = bonus_pen + user.used_intent.penfactor, blade_dulling = user.used_intent.blade_class, damage = damage)
 
 		target.lastattacker = user.real_name
 		if(target.mind)
@@ -1225,12 +1233,13 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		target.next_attack_msg.Cut()
 
 		var/nodmg = FALSE
+		var/actual_damage = max(damage - armor_block, 0)
 
 		if(!target.apply_damage(damage, user.dna.species.attack_type, affecting, armor_block))
 			nodmg = TRUE
 			target.next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 		else
-			affecting.bodypart_attacked_by(user.used_intent.blade_class, damage, user, selzone, crit_message = TRUE)
+			affecting.bodypart_attacked_by(user.used_intent.blade_class, actual_damage, user, selzone, crit_message = TRUE)
 			if(affecting.body_zone == BODY_ZONE_HEAD)
 				SEND_SIGNAL(user, COMSIG_HEAD_PUNCHED, target)
 		log_combat(user, target, "punched")
@@ -1424,15 +1433,19 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 			var/selzone = accuracy_check(user.zone_selected, user, target, /datum/skill/combat/unarmed, user.used_intent)
 			var/obj/item/bodypart/affecting = target.get_bodypart(check_zone(selzone))
 			var/damage = user.get_punch_dmg() * 1.4
-			var/armor_block = target.run_armor_check(selzone, "blunt", blade_dulling = BCLASS_BLUNT, damage = damage)
+			// Add strength-based armor penetration for stomp: +2 AP per point of STR above 10
+			var/stomp_pen = BLUNT_DEFAULT_PENFACTOR
+			stomp_pen += (user.STASTR - 10) * 2
+			var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = stomp_pen, blade_dulling = BCLASS_BLUNT, damage = damage)
 			target.next_attack_msg.Cut()
 			var/nodmg = FALSE
+			var/actual_damage = max(damage - armor_block, 0)
 			if(!target.apply_damage(damage, user.dna.species.attack_type, affecting, armor_block))
 				nodmg = TRUE
 				target.next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 			else
 				if(affecting)
-					affecting.bodypart_attacked_by(BCLASS_BLUNT, damage, user, user.zone_selected, crit_message = TRUE)
+					affecting.bodypart_attacked_by(BCLASS_BLUNT, actual_damage, user, user.zone_selected, crit_message = TRUE)
 					if(!HAS_TRAIT(user, TRAIT_LAMIAN_TAIL))
 						target.visible_message(span_danger("[user] stomps [target]![target.next_attack_msg.Join()]"), \
 						span_danger("I'm stomped by [user]![target.next_attack_msg.Join()]"), span_hear("I hear a sickening kick!"), COMBAT_MESSAGE_RANGE, user)
@@ -1563,12 +1576,16 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		var/obj/item/bodypart/affecting = target.get_bodypart(check_zone(selzone))
 		if(!affecting)
 			affecting = target.get_bodypart(BODY_ZONE_CHEST)
-		var/armor_block = target.run_armor_check(selzone, "blunt", blade_dulling = BCLASS_BLUNT)
+		// Add strength-based armor penetration for kick: +2 AP per point of STR above 10
+		var/kick_pen = BLUNT_DEFAULT_PENFACTOR
+		kick_pen += (user.STASTR - 10) * 2
+		var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = kick_pen, blade_dulling = BCLASS_BLUNT)
 		var/damage = user.get_punch_dmg()
+		var/actual_damage = max(damage - armor_block, 0)
 		if(!target.apply_damage(damage, user.dna.species.attack_type, affecting, armor_block))
 			target.next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 		else
-			affecting.bodypart_attacked_by(BCLASS_BLUNT, damage, user, selzone)
+			affecting.bodypart_attacked_by(BCLASS_BLUNT, actual_damage, user, selzone)
 		playsound(target, 'sound/combat/hits/kick/kick.ogg', 100, TRUE, -1)
 		target.lastattacker = user.real_name
 		target.lastattackerckey = user.ckey
@@ -1654,6 +1671,13 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		pen = I.armor_penetration + user.used_intent.penfactor
 	if(I.d_type == "blunt")
 		pen = BLUNT_DEFAULT_PENFACTOR
+	switch(I.wbalance)
+		if(WBALANCE_HEAVY)
+			pen += (user.STASTR - 10) * STR_PEN_FACTOR
+		if(WBALANCE_NORMAL)
+			pen += (((user.STASTR - 10)+(user.STAPER - 10))/2) * floor((STR_PEN_FACTOR+PER_PEN_FACTOR)/2)
+		if(WBALANCE_SWIFT)
+			pen += (user.STASTR - 10) * PER_PEN_FACTOR
 
 //	var/armor_block = H.run_armor_check(affecting, "I.d_type", span_notice("My armor has protected my [hit_area]!"), span_warning("My armor has softened a hit to my [hit_area]!"),pen)
 
@@ -1682,7 +1706,9 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 
 		var/weakness = H.check_weakness(I, user)
 		H.next_attack_msg.Cut()
-		if(!apply_damage(Iforce * weakness, I.damtype, def_zone, armor_block, H))
+		var/raw_damage = Iforce * weakness
+		var/actual_damage = max(raw_damage - armor_block, 0)
+		if(!apply_damage(raw_damage, I.damtype, def_zone, armor_block, H))
 			nodmg = TRUE
 			H.next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 			if(I)
@@ -1690,8 +1716,17 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 				SEND_SIGNAL(I, COMSIG_ITEM_ATTACKBY_BLOCKED, H, user, I.damtype, def_zone) // attack was blocked by armor or other variables
 		if(!nodmg)
 			if(I)
-				SEND_SIGNAL(I, COMSIG_ITEM_ATTACKBY_SUCCESS, H, user, Iforce * weakness, I.damtype, def_zone) // attack was not blocked by armor or other variables
-			var/datum/wound/crit_wound = affecting.bodypart_attacked_by(user.used_intent.blade_class, (Iforce * weakness) * ((100-(armor_block+armor))/100), user, selzone, crit_message = TRUE)
+				SEND_SIGNAL(I, COMSIG_ITEM_ATTACKBY_SUCCESS, H, user, raw_damage, I.damtype, def_zone) // attack was not blocked by armor or other variables
+
+			// Convert edged attacks to blunt if low damage through armor
+			var/wound_bclass = bladec
+			var/armor = H.checkarmor(selzone, bladec, 0, 0)
+			if(armor > 0 && actual_damage < 10)
+				var/is_edged = (bladec in list(BCLASS_CUT, BCLASS_CHOP, BCLASS_STAB, BCLASS_PICK, BCLASS_PIERCE, BCLASS_LASHING))
+				if(is_edged)  // Threshold for edge-to-blunt conversion
+					wound_bclass = BCLASS_BLUNT
+
+			var/datum/wound/crit_wound = affecting.bodypart_attacked_by(wound_bclass, actual_damage, user, selzone, crit_message = TRUE)
 			if(should_embed_weapon(crit_wound, I))
 				var/can_impale = TRUE
 				if(!affecting)
@@ -1724,6 +1759,8 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 	//dismemberment
 	var/bloody = 0
 	var/probability = I.get_dismemberment_chance(affecting, user, selzone)
+	if(I.wlength == WLENGTH_SHORT && user.STASTR < 15)
+		probability /= 4
 	if(affecting.brute_dam && prob(probability) && affecting.dismember(I.damtype, user.used_intent?.blade_class, user, selzone))
 		bloody = 1
 		I.add_mob_blood(H)

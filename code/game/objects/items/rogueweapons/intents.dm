@@ -448,13 +448,30 @@
 	releasedrain = 4	//More than punch cus pen factor.
 	swingdelay = 0
 	penfactor = 10
+	clickcd = 10
+	rmb_ranged = TRUE
 	candodge = TRUE
 	canparry = TRUE
 	blade_class = BCLASS_CUT
 	miss_text = "claw at the air"
 	miss_sound = "punchwoosh"
 	item_d_type = "slash"
-	
+
+/datum/intent/unarmed/claw/rmb_ranged(atom/target, mob/user)
+	if(user.stat >= UNCONSCIOUS)
+		return
+	if(ismob(target))
+		var/mob/M = target
+		var/list/targetl = list(target)
+		user.visible_message(span_warning("[user] taunts [M]!"), span_warning("I taunt [M]!"), ignored_mobs = targetl)
+		user.emote("taunt")
+		if(M.client)
+			if(M.can_see_cone(user))
+				to_chat(M, span_danger("[user] taunts me!"))
+		else
+			M.taunted(user)
+	return
+
 
 /datum/intent/unarmed/shove
 	name = "shove"

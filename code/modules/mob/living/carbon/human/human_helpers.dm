@@ -118,11 +118,7 @@
 
 /mob/living/carbon/human/get_punch_dmg()
 
-	var/damage
-	if(STASTR > UNARMED_DAMAGE_DEFAULT || STASTR < 10)
-		damage = STASTR
-	else
-		damage = UNARMED_DAMAGE_DEFAULT
+	var/damage = (STASTR > UNARMED_DAMAGE_DEFAULT || STASTR < 10) ? STASTR : UNARMED_DAMAGE_DEFAULT // Plz just use ternary statements instead of defining null variables above an if/else bros
 
 	var/used_str = STASTR
 
