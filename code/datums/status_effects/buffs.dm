@@ -170,7 +170,7 @@
 		var/new_staminaloss = owner.getStaminaLoss()
 		if(new_staminaloss < last_staminaloss)
 			var/heal_amount = (new_staminaloss - last_staminaloss) * 10
-			owner.stamina_add(heal_amount, updating_health = FALSE)
+			owner.stamina_add(heal_amount)
 			new_staminaloss = owner.getStaminaLoss()
 			needs_health_update = TRUE
 		last_staminaloss = new_staminaloss
