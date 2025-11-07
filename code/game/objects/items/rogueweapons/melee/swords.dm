@@ -213,7 +213,7 @@
 	name = "steel shortsword"
 	desc = "The arming sword's shorter and much older brother. Despite being centuries older than the swords of todae, it remains in use as a cheap sidearm for shieldbearers and archers."
 	force = 19
-	possible_item_intents = list(/datum/intent/sword/cut/short, /datum/intent/sword/thrust/short)
+	possible_item_intents = list(/datum/intent/sword/cut/short, /datum/intent/sword/thrust/short, /datum/intent/sword/strike)
 	icon_state = "swordshort"
 	sheathe_icon = "swordshort"
 	gripped_intents = null
@@ -232,6 +232,7 @@
 		/datum/intent/sword/cut/short,
 		/datum/intent/sword/thrust/short,
 		/datum/intent/sword/chop/short,
+		/datum/intent/sword/strike,
 		)
 	icon_state = "eastshortsword"
 	sheathe_icon = "kodachi"
@@ -247,7 +248,7 @@
 	name = "psydonian shortsword"
 	desc = "Otavan smiths worked with Grenzelhoftian artificers, and an esoteric blade was born: a blade with an unique design, dismissing a crossguard in favor of a hollow beak to hook and draw harm away from its user. Short in length, yet lethally light in weight."
 	force = 19
-	possible_item_intents = list(/datum/intent/sword/cut/short, /datum/intent/sword/thrust/short)
+	possible_item_intents = list(/datum/intent/sword/cut/short, /datum/intent/sword/thrust/short, /datum/intent/sword/strike)
 	icon_state = "psyswordshort"
 	gripped_intents = null
 	minstr = 4
@@ -524,7 +525,7 @@
 	icon_state = "tabi"
 	max_integrity = 230
 	icon = 'icons/roguetown/weapons/64.dmi'
-	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/sword/chop)
+	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/sword/chop, /datum/intent/sword/strike)
 	alt_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/sword/strike, /datum/intent/sword/chop)
 	gripped_intents = null
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
@@ -673,7 +674,7 @@
 	icon_state = "iswordshort"
 	sheathe_icon = "iswordshort"
 	max_integrity = 125
-	possible_item_intents = list(/datum/intent/sword/cut/short, /datum/intent/sword/thrust/short)
+	possible_item_intents = list(/datum/intent/sword/cut/short, /datum/intent/sword/thrust/short, /datum/intent/sword/strike)
 	gripped_intents = null
 	minstr = 4
 	wdefense = 3.5
@@ -743,7 +744,7 @@
 	It's a fairly reliable and affordable self-defense weapon."
 	icon_state = "imesser"
 	max_integrity = 160
-	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/axe/chop)
+	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/axe/chop, /datum/intent/sword/strike)
 	gripped_intents = null
 	minstr = 4
 	wdefense = 2
@@ -766,7 +767,7 @@
 	icon_state = "smesser"
 	max_integrity = 180
 	force = 22	//Same damage as the iron messer
-	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/axe/chop)
+	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/axe/chop, /datum/intent/sword/strike)
 	gripped_intents = null
 	minstr = 5
 	wdefense = 4
@@ -825,7 +826,7 @@
 	desc = "A sickle-shaped sword of Naledi origin that owes its design to a type of battle axe its ancient settlers once used - it represents a symbol of power and conquest. This one in particular is made of blued steel."
 	icon_state = "nockhopesh"
 	force = 25	//Base is 22
-	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/sword/chop/falx)
+	possible_item_intents = list(/datum/intent/sword/cut/sabre, /datum/intent/sword/thrust, /datum/intent/sword/chop/falx, /datum/intent/sword/strike)
 	max_integrity = 280
 
 /obj/item/rogueweapon/sword/sabre/alloy
@@ -873,7 +874,7 @@
 	inhand_x_dimension = 64
 	inhand_y_dimension = 64
 	dropshrink = 0.75
-	possible_item_intents = list(/datum/intent/sword/thrust/rapier, /datum/intent/sword/cut/rapier)
+	possible_item_intents = list(/datum/intent/sword/thrust/rapier, /datum/intent/sword/cut/rapier, /datum/intent/sword/strike)
 	gripped_intents = null
 	parrysound = list(
 		'sound/combat/parry/bladed/bladedthin (1).ogg',
@@ -1027,7 +1028,7 @@
 	sheathe_icon = "cutlass"
 	max_integrity = 240
 	force = 23
-	possible_item_intents = list(/datum/intent/sword/cut, /datum/intent/sword/chop)
+	possible_item_intents = list(/datum/intent/sword/cut, /datum/intent/sword/chop, /datum/intent/sword/strike)
 	gripped_intents = null
 	wdefense = 6.5
 	wbalance = WBALANCE_SWIFT

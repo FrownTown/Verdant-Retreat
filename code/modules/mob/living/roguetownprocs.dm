@@ -51,7 +51,7 @@
 	if(HAS_TRAIT(user, TRAIT_CURSE_RAVOX))
 		chance2hit -= 30
 
-	chance2hit = CLAMP(chance2hit, 5, 93)
+	chance2hit = CLAMP(chance2hit, 5, 95)
 
 	if(prob(chance2hit))
 		return zone
@@ -263,8 +263,24 @@
 
 			if(parry_status)
 				if(intenty.masteritem)
-					if(intenty.masteritem.wbalance < WBALANCE_NORMAL && user.STASTR > src.STASTR) //enemy weapon is heavy, so get a bonus scaling on strdiff
-						drained = drained + ( intenty.masteritem.wbalance * ((user.STASTR - src.STASTR) * -5) )
+					var/balance_diff = 0
+					if(used_weapon && weapon_parry)
+						balance_diff = used_weapon.wbalance - intenty.masteritem.wbalance
+					else
+						balance_diff = WBALANCE_NORMAL - intenty.masteritem.wbalance
+
+					drained = drained - (balance_diff * 3)
+
+					if(user.STASTR > src.STASTR)
+						var/str_bonus = 0
+						switch(intenty.masteritem.wbalance)
+							if(WBALANCE_SWIFT)
+								str_bonus = 2
+							if(WBALANCE_NORMAL)
+								str_bonus = 3.5
+							else
+								str_bonus = 5
+						drained = drained + ((user.STASTR - src.STASTR) * str_bonus)
 			else
 				to_chat(src, span_warning("The enemy defeated my parry!"))
 				if(HAS_TRAIT(src, TRAIT_MAGEARMOR))
@@ -288,7 +304,17 @@
 				exp_multi = exp_multi/2
 
 			if(weapon_parry == TRUE)
-				if(do_parry(used_weapon, drained, user)) //show message
+				var/balance_diff_parry = 0
+				if(intenty.masteritem && used_weapon && istype(used_weapon, /obj/item/rogueweapon))
+					var/obj/item/rogueweapon/defender_weapon = used_weapon
+					balance_diff_parry = defender_weapon.wbalance - intenty.masteritem.wbalance
+				var/parry_result = do_parry(used_weapon, drained, user, balance_diff_parry)
+				if(parry_result == PARRY_DISARM)
+					if(used_weapon)
+						dropItemToGround(used_weapon, TRUE)
+						visible_message(span_danger("[used_weapon] is knocked from [src]'s hands!"), span_userdanger("My [used_weapon] is knocked from my hands!"))
+					return TRUE
+				else if(parry_result) //show message
 					if ((mobility_flags & MOBILITY_STAND))
 						var/skill_target = attacker_skill
 						if(!HAS_TRAIT(U, TRAIT_GOODTRAINER))
@@ -452,7 +478,7 @@
 		dodge_candidates += dodge_candidate
 	return dodge_candidates
 
-/mob/proc/do_parry(obj/item/W, parrydrain as num, mob/living/user)
+/mob/proc/do_parry(obj/item/W, parrydrain as num, mob/living/user, balance_diff = 0)
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		// Adjust parry stamina based on armor weight
@@ -467,7 +493,14 @@
 		else
 			adjusted_drain *= 0.5 // Not wearing armor cuts stamina cost in half
 
+		var/stamina_before = H.stamina
 		if(H.stamina_add(adjusted_drain))
+			if(stamina_before + adjusted_drain >= H.max_stamina && ishuman(user))
+				var/mob/living/carbon/human/attacker = user
+				var/disarm_chance = (attacker.STASTR - H.STASTR) * 10 - (balance_diff * 15)
+				if(prob(disarm_chance))
+					return PARRY_DISARM
+
 			if(W)
 				playsound(get_turf(src), pick(W.parrysound), 100, FALSE)
 			if(src.client)
@@ -594,7 +627,21 @@
 		if(HAS_TRAIT(H, TRAIT_CURSE_RAVOX))
 			prob2defend -= 30
 
-		prob2defend = clamp(prob2defend, 5, 90)
+		if(H.wear_armor && istype(H.wear_armor, /obj/item/clothing))
+			var/obj/item/clothing/armor = H.wear_armor
+			switch(armor.armor_class)
+				if(ARMOR_CLASS_LIGHT)
+					if(HAS_TRAIT(H, TRAIT_DODGEEXPERT))
+						prob2defend += max(5, 20 - ((H.STASPD - 10) * 5))
+					else
+						prob2defend += 5
+				if(ARMOR_CLASS_HEAVY)
+					if(HAS_TRAIT(H, TRAIT_HEAVYARMOR))
+						prob2defend -= 5
+					else
+						prob2defend -= 20
+
+		prob2defend = clamp(prob2defend, 5, 95)
 
 		//------------Dual Wielding Checks------------
 		var/attacker_dualw

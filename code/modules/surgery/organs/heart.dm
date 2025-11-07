@@ -117,7 +117,7 @@
 			if(prob(5) && !H.stat)
 				to_chat(H, span_warning("My heart aches!"))
 		else if(damage > 0)
-			H.adjustStaminaLoss(damage_ratio * 2)
+			H.stamina_add(-damage_ratio * 2)
 			if(prob(2) && !H.stat)
 				to_chat(H, span_warning("My chest feels tight."))
 
