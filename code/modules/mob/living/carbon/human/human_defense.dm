@@ -101,16 +101,22 @@
 					var/effective_armor = val * effectiveness
 
 					// Apply blunt weapon modifiers based on armor class
-					if(blade_dulling in list(BCLASS_BLUNT, BCLASS_SMASH) && d_type == "blunt")
+					if(d_type == "blunt")
 						var/blunt_modifier = 0
+						var/ishelmet = (istype(used, /obj/item/clothing/head/roguetown/helmet) && used.armor_class == ARMOR_CLASS_NONE)
 						switch(C.armor_class)
 							if(ARMOR_CLASS_LIGHT)
-								blunt_modifier = -25  // -25 AP vs light armor (easier to penetrate)
+								blunt_modifier = -25
 							if(ARMOR_CLASS_MEDIUM)
-								blunt_modifier = 0    // No modifier vs medium
+								blunt_modifier = 20
 							if(ARMOR_CLASS_HEAVY)
-								blunt_modifier = 50   // +50 AP vs heavy armor (better at crushing through)
-						// Apply the modifier to effective penetration against this armor
+								blunt_modifier = 35
+
+						if(ishelmet)
+							if(istype(used, /obj/item/clothing/head/roguetown/helmet/bascinet) || istype(used, /obj/item/clothing/head/roguetown/helmet/heavy) || istype(used, /obj/item/clothing/head/roguetown/helmet/sallet) || istype(used, /obj/item/clothing/head/roguetown/helmet/kettle) || istype(used, /obj/item/clothing/head/roguetown/helmet/skullcap) || istype(used, /obj/item/clothing/head/roguetown/helmet/coppercap) || istype(used, /obj/item/clothing/head/roguetown/helmet/horned) || istype(used, /obj/item/clothing/head/roguetown/helmet/winged) || istype(used, /obj/item/clothing/head/roguetown/helmet/elvenbarbute) || istype(used, /obj/item/clothing/head/roguetown/helmet/blacksteel)) // I hate this, PLEASE clean up your typetree or assign these a fucking armor class bros
+								blunt_modifier = 50
+							else if(!istype(used, /obj/item/clothing/head/roguetown/helmet/leather) && !istype(used, /obj/item/clothing/head/roguetown/helmet/bandana))
+								blunt_modifier = 20
 						var/modified_pen = armor_penetration + blunt_modifier
 						effective_armor = max(effective_armor - modified_pen, 0)
 					else
