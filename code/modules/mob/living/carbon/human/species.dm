@@ -1788,8 +1788,8 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 						user.visible_message(span_notice("[user] rips [I] out of [H]'s [affecting.name]!"), span_notice("I rip [I] from [H]'s [affecting.name]."))
 			I.do_special_attack_effect(user, affecting, intent, H, selzone)
 
-		// Get thrown if hit hard enough by a blunt weapon while not downed
-		if(user.used_intent.blade_class == BCLASS_BLUNT && !H.lying && !H.resting && !H.buckled && !H.buckle_lying)
+		// Get thrown if hit hard enough by a smash attack while not downed
+		if(user.used_intent.blade_class == BCLASS_SMASH && !H.lying && !H.resting && !H.buckled && !H.buckle_lying)
 			if((!HAS_TRAIT(H, TRAIT_BIGGUY) || (HAS_TRAIT(user, TRAIT_BIGGUY) && HAS_TRAIT(H, TRAIT_BIGGUY)))) // Only big guys can launch other big guys
 				var/throw_power = generic_stat_comparison(user.STASTR, max(H.STACON, H.STASTR))
 				if(HAS_TRAIT(user, TRAIT_BIGGUY))
