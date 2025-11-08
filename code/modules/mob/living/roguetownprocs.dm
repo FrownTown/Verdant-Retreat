@@ -362,10 +362,16 @@
 
 			if(weapon_parry == TRUE)
 				var/balance_diff_parry = 0
+				var/attacker_bclass = null
 				if(intenty.masteritem && used_weapon && istype(used_weapon, /obj/item/rogueweapon))
 					var/obj/item/rogueweapon/defender_weapon = used_weapon
 					balance_diff_parry = defender_weapon.wbalance - intenty.masteritem.wbalance
-				var/parry_result = do_parry(used_weapon, drained, user, balance_diff_parry)
+				if(intenty)
+					attacker_bclass = intenty.blade_class
+				var/shield_drain = drained
+				if(used_weapon && istype(used_weapon, /obj/item/rogueweapon/shield))
+					shield_drain = ceil(drained / 2)
+				var/parry_result = do_parry(used_weapon, shield_drain, user, balance_diff_parry, attacker_bclass)
 				if(parry_result == PARRY_DISARM)
 					if(used_weapon)
 						dropItemToGround(used_weapon, TRUE)
@@ -535,7 +541,7 @@
 		dodge_candidates += dodge_candidate
 	return dodge_candidates
 
-/mob/proc/do_parry(obj/item/W, parrydrain as num, mob/living/user, balance_diff = 0)
+/mob/proc/do_parry(obj/item/W, parrydrain as num, mob/living/user, balance_diff = 0, attacker_bclass = null)
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		var/stamina_before = H.stamina
@@ -557,7 +563,21 @@
 			if(W.max_blade_int)
 				W.remove_bintegrity(SHARPNESS_ONHIT_DECAY, user)
 			else
-				W.take_damage(INTEG_PARRY_DECAY_NOSHARP, BRUTE, "slash")
+				var/shield_damage = INTEG_PARRY_DECAY_NOSHARP
+				if(istype(W, /obj/item/rogueweapon/shield) && attacker_bclass)
+					var/degradation_mult = 1.0
+					if(istype(W, /obj/item/rogueweapon/shield/wood) && attacker_bclass == BCLASS_CHOP)
+						degradation_mult = ARMOR_DEGR_CUT_LIGHT
+					else
+						switch(attacker_bclass)
+							if(BCLASS_BLUNT, BCLASS_SMASH)
+								degradation_mult = ARMOR_DEGR_BLUNT_HEAVY
+							if(BCLASS_CUT, BCLASS_CHOP)
+								degradation_mult = ARMOR_DEGR_CUT_HEAVY
+							if(BCLASS_STAB, BCLASS_PICK, BCLASS_PIERCE)
+								degradation_mult = ARMOR_DEGR_PIERCE_HEAVY
+						shield_damage *= degradation_mult
+				W.take_damage(shield_damage, BRUTE, "slash")
 			return TRUE
 		else
 			to_chat(src, span_warning("I'm too tired to parry!"))
