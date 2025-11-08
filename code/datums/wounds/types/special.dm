@@ -1,21 +1,3 @@
-GLOBAL_LIST_INIT(brain_penetration_messages, list(
-	"MY HEAD!",
-	"I CAN'T THINK!",
-	"EVERYTHING IS GOING DARK!",
-))
-
-GLOBAL_LIST_INIT(heart_penetration_messages, list(
-	"MY HEART!",
-	"MY CHEST!",
-	"I'M DYING!",
-))
-
-GLOBAL_LIST_INIT(lung_penetration_messages, list(
-	"I CAN'T BREATHE!",
-	"MY LUNG!",
-	"I'M CHOKING!",
-))
-
 /datum/wound/facial
 	name = "facial trauma"
 	sound_effect = 'sound/combat/crit.ogg'
@@ -437,15 +419,15 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 	bodypart_owner?.grievously_wounded = FALSE
 	. = ..()
 
-/datum/wound/lethal
+/datum/wound/lethal // for wounds that cause organ penetration and similar, can't use greivous for this since that prevents dismemberment
 	name = "lethal wound"
 	severity = WOUND_SEVERITY_FATAL
 	sound_effect = 'sound/combat/crit.ogg'
-	whp = 200
-	woundpain = 150
-	sewn_whp = 50
-	bleed_rate = 30
-	sewn_bleed_rate = 1
+	whp = 250
+	woundpain = 100
+	sewn_whp = 25
+	bleed_rate = 25
+	sewn_bleed_rate = 0.5
 	can_sew = TRUE
 	can_cauterize = TRUE
 	critical = TRUE
@@ -474,11 +456,15 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 		"The edge pierces through the cranium into the brain!"
 	)
 	bleed_rate = 20
-	woundpain = 200
 	mortal = TRUE
 
 /datum/wound/lethal/brain_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+	var/static/list/penetration_messages = list(
+		"MY HEAD!",
+		"I CAN'T THINK!",
+		"EVERYTHING IS GOING DARK!")
+
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		var/obj/item/organ/brain/B = carbon_affected.getorganslot(ORGAN_SLOT_BRAIN)
@@ -486,7 +472,7 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 			B.applyOrganDamage(organ_damage)
 	affected.Unconscious(30 SECONDS)
 	affected.Stun(30)
-	to_chat(affected, span_userdanger("[pick(GLOB.brain_penetration_messages)]"))
+	to_chat(affected, span_userdanger("[pick(penetration_messages)]"))
 
 /datum/wound/lethal/brain_penetration/on_mob_loss(mob/living/affected)
 	. = ..()
@@ -499,14 +485,20 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 		"The heart is pierced!",
 		"The blade penetrates straight through the heart!",
 		"The heart is skewered!",
-		"Steel runs through %VICTIM's heart!"
+		"The blade runs through %VICTIM's heart!"
 	)
 	bleed_rate = 35
-	woundpain = 150
+	woundpain = 250
 	mortal = TRUE
 
 /datum/wound/lethal/heart_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+	var/static/list/penetration_messages = list(
+		"MY HEART!",
+		"MY CHEST!",
+		"I'M DYING!",
+		"OH GODS, THE PAIN!")
+
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		carbon_affected.vomit(blood = TRUE)
@@ -517,7 +509,7 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 				addtimer(CALLBACK(carbon_affected, TYPE_PROC_REF(/mob/living/carbon, set_heartattack), TRUE), 3 SECONDS)
 	affected.Stun(30)
 	shake_camera(affected, 4, 4)
-	to_chat(affected, span_userdanger("[pick(GLOB.heart_penetration_messages)]"))
+	to_chat(affected, span_userdanger("[pick(penetration_messages)]"))
 
 /datum/wound/lethal/heart_penetration/on_life()
 	. = ..()
@@ -537,7 +529,7 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 		"The lung is pierced!",
 		"Air escapes from the punctured lung!",
 		"The lung collapses!",
-		"The blade runs through the lung!"
+		"The blade runs through %VICTIM's lung!"
 	)
 	bleed_rate = 15
 	woundpain = 100
@@ -545,8 +537,14 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 
 /datum/wound/lethal/lung_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+
+	var/static/list/penetration_messages = list(
+		"I CAN'T BREATHE!",
+		"MY LUNGS!",
+		"I'M CHOKING!")
+
 	affected.Stun(20)
-	to_chat(affected, span_userdanger("[pick(GLOB.lung_penetration_messages)]"))
+	to_chat(affected, span_userdanger("[pick(penetration_messages)]"))
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		var/obj/item/organ/lungs/L = carbon_affected.getorganslot(ORGAN_SLOT_LUNGS)
@@ -568,7 +566,7 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 	crit_message = list(
 		"The liver is pierced!",
 		"The blade punctures through the liver!",
-		"The liver is impaled!",
+		"The liver is punctured!",
 		"The liver is torn open!"
 	)
 	bleed_rate = 25
@@ -584,7 +582,7 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 		if(L)
 			L.applyOrganDamage(organ_damage)
 	affected.Stun(15)
-	to_chat(affected, span_userdanger("MY GUT!"))
+	to_chat(affected, span_userdanger("MY GUTS!"))
 
 /datum/wound/lethal/liver_penetration/on_life()
 	. = ..()
@@ -618,7 +616,7 @@ GLOBAL_LIST_INIT(lung_penetration_messages, list(
 		if(S)
 			S.applyOrganDamage(organ_damage)
 	affected.Stun(15)
-	to_chat(affected, span_userdanger("MY STOMACH!"))
+	to_chat(affected, span_userdanger("MY GUTS!"))
 
 /datum/wound/lethal/stomach_penetration/on_life()
 	. = ..()
