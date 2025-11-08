@@ -49,6 +49,10 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/infernal/imp/dungeon
 	purge_worth = TRUE
 
+/mob/living/simple_animal/hostile/retaliate/rogue/infernal/imp/Initialize()
+	. = ..()
+	ADD_TRAIT(src, TRAIT_SILVER_WEAK, TRAIT_GENERIC)
+
 /obj/projectile/magic/firebolt
 	name = "ball of fire"
 	icon_state = "fireball"

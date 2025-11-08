@@ -18,7 +18,7 @@
 	announce_latejoin = FALSE
 	min_pq = 3
 	max_pq = null
-	round_contrib_points = 5
+	round_contrib_points = 3
 
 	advclass_cat_rolls = list(CTAG_BANDIT = 20)
 	PQ_boost_divider = 10
@@ -39,6 +39,10 @@
 		/datum/advclass/roguemage,
 		/datum/advclass/sawbones,
 		/datum/advclass/sellsword
+	)
+
+	virtue_restrictions = list(
+		/datum/virtue/combat/vampire,
 	)
 
 /datum/job/roguetown/bandit/after_spawn(mob/living/L, mob/M, latejoin = TRUE)

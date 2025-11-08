@@ -55,6 +55,7 @@
 		TRAIT_ZOMBIE_IMMUNE,
 		TRAIT_ROTMAN,
 		TRAIT_NORUN,
+		TRAIT_SILVER_WEAK,
 		TRAIT_DEADITE
 	)
 	/// Traits applied to the owner when we are cured and turn into just "rotmen"
@@ -66,6 +67,7 @@
 		TRAIT_TOXIMMUNE,
 		TRAIT_ZOMBIE_IMMUNE,
 		TRAIT_ROTMAN,
+		TRAIT_SILVER_WEAK,
 	)
 
 /datum/antagonist/zombie/examine_friendorfoe(datum/antagonist/examined_datum,mob/examiner,mob/examined)

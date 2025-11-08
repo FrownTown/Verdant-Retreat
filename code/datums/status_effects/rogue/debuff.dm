@@ -36,33 +36,6 @@
 	desc = "My body can barely hold it!"
 	icon_state = "hunger3"
 
-//SILVER DAGGER EFFECT
-
-/datum/status_effect/debuff/silver_curse
-	id = "silver_curse"
-	alert_type = /atom/movable/screen/alert/status_effect/debuff/silver_curse
-	effectedstats = list("strength" = -2,"perception" = -2,"intelligence" = -2, "constitution" = -2, "endurance" = -2, "speed" = -2)
-	duration = 45 SECONDS
-
-/atom/movable/screen/alert/status_effect/debuff/silver_curse
-	name = "Silver Curse"
-	desc = "My BANE!"
-	icon_state = "hunger3"
-
-/datum/status_effect/debuff/silver_curse_weaker
-	id = "silver_curse_weaker"
-	alert_type = /atom/movable/screen/alert/status_effect/debuff/silver_curse_weaker
-	effectedstats = list("strength" = -1,"perception" = -1,"intelligence" = -1, "speed" = -1)
-	duration = 20 SECONDS
-
-/atom/movable/screen/alert/status_effect/debuff/silver_curse_weaker
-	name = "Silver Curse, Lesser"
-	desc = "My BANE!"
-	icon_state = "hunger3"
-
-////////////////////
-
-
 /datum/status_effect/debuff/thirstyt1
 	id = "thirsty1"
 	alert_type = /atom/movable/screen/alert/status_effect/debuff/thirstyt1
@@ -290,16 +263,77 @@
 	desc = "I can barely feel my limbs!"
 	icon_state = "chilled"
 
-
-/datum/status_effect/debuff/ritesexpended
-	id = "ritesexpended"
-	alert_type = /atom/movable/screen/alert/status_effect/debuff/ritesexpended
+/datum/status_effect/debuff/ritesexpended_high
+	id = "ritesexpended_high"
+	alert_type = /atom/movable/screen/alert/status_effect/debuff/ritesexpended_high
 	duration = 30 MINUTES
 
-/atom/movable/screen/alert/status_effect/debuff/ritesexpended
+/atom/movable/screen/alert/status_effect/debuff/ritesexpended_high
 	name = "Rites Complete"
 	desc = "It will take time before I can next perform a rite."
 	icon_state = "ritesexpended"
+
+/datum/status_effect/debuff/ritesexpended_high/on_apply()
+	. = ..()
+	ADD_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_high/on_remove()
+	. = ..()
+	REMOVE_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_medium
+	id = "ritesexpended_medium"
+	alert_type = /atom/movable/screen/alert/status_effect/debuff/ritesexpended_medium
+	duration = 20 MINUTES
+
+/atom/movable/screen/alert/status_effect/debuff/ritesexpended_medium
+	name = "Rites Complete"
+	desc = "It will take time before I can next perform a rite."
+	icon_state = "ritesexpended"
+
+/datum/status_effect/debuff/ritesexpended_medium/on_apply()
+	. = ..()
+	ADD_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_medium/on_remove()
+	. = ..()
+	REMOVE_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_low
+	id = "ritesexpended_low"
+	alert_type = /atom/movable/screen/alert/status_effect/debuff/ritesexpended_low
+	duration = 10 MINUTES
+
+/atom/movable/screen/alert/status_effect/debuff/ritesexpended_low
+	name = "Rites Complete"
+	desc = "It will take time before I can next perform a rite."
+	icon_state = "ritesexpended"
+
+/datum/status_effect/debuff/ritesexpended_low/on_apply()
+	. = ..()
+	ADD_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_low/on_remove()
+	. = ..()
+	REMOVE_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_low_very
+	id = "ritesexpended_low_very"
+	alert_type = /atom/movable/screen/alert/status_effect/debuff/ritesexpended_low_very
+	duration = 5 MINUTES
+
+/atom/movable/screen/alert/status_effect/debuff/ritesexpended_low_very
+	name = "Rites Complete"
+	desc = "It will take time before I can next perform a rite."
+	icon_state = "ritesexpended"
+
+/datum/status_effect/debuff/ritesexpended_low_very/on_apply()
+	. = ..()
+	ADD_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
+
+/datum/status_effect/debuff/ritesexpended_low_very/on_remove()
+	. = ..()
+	REMOVE_TRAIT(owner, TRAIT_RITES_BLOCKED, TRAIT_MIRACLE)
 
 /datum/status_effect/debuff/call_to_arms
 	id = "call_to_arms"
@@ -524,6 +558,17 @@
 /atom/movable/screen/alert/status_effect/debuff/cold
 	name = "Cold"
 	desc = "Something has chilled me to the bone! It's hard to move."
+	icon_state = "muscles"
+
+/datum/status_effect/debuff/sunspurn
+	id = "Sunspurn"
+	alert_type =  /atom/movable/screen/alert/status_effect/debuff/sunspurn
+	effectedstats = list("strength" = -2, "endurance" = -3, "constitution" = -3)
+	duration = 1 MINUTES
+
+/atom/movable/screen/alert/status_effect/debuff/sunspurn
+	name = "Sunspurned"
+	desc = "Astrata spurns me! I feel so weak..."
 	icon_state = "muscles"
 
 ///////////////////////
@@ -792,3 +837,24 @@
 /////////////////////////////
 ///HARPY FLIGHT STUFF END///
 ///////////////////////////
+
+/datum/status_effect/debuff/quest_lock
+	id = "quest_lock"
+	alert_type = /atom/movable/screen/alert/status_effect/debuff/quest_lock
+	duration = 20 MINUTES
+
+/atom/movable/screen/alert/status_effect/debuff/quest_lock
+	name = "Edict of the Ten"
+	desc = "A sliver of sacred favor clings to you. Followers of the Ten will not enlist your aid in their routine."
+	icon_state = "debuff"
+
+/datum/status_effect/debuff/silver_curse
+	id = "silver_curse"
+	alert_type = /atom/movable/screen/alert/status_effect/debuff/silver_curse
+	effectedstats = list("strength" = -2,"perception" = -2,"intelligence" = -2, "constitution" = -2, "endurance" = -2, "speed" = -2)
+	duration = 45 SECONDS
+
+/atom/movable/screen/alert/status_effect/debuff/silver_curse
+	name = "Silver Curse"
+	desc = "My BANE!"
+	icon_state = "hunger3"

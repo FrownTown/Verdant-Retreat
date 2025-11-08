@@ -104,6 +104,10 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	name = "Heavy Hood"
 	path = /obj/item/clothing/head/roguetown/roguehood/shalal/heavyhood
 
+/datum/loadout_item/scarf
+	name = "Scarf"
+	path = /obj/item/clothing/head/roguetown/scarf
+
 /datum/loadout_item/nunveil
 	name = "Nun Veil"
 	path = /obj/item/clothing/head/roguetown/nun
@@ -402,6 +406,14 @@ GLOBAL_LIST_EMPTY(loadout_items)
 /datum/loadout_item/nun_habit
 	name = "Nun Habit"
 	path = /obj/item/clothing/suit/roguetown/shirt/robe/nun
+
+/datum/loadout_item/handcarved_kitsune_mask
+	name = "Handcarved Kitsune Mask"
+	path = /obj/item/clothing/mask/rogue/facemask/cheap_kitsune
+
+/datum/loadout_item/handcarved_oni_mask
+	name = "Handcarved Oni Mask"
+	path = /obj/item/clothing/mask/rogue/facemask/cheap_oni
 
 /datum/loadout_item/worn_dobo_robe
 	name = "Worn Dobo Robe"

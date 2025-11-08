@@ -12,6 +12,7 @@
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_ages = list(AGE_ADULT)
 	advclass_cat_rolls = list(CTAG_HEIR = 20)
+	social_rank = SOCIAL_RANK_ROYAL
 
 	tutorial = "You've never felt the gnawing of the winter, never known the bite of hunger and certainly have never known a honest day's work. You are as free as any bird in the sky, and you may revel in your debauchery for as long as your parents remain upon the throne: But someday you'll have to grow up, and that will be the day your carelessness will cost you more than a few mammons."
 
@@ -87,7 +88,7 @@
 		belt = /obj/item/storage/belt/rogue/leather
 		l_hand = /obj/item/rogueweapon/sword/sabre
 		beltl = /obj/item/rogueweapon/scabbard/sword
-		beltr = /obj/item/storage/keyring/heir
+		beltr = /obj/item/storage/keyring/heir/warrior
 		neck = /obj/item/storage/belt/rogue/pouch/coins/rich
 		backr = /obj/item/storage/backpack/rogue/satchel
 	else
@@ -100,7 +101,7 @@
 			shirt = /obj/item/clothing/suit/roguetown/shirt/dress/royal/princess
 		head = /obj/item/clothing/head/roguetown/circlet
 		belt = /obj/item/storage/belt/rogue/leather/cloth/lady
-		beltr = /obj/item/storage/keyring/heir
+		beltr = /obj/item/storage/keyring/heir/warrior
 		beltl = /obj/item/rogueweapon/huntingknife/idagger/steel/special
 		backr = /obj/item/storage/backpack/rogue/satchel
 		shoes = /obj/item/clothing/shoes/roguetown/boots/nobleboot
@@ -142,7 +143,7 @@
 		shirt = /obj/item/clothing/suit/roguetown/shirt/dress/royal/princess
 	head = /obj/item/clothing/head/roguetown/circlet
 	belt = /obj/item/storage/belt/rogue/leather/cloth/lady
-	beltr = /obj/item/storage/keyring/heir
+	beltr = /obj/item/storage/keyring/heir/mage
 	beltl = /obj/item/rogueweapon/huntingknife/idagger/steel/special
 	backr = /obj/item/storage/backpack/rogue/satchel
 	shoes = /obj/item/clothing/shoes/roguetown/boots/nobleboot

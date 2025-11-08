@@ -126,7 +126,7 @@
 /mob/living/proc/handle_inwater(turf/onturf, extinguish = TRUE, force_drown = FALSE)
 	if(!extinguish)
 		return
-	ExtinguishMob()
+	extinguish_mob()
 
 /mob/living/carbon/handle_inwater(turf/onturf, extinguish = TRUE, force_drown = FALSE)
 	..()

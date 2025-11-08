@@ -1,9 +1,9 @@
-/mob/living/carbon/human/getarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item = null)
+/mob/living/carbon/human/getarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item = null, used_weapon)
 	var/armorval = 0
 	var/organnum = 0
 
 	if(def_zone)
-		return checkarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item)
+		return checkarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, used_weapon)
 		//If a specific bodypart is targetted, check how that bodypart is protected and return the value.
 
 	//If you don't specify a bodypart, it checks ALL my bodyparts for protection, and averages out the values
@@ -12,7 +12,6 @@
 		armorval += checkarmor(BP, type, damage, armor_penetration)
 		organnum++
 	return (armorval/max(organnum, 1))
-
 
 /mob/living/carbon/human/proc/get_best_armor(def_zone, d_type, blade_dulling = null, armor_penetration = 0)
 	if(!d_type)
@@ -134,6 +133,12 @@
 			if(used.armor?.getRating("blunt") > 0)
 				var/bluntrating = used.armor.getRating("blunt")
 				intdamage -= intdamage * ((bluntrating / 2) / 100)	//Half of the blunt rating reduces blunt damage taken by %-age.
+		if(istype(used_weapon) && used_weapon.is_silver && ((used.smeltresult in list(/obj/item/ingot/aaslag, /obj/item/ingot/aalloy, /obj/item/ingot/purifiedaalloy)) || used.GetComponent(/datum/component/cursed_item)))
+			// Blessed silver delivers more int damage against "cursed" alloys, see component for multiplier values
+			var/datum/component/silverbless/bless = used_weapon.GetComponent(/datum/component/silverbless)
+			if(bless.is_blessed)
+				// Apply multiplier if the blessing is active.
+				intdamage = round(intdamage * bless.cursed_item_intdamage)
 
 		// Armor degradation multipliers based on damage type vs armor class
 		var/degradation_mult = 1.0
@@ -144,20 +149,28 @@
 					// Blunt damage: lowest vs light, highest vs heavy
 					switch(armor_piece.armor_class)
 						if(ARMOR_CLASS_LIGHT)
-							degradation_mult = 0.25
+							degradation_mult = 0.15
+						if(ARMOR_CLASS_MEDIUM)
+							degradation_mult = 0.35
 						if(ARMOR_CLASS_HEAVY)
-							degradation_mult = 2.0
+							degradation_mult = 1.25
 				if(BCLASS_CUT, BCLASS_CHOP)
 					// Cutting damage: more vs light, lowest vs heavy
 					switch(armor_piece.armor_class)
 						if(ARMOR_CLASS_LIGHT)
-							degradation_mult = 1.5
-						if(ARMOR_CLASS_HEAVY)
+							degradation_mult = 1.1
+						if(ARMOR_CLASS_MEDIUM)
 							degradation_mult = 0.25
+						if(ARMOR_CLASS_HEAVY)
+							degradation_mult = 0.15
 				if(BCLASS_STAB, BCLASS_PICK, BCLASS_PIERCE)
-					// Stabbing/piercing: more vs medium
-					if(armor_piece.armor_class == ARMOR_CLASS_MEDIUM)
-						degradation_mult = 1.25
+					switch(armor_piece.armor_class)
+						if(ARMOR_CLASS_LIGHT)
+							degradation_mult = 0.65
+						if(ARMOR_CLASS_MEDIUM)
+							degradation_mult = 1
+						if(ARMOR_CLASS_HEAVY)
+							degradation_mult = 0.55
 
 		intdamage *= degradation_mult
 		used.take_damage(intdamage, damage_flag = d_type, sound_effect = FALSE, armor_penetration = 100)
@@ -910,3 +923,68 @@
 
 	for(var/obj/item/I in torn_items)
 		I.take_damage(damage_amount, damage_type, damage_flag, 0)
+
+/mob/living/carbon/human/on_fire_stack(seconds_per_tick, datum/status_effect/fire_handler/fire_stacks/fire_handler)
+	//SEND_SIGNAL(src, COMSIG_HUMAN_BURNING)
+	burn_clothing(seconds_per_tick, fire_handler.stacks)
+	var/no_protection = FALSE
+	fire_handler.harm_human(seconds_per_tick, no_protection)
+
+/**
+ * Used by fire code to damage worn items.
+ *
+ * Arguments:
+ * - seconds_per_tick
+ * - times_fired
+ * - stacks: Current amount of firestacks
+ *
+ */
+
+/mob/living/carbon/human/proc/burn_clothing(seconds_per_tick, stacks)
+	//the fire tries to damage the exposed clothes and items
+	var/list/burning_items = list()
+	var/list/obscured = check_obscured_slots(TRUE)
+	//HEAD//
+
+	if(glasses && !(SLOT_GLASSES in obscured))
+		burning_items += glasses
+	if(wear_mask && !(SLOT_WEAR_MASK in obscured))
+		burning_items += wear_mask
+	if(wear_neck && !(SLOT_NECK in obscured))
+		burning_items += wear_neck
+	if(head && !(SLOT_HEAD in obscured))
+		burning_items += head
+
+	//CHEST//
+	if(wear_pants && !(SLOT_PANTS in obscured))
+		burning_items += wear_pants
+	if(wear_shirt && !(SLOT_SHIRT in obscured))
+		burning_items += wear_shirt
+	if(wear_armor && !(SLOT_ARMOR in obscured))
+		burning_items += wear_armor
+
+	//ARMS & HANDS//
+	var/obj/item/clothing/arm_clothes = null
+	if(gloves && !(SLOT_GLOVES in obscured))
+		arm_clothes = gloves
+	else if(wear_armor && ((wear_armor.body_parts_covered & HANDS) || (wear_armor.body_parts_covered & ARMS)))
+		arm_clothes = wear_armor
+	else if(wear_pants && ((wear_pants.body_parts_covered & HANDS) || (wear_pants.body_parts_covered & ARMS)))
+		arm_clothes = wear_pants
+	if(arm_clothes)
+		burning_items |= arm_clothes
+
+	//LEGS & FEET//
+	var/obj/item/clothing/leg_clothes = null
+	if(shoes && !(SLOT_SHOES in obscured))
+		leg_clothes = shoes
+	else if(wear_armor && ((wear_armor.body_parts_covered & FEET) || (wear_armor.body_parts_covered & LEGS)))
+		leg_clothes = wear_armor
+	else if(wear_pants && ((wear_pants.body_parts_covered & FEET) || (wear_pants.body_parts_covered & LEGS)))
+		leg_clothes = wear_pants
+	if(leg_clothes)
+		burning_items |= leg_clothes
+
+	for(var/X in burning_items)
+		var/obj/item/I = X
+		I.fire_act(stacks * 25 * seconds_per_tick) //damage taken is reduced to 2% of this value by fire_act()

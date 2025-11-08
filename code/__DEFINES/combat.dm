@@ -212,6 +212,7 @@
 #define BCLASS_BURN			"charring"
 #define BCLASS_EFFECT		"effect"
 #define BCLASS_PUNISH		"punish"
+#define BCLASS_SUNDER       "sunder"
 
 //Material class (what material is striking)
 #define MCLASS_GENERIC		1
@@ -366,3 +367,6 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define UNARMED_DAMAGE_DEFAULT		12
 #define STR_PEN_FACTOR			5
 #define PER_PEN_FACTOR		3
+
+/// Damage multiplier of silver weapons against mobs with TRAIT_SIMPLE_WOUNDS
+#define SILVER_SIMPLEMOB_DAM_MULT 2

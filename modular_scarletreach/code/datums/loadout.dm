@@ -28,4 +28,4 @@
 /datum/loadout_item/donator_vizendel
 	name = "Donator Kit - Scarred Warscholar's Mask"
 	path = /obj/item/enchantingkit/vizendel
-	ckeywhitelist = list("Vizendel")
+	ckeywhitelist = list("vizendel")

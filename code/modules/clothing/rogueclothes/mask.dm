@@ -403,7 +403,7 @@
 		ADD_TRAIT(user, TRAIT_PACIFISM, "cursedmask")
 		ADD_TRAIT(user, TRAIT_SPELLCOCKBLOCK, "cursedmask")
 		if(HAS_TRAIT(user, TRAIT_RITUALIST))
-			user.apply_status_effect(/datum/status_effect/debuff/ritesexpended)
+			user.apply_status_effect(/datum/status_effect/debuff/ritesexpended_high)
 		var/timer = 5 MINUTES //Base timer is 5 minutes, additional time added per bounty amount
 
 		if(bounty_amount >= 10)
@@ -443,7 +443,6 @@
 	name = "ancient mask"
 	desc = "A mask forged of ancient alloys. Aeon's grasp has been lifted from its form."
 	icon_state = "ancientmask"
-
 
 /obj/item/clothing/mask/rogue/facemask/steel/hound
 	name = "steel hound mask"
@@ -491,13 +490,35 @@
 
 /obj/item/clothing/mask/rogue/facemask/yoruku_oni
 	name = "oni mask"
-	desc = "A wood mask carved in the visage of demons said to stalk the mountains of Kazengun."
+	desc = "A steel mask in the visage of demons said to stalk the mountains of Kazengun."
 	icon_state = "oni"
 
 /obj/item/clothing/mask/rogue/facemask/yoruku_kitsune
 	name = "kitsune mask"
+	desc = "A steel mask in the visage of the fox spirits said to ply their tricks in the forests of Kazengun."
+	icon_state = "kitsune"
+
+/obj/item/clothing/mask/rogue/facemask/cheap_oni
+	name = "handcarved oni mask"
+	desc = "A wood mask carved in the visage of demons said to stalk the mountains of Kazengun. This one seems to be carved out of wood and painted."
+	icon_state = "oni"
+	flags_inv = HIDEFACE|HIDEFACIALHAIR|HIDESNOUT
+	slot_flags = ITEM_SLOT_MASK|ITEM_SLOT_HIP
+	armor = ARMOR_PADDED_BAD
+	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT)
+	armor = list("blunt" = 10, "slash" = 10, "stab" = 10, "piercing" = 10, "fire" = 0, "acid" = 0)
+	anvilrepair = /datum/skill/craft/carpentry
+
+/obj/item/clothing/mask/rogue/facemask/cheap_kitsune
+	name = "handcarved kitsune mask"
 	desc = "A wood mask carved in the visage of the fox spirits said to ply their tricks in the forests of Kazengun."
 	icon_state = "kitsune"
+	flags_inv = HIDEFACE|HIDEFACIALHAIR|HIDESNOUT
+	slot_flags = ITEM_SLOT_MASK|ITEM_SLOT_HIP
+	armor = ARMOR_PADDED_BAD
+	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT)
+	armor = list("blunt" = 10, "slash" = 10, "stab" = 10, "piercing" = 10, "fire" = 0, "acid" = 0)
+	anvilrepair = /datum/skill/craft/carpentry
 
 /obj/item/clothing/mask/rogue/shepherd
 	name = "halfmask"
@@ -525,7 +546,6 @@
 	body_parts_covered = FACE|EYES|MOUTH
 	slot_flags = ITEM_SLOT_MASK|ITEM_SLOT_HIP
 	sewrepair = TRUE
-
 
 /obj/item/clothing/mask/rogue/skullmask
 	name = "skull mask"
