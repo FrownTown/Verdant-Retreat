@@ -625,7 +625,9 @@
 	if(ishuman(src))
 		H = src
 		// Adjust dodge stamina based on armor weight
-		if(H.wear_armor && istype(H.wear_armor, /obj/item/clothing) || H.wear_pants && istype(H.wear_pants, /obj/item/clothing))
+		var/chest_armored = H.wear_armor && istype(H.wear_armor, /obj/item/clothing) 
+		var/legs_armored = H.wear_pants && istype(H.wear_pants, /obj/item/clothing)
+		if(chest_armored || legs_armored)
 			var/armor_class = highest_ac_worn()
 			switch(armor_class)
 				if(ARMOR_CLASS_LIGHT)
@@ -693,10 +695,9 @@
 		if(HAS_TRAIT(H, TRAIT_CURSE_RAVOX))
 			prob2defend -= 30
 
-		if(H.wear_armor && istype(H.wear_armor, /obj/item/clothing))
-			var/obj/item/clothing/armor = H.wear_armor
-			switch(armor.armor_class)
-				if(ARMOR_CLASS_LIGHT)
+		if(chest_armored || legs_armored)
+			switch(armor_class)
+				if(ARMOR_CLASS_LIGHT, ARMOR_CLASS_NONE)
 					if(HAS_TRAIT(H, TRAIT_DODGEEXPERT))
 						prob2defend += max(5, 20 - ((H.STASPD - 10) * 5))
 					else
