@@ -359,14 +359,16 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 
 		if((damage_dividend >= 0.7 || limb_damage_bypass) && prob(used))
 			if(zone_precise == BODY_ZONE_CHEST)
-				if(prob(40))
+				// Check for heart first, then lungs
+				if(prob(40) && owner.getorganslot(ORGAN_SLOT_HEART))
 					attempted_wounds += new /datum/wound/lethal/heart_penetration(dam)
-				else
+				else if(owner.getorganslot(ORGAN_SLOT_LUNGS))
 					attempted_wounds += new /datum/wound/lethal/lung_penetration(dam)
 			else if(zone_precise == BODY_ZONE_PRECISE_STOMACH)
-				if(prob(50))
+				// Check for liver first, then stomach
+				if(prob(50) && owner.getorganslot(ORGAN_SLOT_LIVER))
 					attempted_wounds += new /datum/wound/lethal/liver_penetration(dam)
-				else
+				else if(owner.getorganslot(ORGAN_SLOT_STOMACH))
 					attempted_wounds += new /datum/wound/lethal/stomach_penetration(dam)
 
 	if(bclass in GLOB.artery_bclasses)
@@ -378,14 +380,16 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 
 		if((damage_dividend >= 0.8 || limb_damage_bypass) && prob(used))
 			if(zone_precise == BODY_ZONE_CHEST)
-				if(prob(40))
+				// Check for heart first, then lungs
+				if(prob(40) && owner.getorganslot(ORGAN_SLOT_HEART))
 					attempted_wounds += new /datum/wound/lethal/heart_penetration(dam)
-				else
+				else if(owner.getorganslot(ORGAN_SLOT_LUNGS))
 					attempted_wounds += new /datum/wound/lethal/lung_penetration(dam)
 			else if(zone_precise == BODY_ZONE_PRECISE_STOMACH)
-				if(prob(50))
+				// Check for liver first, then stomach
+				if(prob(50) && owner.getorganslot(ORGAN_SLOT_LIVER))
 					attempted_wounds += new /datum/wound/lethal/liver_penetration(dam)
-				else
+				else if(owner.getorganslot(ORGAN_SLOT_STOMACH))
 					attempted_wounds += new /datum/wound/lethal/stomach_penetration(dam)
 
 	for(var/wound_type in shuffle(attempted_wounds))
@@ -520,7 +524,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		used = round(damage_dividend * 25 + (dam / 2) - 15 * resistance, 1)
 		if(user && istype(user.rmb_intent, /datum/rmb_intent/strong))
 			used += 15
-		if((damage_dividend >= 0.8 || limb_damage_bypass) && prob(used))
+		if((damage_dividend >= 0.8 || limb_damage_bypass) && prob(used) && owner.getorganslot(ORGAN_SLOT_BRAIN))
 			attempted_wounds += new /datum/wound/lethal/brain_penetration(dam)
 
 	for(var/wound_type in shuffle(attempted_wounds))
