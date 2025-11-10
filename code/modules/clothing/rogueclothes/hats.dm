@@ -57,6 +57,7 @@
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	sewrepair = TRUE
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/spellcasterhat/light
 	name = "tattered spellsinger hat"	//meant to be a weaker version you can spawn with in the loadout menu
@@ -95,6 +96,7 @@
 	max_integrity = 100
 	sewrepair = TRUE
 	block2add = FOV_BEHIND
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/roguehood/ComponentInitialize()
 	. = ..()
@@ -632,6 +634,7 @@
 	sewrepair = TRUE
 	salvage_result = /obj/item/natural/hide/cured
 	//dropshrink = 0.75
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/knitcap
 	name = "knit cap"
@@ -661,6 +664,7 @@
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
 	armor = ARMOR_SPELLSINGER // spellsinger hat stats
 	sewrepair = TRUE
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/headband/red
 	color = CLOTHING_RED
@@ -685,6 +689,7 @@
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	sellprice = 50
 	anvilrepair = /datum/skill/craft/armorsmithing
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/nyle
 	name = "jewel of nyle"
@@ -695,6 +700,7 @@
 	sellprice = 100
 	resistance_flags = FIRE_PROOF
 	anvilrepair = /datum/skill/craft/armorsmithing
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/nyle/consortcrown
 	name = "gem-encrusted crown"
@@ -727,6 +733,7 @@
 	icon_state = "reqhat"
 	sellprice = 100
 	anvilrepair = /datum/skill/craft/armorsmithing
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/headdress
 	name = "nemes"
@@ -769,6 +776,7 @@
 	max_integrity = 75
 	color = "#463C2B"
 	sewrepair = TRUE
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/helmet
 	icon = 'icons/roguetown/clothing/head.dmi'
@@ -794,7 +802,6 @@
 	grid_width = 64
 	experimental_onhip = TRUE
 	experimental_inhand = TRUE
-	var/gets_bellrung = FALSE
 
 /obj/item/clothing/head/roguetown/helmet/MiddleClick(mob/user)
 	if(!ishuman(user))
@@ -821,7 +828,6 @@
 	smeltresult = /obj/item/ingot/copper
 	armor = ARMOR_HEAD_HELMET_BAD
 	max_integrity = 150
-	gets_bellrung = TRUE
 
 /obj/item/clothing/head/roguetown/helmet/skullcap
 	name = "skull cap"
@@ -829,7 +835,6 @@
 	icon_state = "skullcap"
 	body_parts_covered = HEAD|HAIR
 	smeltresult = /obj/item/ingot/iron
-	gets_bellrung = TRUE
 
 /obj/item/clothing/head/roguetown/helmet/horned
 	name = "horned cap"
@@ -838,7 +843,6 @@
 	max_integrity = 225
 	body_parts_covered = HEAD|HAIR
 	smeltresult = /obj/item/ingot/iron
-	gets_bellrung = TRUE
 
 /obj/item/clothing/head/roguetown/helmet/winged
 	name = "winged cap"
@@ -850,7 +854,6 @@
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	body_parts_covered = HEAD|HAIR
-	gets_bellrung = TRUE
 
 /obj/item/clothing/head/roguetown/helmet/kettle
 	name = "kettle helmet"
@@ -859,7 +862,6 @@
 	max_integrity = 215
 	body_parts_covered = HEAD|HAIR|EARS
 	armor = ARMOR_HEAD_HELMET
-	gets_bellrung = TRUE
 
 /obj/item/clothing/head/roguetown/helmet/kettle/wide
 	name = "wide kettle helmet"
@@ -895,7 +897,6 @@
 	max_integrity = 215
 	smeltresult = /obj/item/ingot/steel
 	body_parts_covered = HEAD|HAIR|EARS
-	gets_bellrung = TRUE
 
 /obj/item/clothing/head/roguetown/helmet/sallet/beastskull
 	name = "beast skull"
@@ -1803,6 +1804,7 @@
 	sewrepair = TRUE
 	blocksound = SOFTHIT
 	salvage_result = /obj/item/natural/hide/cured
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/helmet/leather/volfhelm
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_HIP
@@ -1979,6 +1981,7 @@
 	color = "#262927"
 	detail_color = "#FFFFFF"
 	altdetail_color = "#9c2525"
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/grenzelhofthat/attack_right(mob/user)
 	..()

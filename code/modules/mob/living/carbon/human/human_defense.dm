@@ -13,7 +13,6 @@
 		organnum++
 	return (armorval/max(organnum, 1))
 
-
 /mob/living/carbon/human/proc/get_best_armor(def_zone, d_type, blade_dulling = null, armor_penetration = 0)
 	if(!d_type)
 		return null
@@ -38,22 +37,18 @@
 				var/effective_val = val
 				if(blade_dulling in list(BCLASS_BLUNT, BCLASS_SMASH) && d_type == "blunt")
 					var/blunt_modifier = 0
-					switch(C.armor_class)
-						if(ARMOR_CLASS_NONE)
-							var/ishelmet = (istype(C, /obj/item/clothing/head/roguetown/helmet))
-							if(ishelmet)
-								if(C:gets_bellrung)
-									blunt_modifier = 50
-								else if(istype(C, /obj/item/clothing/head/roguetown/helmet/leather))
-									blunt_modifier = -25
-								else
-									blunt_modifier = 20
+					var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
+
+					switch(effective_class)
 						if(ARMOR_CLASS_LIGHT)
 							blunt_modifier = -25  // Penalty against light armor
 						if(ARMOR_CLASS_MEDIUM)
-							blunt_modifier = 20    // Stable bonus against medium armor
+							blunt_modifier = 20    // Slight bonus against medium armor
 						if(ARMOR_CLASS_HEAVY)
-							blunt_modifier = 35   // Bonus against heavy armor
+							blunt_modifier = 35   // Significant bonus against heavy armor
+							if(istype(C, /obj/item/clothing/head/helmet))
+								blunt_modifier += 15 // Extra bonus against heavy helmets
+					
 					// Effective penetration for this armor
 					var/effective_pen = armor_penetration + blunt_modifier
 					// Reduce armor value by how much penetration we have
@@ -112,23 +107,17 @@
 					// Apply blunt weapon modifiers based on armor class
 					if(d_type == "blunt")
 						var/blunt_modifier = 0
-						
-						switch(C.armor_class)
-							if(ARMOR_CLASS_NONE)
-								var/ishelmet = (istype(used, /obj/item/clothing/head/roguetown/helmet))
-								if(ishelmet)
-									if(used:gets_bellrung)
-										blunt_modifier = 50
-									else if(istype(C, /obj/item/clothing/head/roguetown/helmet/leather))
-										blunt_modifier = -25
-									else
-										blunt_modifier = 20
+						var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
+
+						switch(effective_class)
 							if(ARMOR_CLASS_LIGHT)
 								blunt_modifier = -25
 							if(ARMOR_CLASS_MEDIUM)
 								blunt_modifier = 20
 							if(ARMOR_CLASS_HEAVY)
 								blunt_modifier = 35
+								if(istype(C, /obj/item/clothing/head/helmet))
+									blunt_modifier += 15
 
 						var/modified_pen = armor_penetration + blunt_modifier
 						effective_armor = max(effective_armor - modified_pen, 0)
@@ -164,11 +153,12 @@
 		var/degradation_mult = 1.0
 		if(istype(used, /obj/item/clothing))
 			var/obj/item/clothing/armor_piece = used
+			var/degrad_class = armor_piece.armor_class == ARMOR_CLASS_NONE ? armor_piece.integ_armor_mod : armor_piece.armor_class
+
 			switch(blade_dulling)
 				if(BCLASS_BLUNT, BCLASS_SMASH)
 					// Blunt damage: lowest vs light, highest vs heavy
-					switch(armor_piece.armor_class)
-						if(ARMOR_CLASS_NONE)
+					switch(degrad_class)
 						if(ARMOR_CLASS_LIGHT)
 							degradation_mult = ARMOR_DEGR_BLUNT_LIGHT
 						if(ARMOR_CLASS_MEDIUM)
@@ -177,8 +167,7 @@
 							degradation_mult = ARMOR_DEGR_BLUNT_HEAVY
 				if(BCLASS_CUT, BCLASS_CHOP)
 					// Cutting damage: more vs light, lowest vs heavy
-					switch(armor_piece.armor_class)
-						if(ARMOR_CLASS_NONE)
+					switch(degrad_class)
 						if(ARMOR_CLASS_LIGHT)
 							degradation_mult = ARMOR_DEGR_CUT_LIGHT
 						if(ARMOR_CLASS_MEDIUM)
@@ -186,8 +175,7 @@
 						if(ARMOR_CLASS_HEAVY)
 							degradation_mult = ARMOR_DEGR_CUT_HEAVY
 				if(BCLASS_STAB, BCLASS_PICK, BCLASS_PIERCE)
-					switch(armor_piece.armor_class)
-						if(ARMOR_CLASS_NONE)
+					switch(degrad_class)
 						if(ARMOR_CLASS_LIGHT)
 							degradation_mult = ARMOR_DEGR_PIERCE_LIGHT
 						if(ARMOR_CLASS_MEDIUM)
@@ -197,7 +185,7 @@
 
 		intdamage *= degradation_mult
 		used.take_damage(intdamage, damage_flag = d_type, sound_effect = FALSE, armor_penetration = 100)
-	// Apply armor effectiveness reduction
+	// Apply armor effectiveness reduction from lost integrity
 	protection *= armor_effectiveness
 
 	if(physiology)
