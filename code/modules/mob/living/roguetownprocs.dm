@@ -311,7 +311,7 @@
 			if(HAS_TRAIT(H, TRAIT_CURSE_RAVOX))
 				prob2defend -= 30
 
-			prob2defend = clamp(prob2defend, 5, 90)
+			prob2defend = clamp(prob2defend, 5, 95)
 			if(HAS_TRAIT(user, TRAIT_HARDSHELL) && H.client)	//Dwarf-merc specific limitation w/ their armor on in pvp
 				prob2defend = clamp(prob2defend, 5, 70)
 			if(!H?.check_armor_skill())
