@@ -8,7 +8,7 @@
 	subclass_social_rank = SOCIAL_RANK_DIRT
 
 	subclass_stats = list(
-		STATKEY_FOR = 2,
+		STATKEY_LCK = 2,
 		STATKEY_CON = 1,
 		STATKEY_STR = 1,
 		STATKEY_INT = -2

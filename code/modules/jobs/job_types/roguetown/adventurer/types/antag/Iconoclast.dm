@@ -48,6 +48,7 @@
 	pants = /obj/item/clothing/under/roguetown/trou/leather
 	r_hand = /obj/item/rogueweapon/woodstaff
 	shirt = /obj/item/clothing/suit/roguetown/shirt/shortshirt/random
+	neck = /obj/item/clothing/neck/roguetown/zcross/matthios
 	shoes = /obj/item/clothing/shoes/roguetown/shortboots
 	cloak = /obj/item/clothing/cloak/raincloak/furcloak/brown
 	backr = /obj/item/storage/backpack/rogue/satchel

@@ -543,6 +543,8 @@
 									new A(user.loc)
 									to_chat(user, "<span class='warning'>Pull 'em in!</span>")
 									user.mind.add_sleep_experience(/datum/skill/labor/fishing, round(fisherman.STAINT, 2), FALSE) // Level up!
+									record_featured_stat(FEATURED_STATS_FISHERS, fisherman)
+									record_round_statistic(STATS_FISH_CAUGHT)
 									playsound(src.loc, 'sound/items/Fish_out.ogg', 100, TRUE)
 							else
 								to_chat(user, "<span class='warning'>Damn, it got away... I should <b>pull away</b> next time.</span>")
@@ -563,6 +565,8 @@
 									new A(user.loc)
 									to_chat(user, "<span class='warning'>Pull 'em in!</span>")
 									user.mind.add_sleep_experience(/datum/skill/labor/fishing, round(fisherman.STAINT, 2), FALSE) // Level up!
+									record_featured_stat(FEATURED_STATS_FISHERS, fisherman)
+									record_round_statistic(STATS_FISH_CAUGHT)
 									playsound(src.loc, 'sound/items/Fish_out.ogg', 100, TRUE)
 							else
 								to_chat(user, "<span class='warning'>Damn, it got away... I should <b>pull away</b> next time.</span>")
@@ -583,6 +587,8 @@
 									new A(user.loc)
 									to_chat(user, "<span class='warning'>Pull 'em in!</span>")
 									user.mind.add_sleep_experience(/datum/skill/labor/fishing, round(fisherman.STAINT, 2), FALSE) // Level up!
+									record_featured_stat(FEATURED_STATS_FISHERS, fisherman)
+									record_round_statistic(STATS_FISH_CAUGHT)
 									playsound(src.loc, 'sound/items/Fish_out.ogg', 100, TRUE)
 							else
 								to_chat(user, "<span class='warning'>Damn, it got away... I should <b>pull away</b> next time.</span>")

@@ -1,6 +1,6 @@
 /datum/virtue/origin/racial/reach
 	name = "Reachmen"
-	desc = "I originate from the dark forests of Scarlet Reach, an independent domain sandwiched between Otava and Grenzelhoft. Famed for its delicious waffles and many ancient ruins, it is neither prosperous nor well-respected.<br>"
+	desc = "I originate from the dark forests of Scarlet Reach, an independent domain sandwiched between Otava and Grenzelhoft. Famed for its delicious waffles and many ancient ruins, it is neither prosperous nor well-respected."
 	custom_text = "Grants free language."
 	extra_language = TRUE
 	races = list(/datum/species/human/northern,
@@ -163,7 +163,7 @@
 
 /datum/virtue/origin/racial/underdark
 	name = "Underdweller"
-	desc = "I originate from the treacherous Underdark, a cavernous region beneath Otava and Grenzelhoft. This unforgiving land is dominated by the prosperous and cruel dark elves and their pets. Most surfacedwellers only come here in chains.<br>"
+	desc = "I originate from the treacherous Underdark, a cavernous region beneath Otava and Grenzelhoft. This unforgiving land is dominated by the prosperous and cruel dark elves and their pets. Most surfacedwellers only come here in chains."
 	races = list(/datum/species/elf/dark,
 				/datum/species/moth,
 				/datum/species/kobold,
@@ -173,6 +173,12 @@
 				/datum/species/anthromorphsmall
 )
 	origin_desc = " "
+
+/datum/virtue/origin/unusual
+	name = "Unusual"
+	desc = "I originate from a foreign region in which my race is a minority. The customs of this land have become my own, at the cost of my heritage.<br>"
+	triumph_cost = 3
+	custom_text = "Allows selection of foreign origin upon spawn."
 
 /datum/virtue/origin/racial/reach/apply_to_human(mob/living/carbon/human/recipient)
 	recipient.dna.species.origin = "Scarlet Reach"
@@ -216,3 +222,40 @@
 /datum/virtue/origin/racial/underdark/apply_to_human(mob/living/carbon/human/recipient)
 	recipient.dna.species.origin = "the Underdark"
 	recipient.grant_language(/datum/language/otavan)
+
+/datum/virtue/origin/unusual/apply_to_human(mob/living/carbon/human/recipient)
+	addtimer(CALLBACK(src, .proc/unusual_apply, recipient), 50)
+
+/datum/virtue/origin/unusual/proc/unusual_apply(mob/living/carbon/human/recipient)
+	var/list/virtue_choices = list()
+	for(var/path as anything in GLOB.virtues)
+		var/datum/virtue/V = GLOB.virtues[path]
+		if (!V.name)
+			continue
+		if (!istype(V, /datum/virtue/origin))
+			continue
+		if (V.restricted == TRUE)
+			if(!(recipient.dna.species.type in V.races))
+				continue
+		if (istype(V, /datum/virtue/origin/racial))
+			if((recipient.dna.species.type in V.races))
+				continue
+		if (istype(V, /datum/virtue/origin/unusual))
+			continue
+		virtue_choices[V.name] = V
+	if(length(virtue_choices))
+		var/result = tgui_input_list(recipient, "From where do you come?", "ORIGINS", virtue_choices)
+		if(result)
+			recipient.dna.species.skin_tone_wording = "Custom"
+			var/datum/virtue/virtue_chosen = virtue_choices[result]
+			apply_virtue(recipient, virtue_chosen)
+		else
+			var/chosen_virtue = new recipient.dna.species.origin_default
+			apply_virtue(recipient, chosen_virtue)
+			to_chat(recipient, "Denied foreign origin! Resetting to default. Triumph cost refunded!")
+			recipient.adjust_triumphs(3)
+	else
+		var/chosen_virtue = new recipient.dna.species.origin_default
+		apply_virtue(recipient, chosen_virtue)
+		to_chat(recipient, "No foreign origins available! Resetting to default. Triumph cost refunded!")
+		recipient.adjust_triumphs(3)

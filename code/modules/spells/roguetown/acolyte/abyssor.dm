@@ -96,6 +96,7 @@
 	//Horrendous carry-over from fishing code
 	var/frwt = list(/turf/open/water/river, /turf/open/water/cleanshallow, /turf/open/water/pond)
 	var/salwt = list(/turf/open/water/ocean, /turf/open/water/ocean/deep)
+	var/mud = list(/turf/open/water/swamp, /turf/open/water/swamp/deep)
 	var/list/freshfishloot = list(
 		/obj/item/reagent_containers/food/snacks/fish/carp = 225,
 		/obj/item/reagent_containers/food/snacks/fish/sunny = 325,
@@ -118,6 +119,11 @@
 		/mob/living/simple_animal/hostile/rogue/deepone = 3,
 		/mob/living/simple_animal/hostile/rogue/deepone/spit = 3,
 	)
+	var/list/mudfishloot = list(
+		/obj/item/reagent_containers/food/snacks/fish/mudskipper = 200,
+		/obj/item/natural/worms/leech = 50,
+		/mob/living/simple_animal/hostile/retaliate/rogue/mudcrab = 25,				
+	)
 
 /obj/effect/proc_holder/spell/invoked/aquatic_compulsion/cast(list/targets, mob/user = usr)
 	. = ..()
@@ -130,6 +136,9 @@
 			success = TRUE
 		if(T.type in salwt)
 			A = pickweight(seafishloot)
+			success = TRUE
+		if(T.type in mud)
+			A = pickweight(mudfishloot)
 			success = TRUE
 		if(success)
 			var/atom/movable/AF = new A(T)

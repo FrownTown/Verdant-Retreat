@@ -188,6 +188,7 @@
 	switch(armor_choice)
 		if("Light Brigandine")
 			armor = /obj/item/clothing/suit/roguetown/armor/brigandine/light	// find a smithy to fix it
+			ADD_TRAIT(H, TRAIT_MEDIUMARMOR, TRAIT_GENERIC)
 		if("Studded Leather Vest")
 			armor = /obj/item/clothing/suit/roguetown/armor/leather/studded		// or maintain it yourself!
 	//General gear regardless of class.

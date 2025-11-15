@@ -59,7 +59,7 @@
 		ORGAN_SLOT_LUNGS = /obj/item/organ/lungs,
 		ORGAN_SLOT_EYES = /obj/item/organ/eyes,
 		ORGAN_SLOT_EARS = /obj/item/organ/ears,
-		ORGAN_SLOT_TONGUE = /obj/item/organ/tongue/lamia_forked,
+		ORGAN_SLOT_TONGUE = /obj/item/organ/tongue/wild_tongue/lamia_forked,
 		ORGAN_SLOT_LIVER = /obj/item/organ/liver,
 //		ORGAN_SLOT_TAIL = /obj/item/organ/tail/lamian_tail,
 		ORGAN_SLOT_STOMACH = /obj/item/organ/stomach,

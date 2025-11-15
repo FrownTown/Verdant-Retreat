@@ -707,3 +707,13 @@
 		user.change_stat("fortune", -1) //how much luck stat taken away when unequipped
 		goodluckactivated = FALSE
 	return
+
+/obj/item/clothing/neck/roguetown/zcross/matthios
+	name = "amulet of matthios"
+	desc = "He was but one flame in the dark. Together, his flock shall outblaze the tyrant sun."
+	icon_state = "robbinya"
+	resistance_flags = FIRE_PROOF
+	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HIP|ITEM_SLOT_WRISTS|ITEM_SLOT_RING
+	anvilrepair = /datum/skill/craft/armorsmithing
+	grid_width = 32
+	grid_height = 32

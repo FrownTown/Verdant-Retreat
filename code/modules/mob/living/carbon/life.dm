@@ -609,6 +609,9 @@ GLOBAL_LIST_INIT(ballmer_windows_me_msg, list("Yo man, what if, we like, uh, put
 	if (!client) // not really relevant to NPCs at the moment
 		return
 
+	if (health < crit_threshold) // no healing while we're dying, yo.
+		return
+
 	if(HAS_TRAIT(src, TRAIT_NOSLEEP) && !(mobility_flags & MOBILITY_STAND))
 		energy_add(5)
 		if(mind?.has_antag_datum(/datum/antagonist/vampirelord/lesser))

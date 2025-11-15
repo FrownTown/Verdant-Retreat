@@ -751,3 +751,7 @@ GLOBAL_LIST_EMPTY(loadout_items)
 /datum/loadout_item/cooking_recipes
 	name = "Guide to Cooking"
 	path = /obj/item/recipe_book/cooking
+
+/datum/loadout_item/matthios_amulet
+	name = "Amulet of matthios"
+	path = /obj/item/clothing/neck/roguetown/zcross/matthios

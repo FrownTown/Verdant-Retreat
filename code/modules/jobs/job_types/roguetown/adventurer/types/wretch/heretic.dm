@@ -108,6 +108,7 @@
 		if(/datum/patron/inhumen/matthios)
 			H.cmode_music = 'sound/music/combat_matthios.ogg'
 			H.equip_to_slot_or_del(new /obj/item/clothing/head/roguetown/helmet/heavy/matt, SLOT_HEAD, TRUE)
+			H.equip_to_slot_or_del(new /obj/item/clothing/neck/roguetown/zcross/matthios, SLOT_RING, TRUE)
 			H.equip_to_slot_or_del(new /obj/item/clothing/cloak/cape/crusader, SLOT_CLOAK, TRUE)
 			H.equip_to_slot_or_del(new /obj/item/clothing/mask/rogue/facemask/steel, SLOT_WEAR_MASK, TRUE)
 			H.grant_language(/datum/language/thievescant)

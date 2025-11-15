@@ -245,7 +245,7 @@
 	item_state = "silkydress"
 	sleevetype = null
 	sleeved = null
-	flags_inv = HIDECROTCH
+	flags_inv = HIDECROTCH | HIDEBOOB
 	mob_overlay_icon = 'icons/roguetown/clothing/onmob/shirts.dmi'
 	boobed = TRUE
 
