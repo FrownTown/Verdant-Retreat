@@ -162,28 +162,46 @@
 	icon_state = "atgervi_shaman_gloves"
 	item_state = "atergvi_shaman_gloves"
 	unarmed_bonus = 1.25
+	var/claw_mode = FALSE
 
-/obj/item/clothing/gloves/roguetown/plate/atgervi/equipped(mob/user, slot)
-	. = ..()
-	if(slot == SLOT_GLOVES && ishuman(user) && HAS_TRAIT(user,TRAIT_CIVILIZEDBARBARIAN))
-		var/mob/living/carbon/human/H = user
-		// Replace punch with claw attack
+/obj/item/clothing/gloves/roguetown/plate/atgervi/attack_self(mob/user)
+	if(!ishuman(user) || !HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN))
+		return ..()
+
+	var/mob/living/carbon/human/H = user
+	if(H.get_item_by_slot(SLOT_GLOVES) != src)
+		return
+
+	claw_mode = !claw_mode
+
+	if(claw_mode)
+		// Switch to claw attack
 		for(var/i = 1 to length(H.base_intents))
 			if(H.base_intents[i] == /datum/intent/unarmed/punch)
 				H.base_intents[i] = /datum/intent/unarmed/claw
 				break
-		H.update_a_intents()
+		to_chat(user, span_notice("You will now rake with the beast claws."))
+	else
+		// Switch to punch attack
+		for(var/i = 1 to length(H.base_intents))
+			if(H.base_intents[i] == /datum/intent/unarmed/claw)
+				H.base_intents[i] = /datum/intent/unarmed/punch
+				break
+		to_chat(user, span_notice("You will now punch with the beast claws."))
 
-/obj/item/clothing/gloves/roguetown/plate/atgervi/dropped(mob/user, slot)
+	H.update_a_intents()
+
+/obj/item/clothing/gloves/roguetown/plate/atgervi/dropped(mob/user)
 	. = ..()
-	if(ishuman(user) && HAS_TRAIT(user,TRAIT_CIVILIZEDBARBARIAN))
+	if(ishuman(user) && HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN) && claw_mode)
 		var/mob/living/carbon/human/H = user
-		// Restore punch intent
+		// Restore punch intent when dropped
 		for(var/i = 1 to length(H.base_intents))
 			if(H.base_intents[i] == /datum/intent/unarmed/claw)
 				H.base_intents[i] = /datum/intent/unarmed/punch
 				break
 		H.update_a_intents()
+		claw_mode = FALSE
 
 /obj/item/clothing/head/roguetown/helmet/bascinet/atgervi
 	name = "owl helmet"

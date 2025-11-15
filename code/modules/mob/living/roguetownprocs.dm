@@ -188,9 +188,25 @@
 				return FALSE
 			if(pulledby || pulling)
 				return FALSE
-			if(world.time < last_parry + setparrytime)
-				if(!istype(rmb_intent, /datum/rmb_intent/riposte))
-					return FALSE
+			// Calculate parry cooldown reduction based on weapon skill
+			var/skill_cooldown_reduction = 0
+			var/obj/item/mainhand = get_active_held_item()
+			var/obj/item/offhand = get_inactive_held_item()
+
+			// Check mainhand for skill
+			if(mainhand && mainhand.can_parry && mainhand.associated_skill)
+				skill_cooldown_reduction = max(skill_cooldown_reduction, H.get_skill_level(mainhand.associated_skill))
+			// Check offhand for skill
+			if(offhand && offhand.can_parry && offhand.associated_skill)
+				skill_cooldown_reduction = max(skill_cooldown_reduction, H.get_skill_level(offhand.associated_skill))
+			// Check unarmed skill if no weapon can parry
+			if(skill_cooldown_reduction == 0)
+				skill_cooldown_reduction = H.get_skill_level(/datum/skill/combat/unarmed)
+
+			var/actual_parry_cooldown = max(setparrytime - skill_cooldown_reduction, 0)
+
+			if(world.time < last_parry + actual_parry_cooldown)
+				return FALSE
 			if(has_status_effect(/datum/status_effect/debuff/exposed))
 				return FALSE
 			if(has_status_effect(/datum/status_effect/debuff/riposted))
@@ -199,12 +215,13 @@
 			if(intenty && !intenty.canparry)
 				return FALSE
 			var/drained = BASE_PARRY_STAMINA_DRAIN
+			// Riposte intent reduces stamina consumption by half instead of removing cooldown
+			if(istype(rmb_intent, /datum/rmb_intent/riposte))
+				drained = drained * 0.5
 			var/weapon_parry = FALSE
 			var/offhand_defense = 0
 			var/mainhand_defense = 0
 			var/highest_defense = 0
-			var/obj/item/mainhand = get_active_held_item()
-			var/obj/item/offhand = get_inactive_held_item()
 			var/obj/item/used_weapon = mainhand
 			var/obj/item/rogueweapon/shield/buckler/skiller = get_inactive_held_item()  // buckler code
 			var/obj/item/rogueweapon/shield/buckler/skillerbuck = get_active_held_item()
