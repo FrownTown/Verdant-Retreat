@@ -14,6 +14,7 @@
 	invocation = "The Treefather commands thee, be fruitful!"
 	invocation_type = "shout" //can be none, whisper, emote and shout
 	miracle = TRUE
+	miracle = TRUE
 	devotion_cost = 20
 
 /obj/effect/proc_holder/spell/targeted/blesscrop/cast(list/targets,mob/user = usr)
@@ -83,6 +84,7 @@
 	invocation_type = "whisper" //can be none, whisper, emote and shout
 	miracle = TRUE
 	devotion_cost = 30
+	miracle = TRUE
 
 /obj/effect/proc_holder/spell/targeted/conjure_glowshroom/cast(list/targets, mob/user = usr)
 	. = ..()
@@ -166,6 +168,7 @@
 	sound = 'sound/magic/churn.ogg'
 	invocation = "Spiders of psydonia, allow me to pass safely!"
 	invocation_type = "shout"
+	miracle = TRUE
 	associated_skill = /datum/skill/magic/holy
 	recharge_time = 4 SECONDS
 	miracle = TRUE

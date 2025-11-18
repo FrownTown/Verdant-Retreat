@@ -78,8 +78,6 @@
 	oactive = FALSE
 	update_a_intents()
 
-	givingto = null
-
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		if(H.has_status_effect(/datum/status_effect/buff/clash))
@@ -850,6 +848,10 @@
 
 	if(HAS_TRAIT(src, TRAIT_ZIZOSIGHT))
 		lighting_alpha = min(lighting_alpha, LIGHTING_PLANE_ALPHA_ZIZOVISION)
+		see_in_dark = max(see_in_dark, 8)
+
+	if(HAS_TRAIT(src, TRAIT_UNDERSIGHT))
+		lighting_alpha = min(lighting_alpha, LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE)
 		see_in_dark = max(see_in_dark, 8)
 
 	if(see_override)

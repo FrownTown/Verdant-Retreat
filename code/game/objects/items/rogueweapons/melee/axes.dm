@@ -78,6 +78,7 @@
 	resistance_flags = FLAMMABLE
 	pickup_sound = 'modular_helmsguard/sound/sheath_sounds/draw_polearm.ogg'
 	sheathe_sound = 'sound/items/wood_sharpen.ogg'
+	special = /datum/special_intent/axe_swing
 
 
 /obj/item/rogueweapon/stoneaxe/equipped(mob/user, slot, initial = FALSE)

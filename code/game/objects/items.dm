@@ -73,7 +73,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	var/body_parts_covered = 0 //see setup.dm for appropriate bit flags
 	var/body_parts_covered_dynamic = 0
 	var/body_parts_inherent	= 0 //bodypart coverage areas you cannot peel off because it wouldn't make any sense (peeling chest off of torso armor, hands off of gloves, head off of helmets, etc)
-	var/surgery_cover = TRUE // binary, whether this item is considered covering its bodyparts in respect to surgery. Tattoos, etc. are false. 
+	var/surgery_cover = TRUE // binary, whether this item is considered covering its bodyparts in respect to surgery. Tattoos, etc. are false.
 	var/gas_transfer_coefficient = 1 // for leaking gas from turf to mask and vice-versa (for masks right now, but at some point, i'd like to include space helmets)
 	var/permeability_coefficient = 1 // for chemicals/diseases
 	var/siemens_coefficient = 1 // for electrical admittance/conductance (electrocution checks and shit)
@@ -152,18 +152,18 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	var/dropshrink = 0
 	/// Force value that is force or force_wielded, with any added bonuses from external sources. (Mainly components for enchantments)
 	var/force_dynamic = 0
-	/// Weapon's length. Indicates what limbs it can target without extra circumstances (like grabs / on a prone target). 
+	/// Weapon's length. Indicates what limbs it can target without extra circumstances (like grabs / on a prone target).
 	var/wlength = WLENGTH_NORMAL
 	/// Weapon's balance. Swift uses SPD difference between attacker and defender to increase hit%. Heavy increases parry stamina drain based on STR diff.
 	var/wbalance = WBALANCE_NORMAL
 	/// Weapon's defense. Multiplied by 10 and added to the defender's parry / dodge %-age.
-	var/wdefense = 0 
+	var/wdefense = 0
 	/// Weapon's defense bonus from wielding it. Added to wdefense upon wielding.
 	var/wdefense_wbonus = 0
 	/// Weapon's dynamic defense of the wbonus and wdefense added together. This var allows wdefense and the wbonus to be altered by other code / status effects etc.
 	var/wdefense_dynamic = 0
 	/// Minimum STR required to use the weapon. Will reduce damage by 70% if not met. Wielding halves the requirement.
-	var/minstr = 0 
+	var/minstr = 0
 	/// %-age of our raw damage that is dealt to armor or weapon on hit / parry / clip.
 	var/intdamage_factor = 1
 
@@ -263,7 +263,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 		grid_width = (w_class * world.icon_size)
 	if(grid_height <= 0)
 		grid_height = (w_class * world.icon_size)
-	
+
 	if(body_parts_covered)
 		body_parts_covered_dynamic = body_parts_covered
 	update_transform()
@@ -350,7 +350,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 				getmoboverlay(i,prop,behind=TRUE,mirrored=FALSE)
 				getmoboverlay(i,prop,behind=FALSE,mirrored=TRUE)
 				getmoboverlay(i,prop,behind=TRUE,mirrored=TRUE)
-	
+
 	wdefense_dynamic = wdefense
 	update_force_dynamic()
 
@@ -445,7 +445,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 		var/list/inspec = list(span_notice("Properties of [src.name]"))
 		if(minstr)
 			inspec += "\n<b>MIN.STR:</b> [minstr]"
-		
+
 		if(force)
 			inspec += "\n<b>FORCE:</b> [get_force_string(force)]"
 		if(gripped_intents && !wielded)
@@ -492,6 +492,12 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 
 		if(associated_skill && associated_skill.name)
 			inspec += "\n<b>SKILL:</b> [associated_skill.name]"
+
+		if(istype(src, /obj/item/rogueweapon))
+			var/obj/item/rogueweapon/W = src
+			if(W.special)
+				inspec +="\n<b>SPECIAL:</b> [W.special.name]"
+				inspec +="\n<i>[W.special.desc]</i>"
 		
 		if(intdamage_factor != 1 && force >= 5)
 			inspec += "\n<b>INTEGRITY DAMAGE:</b> [intdamage_factor * 100]%"
@@ -517,7 +523,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 						inspec += "<b>[capitalize(zonedyn)]</b> | "
 						if(zonedyn in zones)
 							zones.Remove(zonedyn)
-					for(var/zone in zones)			
+					for(var/zone in zones)
 						inspec += "<b><font color = '#7e0000'>[capitalize(zone)]</font></b> | "
 				inspec += "<br>"
 			if(C.body_parts_inherent)
@@ -545,7 +551,10 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 			var/percent = round(((obj_integrity / max_integrity) * 100), 1)
 			inspec += "[percent]% ([obj_integrity])"
 
-		to_chat(usr, "[inspec.Join()]")
+		var/output = inspec.Join()
+		if(!usr.client.prefs.no_examine_blocks)
+			output = examine_block(output)
+		to_chat(usr, output)
 
 /obj/item
 	var/simpleton_price = FALSE
@@ -779,7 +788,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 			wield(user)
 		else
 			ungrip(user)
-	
+
 	if (isliving(user) && slot != ITEM_SLOT_HANDS)
 		var/mob/living/living_user = user
 		living_user.rebuild_obscured_flags() // AZURE EDIT: cache our equipped items `flags_inv` values
@@ -1492,7 +1501,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 		return .
 	else
 		var/str = "This object can be repaired using "
-		if(anvilrepair)	
+		if(anvilrepair)
 			var/datum/skill/S = anvilrepair		//Should only ever be a skill or null
 			str += "<b>[initial(S.name)]</b> and a hammer."
 		if(sewrepair)

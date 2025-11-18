@@ -363,7 +363,7 @@
 				adf = max(round(adf * CLICK_CD_MOD_SWIFT), CLICK_CD_INTENTCAP)
 			changeNext_move(adf)
 		UnarmedAttack(A,1,params)
-	if(mob_timers[MT_INVISIBILITY] > world.time)			
+	if(mob_timers[MT_INVISIBILITY] > world.time)
 		mob_timers[MT_INVISIBILITY] = world.time
 		update_sneak_invis(reset = TRUE)
 
@@ -662,8 +662,7 @@
 		user.client.statpanel = T.name
 
 /mob/proc/CtrlRightClickOn(atom/A, params)
-	linepoint(A, params)
-	return
+	pointed(A)
 
 /*
 	Misc helpers
@@ -865,7 +864,7 @@
 		eyet.update_icon(src)
 
 /mob/proc/ShiftRightClickOn(atom/A, params)
-//	linepoint(A, params)
+//	pointed(A, params)
 //	A.ShiftRightClick(src)
 	return
 

@@ -173,6 +173,7 @@
 	warnie = "sydwarning"
 	movement_interrupt = FALSE
 	invocation = "Noc guide my gaze."
+	miracle = TRUE
 	invocation_type = "whisper"
 	sound = null
 	associated_skill = /datum/skill/magic/holy

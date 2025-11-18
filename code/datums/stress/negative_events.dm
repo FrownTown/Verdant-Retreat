@@ -385,3 +385,13 @@
 	stressadd = 10
 	desc = span_boldred("Perhaps I shouldn't have done that...")
 	timer = 12 MINUTES
+
+/datum/stressevent/sensitivity
+	stressadd = 5
+	desc = span_boldred("The sun is too bright! I hate the surface!")
+	timer = 5 MINUTES
+
+/datum/stressevent/wingcut
+	stressadd = 6
+	desc = span_boldred("AAAGGHHH!! MY PRECIOUS WINGS!!")
+	timer = 40 MINUTES
