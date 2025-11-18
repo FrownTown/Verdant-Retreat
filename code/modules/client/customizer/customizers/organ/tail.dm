@@ -370,7 +370,8 @@
 /datum/customizer/organ/tail/harpy
 	name = "Harpy Plumage"
 	customizer_choices = list(/datum/customizer_choice/organ/tail/harpy)
-	allows_disabling = FALSE
+	allows_disabling = TRUE
+	default_disabled = TRUE
 
 /datum/customizer_choice/organ/tail/harpy
 	name = "Harpy Plumage"

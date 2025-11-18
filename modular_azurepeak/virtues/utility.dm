@@ -394,3 +394,54 @@
 	name = "Heresiarch"
 	desc = "The 'Holy' See has their blood-stained grounds, and so do we. Underneath their noses, we pray to the true gods - I know the location of the local heretic conclave. Secrecy is paramount. If found out, I will surely be killed."
 	added_traits = list(TRAIT_HERESIARCH)
+
+/datum/virtue/racial/moth/mercuriam
+	name = "(Fluvian) Mercuriam Initiate"
+	desc = "Through great intellectual rigor, I passed the trials of the Intolerabi and was granted leave to study in the city of Mercuriam. In their bronze halls, I learned intimately of Pestra's art; poison will no longer harm me."
+	races = list(/datum/species/moth)
+	custom_text = "Only available to fluvians."
+	added_traits = list(TRAIT_TOXIMMUNE)
+	added_skills = list(list(/datum/skill/craft/alchemy, 1, 5),
+						list(/datum/skill/misc/reading, 1, 5)
+)
+	added_stashed_items = list(
+		"Bronze Lamptern" = /obj/item/flashlight/flare/torch/lantern/bronzelamptern
+)
+
+/datum/virtue/racial/elfd/spider
+	name = "(Dark Elf) Spider Speaker"
+	desc = "In the darkest depths of the underdark, I was taught the secrets of the Driderii. The methods of potion and poison were shown to me, as well as the art of traversing through webs. Spiders see me as one of their own."
+	races = list(/datum/species/elf/dark)
+	custom_text = "Only available to dark elves."
+	added_traits = list(TRAIT_WEBWALK)
+	added_skills = list(list(/datum/skill/craft/alchemy, 2, 4),
+						list(/datum/skill/labor/butchering, 2, 2)
+	)
+	added_stashed_items = list(
+		"Spider Honey" = /obj/item/reagent_containers/food/snacks/rogue/honey/spider,
+		"Spider Gland" = /obj/item/reagent_containers/spidervenom_inert
+)
+
+/datum/virtue/racial/elfd/spider/apply_to_human(mob/living/carbon/human/recipient)
+	recipient.faction += "spiders"
+
+/datum/virtue/racial/dwarf/dvergr
+	name = "(Dwarf) Dvergr"
+	desc = "My lineage descends from the Dvergr, a clan of dwarves under Graggar’s tyrannical patronage, exiled to the Underdark. They are renowned slavers; many lords covet a servant broken by Dvergr technique. I know a little of the clan's magics, rendering me invisible to the scrying arts."
+	races = list(/datum/species/dwarf/mountain)
+	custom_text = "Grants enlarge spell.<br>Colors your body grey.<br>Only available to dwarves."
+	added_traits = list(TRAIT_ANTISCRYING, TRAIT_DVERGR)
+	added_skills = list(list(/datum/skill/magic/arcane, 1, 3))
+
+/datum/virtue/racial/dwarf/dvergr/apply_to_human(mob/living/carbon/human/recipient)
+	recipient.update_body()
+	recipient.mind?.AddSpell(new /obj/effect/proc_holder/spell/invoked/enlarge)
+	recipient.dna.species.stress_examine = TRUE
+	recipient.dna.species.stress_desc = span_red("A Dvergr! I should watch my back.")
+	recipient.dna.species.name = "Dvergr"
+	var/client/player = recipient?.client
+	if(player?.prefs)
+		var/origin_memory = player.prefs.virtue_origin
+		player.prefs.virtue_origin = new /datum/virtue/origin/racial/underdark
+		player.prefs.virtue_origin.job_origin = TRUE
+		player.prefs.virtue_origin.last_origin = origin_memory

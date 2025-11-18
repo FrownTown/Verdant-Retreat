@@ -24,6 +24,17 @@
 	name = "fluvian wings"
 	desc = "A pair of fuzzy moth wings."
 	flight_for_species = list("moth")
+	sellprice = 40
+
+/obj/item/organ/wings/moth/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		ADD_TRAIT(M, TRAIT_WINGS, TRAIT_GENERIC)
+
+/obj/item/organ/wings/moth/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M)
+		REMOVE_TRAIT(M, TRAIT_WINGS, TRAIT_GENERIC)
 
 /obj/item/organ/wings/dracon
 	name = "drakian wings"

@@ -129,6 +129,7 @@
 	unequip_delay_self = 2
 	inv_storage_delay = 2
 	edelay_type = 1
+	special = /datum/special_intent/shin_swipe
 
 /obj/item/rogueweapon/sword/Initialize()
 	. = ..()
@@ -320,6 +321,7 @@
 	smeltresult = /obj/item/ingot/steel
 	pickup_sound = 'modular_helmsguard/sound/sheath_sounds/draw_greatsword.ogg'
 	sheathe_sound = 'modular_helmsguard/sound/sheath_sounds/put_back_sword2.ogg'
+	special = /datum/special_intent/side_sweep
 
 
 /obj/item/rogueweapon/sword/long/equipped(mob/user, slot, initial = FALSE)

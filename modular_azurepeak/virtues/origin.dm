@@ -71,7 +71,8 @@
 				/datum/species/goblinp,
 				/datum/species/human/northern,
 				/datum/species/lupian,
-				/datum/species/kobold
+				/datum/species/kobold,
+				/datum/species/anthromorph
 )
 	origin_desc = "A tribal confederation of northmen and half-orcs nestled in the Skol River Valley.<br> Centuries of war between humen and orcs have stained these grassy \
 	plains, but a shaky peace was eventually brought when the half-orc warlord Gronn used a clever mix of force and diplomacy to unite the people of the valley into one \
@@ -163,7 +164,8 @@
 
 /datum/virtue/origin/racial/underdark
 	name = "Underdweller"
-	desc = "I originate from the treacherous Underdark, a cavernous region beneath Otava and Grenzelhoft. This unforgiving land is dominated by the prosperous and cruel dark elves and their pets. Most surfacedwellers only come here in chains."
+	desc = "I originate from the treacherous Underdark, a cavernous region beneath Otava and Grenzelhoft. This unforgiving land is dominated by the prosperous and cruel dark elves and their pets. Most surfacedwellers only come here in chains.<br>"
+	added_traits = list(TRAIT_UNDERDARK)
 	races = list(/datum/species/elf/dark,
 				/datum/species/moth,
 				/datum/species/kobold,

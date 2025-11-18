@@ -284,11 +284,11 @@
 
 /obj/effect/temp_visual/curse
 	icon_state = "curse"
-
-/obj/effect/temp_visual/curse/Initialize()
+/*
+obj/effect/temp_visual/curse/Initialize()
 	. = ..()
 	deltimer(timerid)
-
+*/ //Deleted by Freestyle during AP PR #4392. Commented out in case it breaks something and/or was necessary for the PR
 
 /datum/status_effect/gonbolaPacify
 	id = "gonbolaPacify"

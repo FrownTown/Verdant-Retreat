@@ -12,6 +12,7 @@
 	associated_skill = /datum/skill/magic/holy
 	antimagic_allowed = TRUE
 	recharge_time = 5 MINUTES
+	miracle = TRUE
 
 /obj/effect/proc_holder/spell/invoked/wheel/cast(list/targets, mob/user = usr)
 	if(isliving(targets[1]))
@@ -36,6 +37,7 @@
 	associated_skill = /datum/skill/magic/holy
 	antimagic_allowed = TRUE
 	recharge_time = 30 SECONDS
+	miracle = TRUE
 	var/firstcast = TRUE
 	var/icon/clone_icon
 
@@ -93,6 +95,7 @@
 	associated_skill = /datum/skill/misc/music
 	recharge_time = 2 MINUTES
 	range = 7
+	miracle = TRUE
 
 /obj/effect/proc_holder/spell/invoked/mockery/cast(list/targets, mob/user = usr)
 	playsound(get_turf(user), 'sound/magic/mockery.ogg', 40, FALSE)
