@@ -174,6 +174,7 @@
 	item_state = "hijab"
 	icon_state = "deserthood"
 	hidesnoutADJ = FALSE
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_NECK
 	flags_inv = HIDEHAIR	//Does not hide face.
 	block2add = null
 
@@ -185,6 +186,7 @@
 	desc = "A common sight amongst those travelling the long desert routes, it offers protection from the heat and a modicum of it against the beasts that prowl its more comfortable nites."
 	max_integrity = 100
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_NECK
 	armor = ARMOR_HEAD_PSYDON //basically the same as a warscholar hood
 	item_state = "hijab"
 	icon_state = "deserthood"
@@ -221,7 +223,7 @@
 	icon = 'icons/roguetown/clothing/head.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/onmob/head.dmi' //Overrides slot icon behavior
 	alternate_worn_layer  = 8.9 //On top of helmet
-	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_MOUTH
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_MOUTH|ITEM_SLOT_NECK
 	armor = list("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0)
 	dynamic_hair_suffix = ""
 	edelay_type = 1
@@ -2000,40 +2002,7 @@
 			pic2.color = get_altdetail_color()
 		add_overlay(pic2)
 
-//Eora content from Stonekeep
 
-/obj/item/clothing/head/roguetown/eoramask
-	name = "eoran mask"
-	desc = "A silver mask in the likeness of a rabbit. Usually worn by the faithful of Eora during their rituals, but it's not like anyone's going to stop you. Right?"
-	color = null
-	icon_state = "eoramask"
-	item_state = "eoramask"
-	mob_overlay_icon = 'icons/roguetown/clothing/onmob/64x64/head.dmi'
-	worn_x_dimension = 64
-	worn_y_dimension = 64
-	bloody_icon = 'icons/effects/blood64.dmi'
-	flags_inv = HIDEFACE|HIDEFACIALHAIR|HIDEHAIR
-	dynamic_hair_suffix = ""
-	resistance_flags = FIRE_PROOF // Made of metal
-
-/obj/item/clothing/head/roguetown/eoramask/equipped(mob/living/carbon/human/user, slot) //Copying Eora bud pacifism
-	. = ..()
-	if(slot == SLOT_HEAD)
-		ADD_TRAIT(user, TRAIT_PACIFISM, "eoramask_[REF(src)]")
-
-/obj/item/clothing/head/roguetown/eoramask/dropped(mob/living/carbon/human/user)
-	..()
-	REMOVE_TRAIT(user, TRAIT_PACIFISM, "eoramask_[REF(src)]")
-
-/obj/item/clothing/head/roguetown/eoramask/attack_hand(mob/user)
-	if(iscarbon(user))
-		var/mob/living/carbon/C = user
-		if(src == C.head)
-			to_chat(user, "<span class='warning'>I need some time to remove the mask peacefully.</span>")
-			if(do_after(user, 50))
-				return ..()
-			return
-	return ..()
 
 /obj/item/clothing/head/roguetown/helmet/tricorn
 	slot_flags = ITEM_SLOT_HEAD
@@ -2182,6 +2151,7 @@
 	desc = "A thick hood that covers one's entire head, should they desire, or merely acts as a scarf otherwise. Made with spell-laced fabric to provide some protection against daemons and mortals alike."
 	max_integrity = 100
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_NECK
 	armor = ARMOR_HEAD_PSYDON
 	icon_state = "deserthood"
 	item_state = "deserthood"
@@ -2474,6 +2444,7 @@
 	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR|HIDESNOUT
 	max_integrity = 150
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_NECK
 	armor = ARMOR_HEAD_PSYDON //basically the same as a warscholar hood
 	color = CLOTHING_BLACK
 

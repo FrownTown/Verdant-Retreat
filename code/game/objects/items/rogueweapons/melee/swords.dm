@@ -54,16 +54,16 @@
 /datum/intent/sword/peel
 	name = "armor peel"
 	icon_state = "inpeel"
-	attack_verb = list("peels", "tears")
+	attack_verb = list("<font color ='#e7e7e7'>peels</font>")
 	animname = "cut"
 	blade_class = BCLASS_PEEL
 	hitsound = list('sound/combat/hits/blunt/metalblunt (1).ogg', 'sound/combat/hits/blunt/metalblunt (2).ogg', 'sound/combat/hits/blunt/metalblunt (3).ogg')
 	chargetime = 0
-	penfactor = 200
+	penfactor = BLUNT_DEFAULT_PENFACTOR
 	swingdelay = 0
 	damfactor = 0.05
 	item_d_type = "slash"
-	peel_divisor = 4
+	peel_divisor = 5
 
 /datum/intent/sword/peel/big
 	name = "big sword armor peel"

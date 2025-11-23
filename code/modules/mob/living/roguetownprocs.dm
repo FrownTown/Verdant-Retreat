@@ -540,10 +540,12 @@
 				src.visible_message(span_boldwarning("<b>[src]</b> ripostes [user] with [W]!"))
 			else
 				src.visible_message(span_boldwarning("<b>[src]</b> parries [user] with [W]!"))
-			if(W.max_blade_int)
-				W.remove_bintegrity(SHARPNESS_ONHIT_DECAY, user)
-			else
-				W.take_damage(INTEG_PARRY_DECAY_NOSHARP, BRUTE, "slash")
+			if(!iscarbon(user))	//Non-carbon mobs never make it to the proper parry proc where the other calculations are done.
+				if(W.max_blade_int)
+					W.remove_bintegrity(SHARPNESS_ONHIT_DECAY, user)
+					W.take_damage(INTEG_PARRY_DECAY, BRUTE, "slash")
+				else
+					W.take_damage(INTEG_PARRY_DECAY_NOSHARP, BRUTE, "slash")
 			return TRUE
 		else
 			to_chat(src, span_warning("I'm too tired to parry!"))
@@ -1021,6 +1023,10 @@
 		if(bait_stacks > 0)
 			bait_stacks = 0
 			to_chat(src, span_info("My focus and balance returns. I won't lose my footing if I am baited again."))
+
+/mob/living/carbon/human/proc/expire_peel()
+	if(!cmode)
+		purge_peel(99)
 
 /mob/living/carbon/human/proc/measured_statcheck(mob/living/carbon/human/HT)
 	var/finalprob = 40
