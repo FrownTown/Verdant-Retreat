@@ -144,9 +144,6 @@
 	no_early_release = TRUE
 	intent_intdamage_factor = 0.1
 
-
-
-
 /datum/intent/spear/bash/ranged/quarterstaff
 	damfactor = 1
 

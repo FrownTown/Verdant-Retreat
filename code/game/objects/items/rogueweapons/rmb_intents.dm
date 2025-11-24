@@ -12,6 +12,9 @@
 /mob/living/carbon/human/on_cmode()
 	if(!cmode)	//We just toggled it off.
 		addtimer(CALLBACK(src, PROC_REF(purge_bait)), 30 SECONDS, TIMER_UNIQUE | TIMER_OVERRIDE)
+		addtimer(CALLBACK(src, PROC_REF(expire_peel)), 60 SECONDS, TIMER_UNIQUE | TIMER_OVERRIDE)
+	if(!HAS_TRAIT(src, TRAIT_DECEIVING_MEEKNESS))
+		filtered_balloon_alert(TRAIT_COMBAT_AWARE, (cmode ? ("<i><font color = '#831414'>Tense</font></i>") : ("<i><font color = '#c7c6c6'>Relaxed</font></i>")), y_offset = 32)
 
 /mob/living/carbon/human/RightClickOn(atom/A, params)
 	if(rmb_intent && !rmb_intent.adjacency && !istype(A, /obj/item/clothing) && cmode && !istype(src, /mob/living/carbon/human/species/skeleton) && !istype(A, /obj/item/quiver) && !istype(A, /obj/item/storage))
@@ -199,10 +202,14 @@
 	if(I)
 		if(I.associated_skill)
 			ourskill = user.get_skill_level(I.associated_skill)
+			if(I.item_flags & PEASANT_WEAPON && HAS_TRAIT(user, TRAIT_PEASANTMILITIA))
+				ourskill += 1
 		if(L.mind)
 			I = L.get_active_held_item()
 			if(I?.associated_skill)
 				theirskill = L.get_skill_level(I.associated_skill)
+				if(I.item_flags & PEASANT_WEAPON && HAS_TRAIT(L, TRAIT_PEASANTMILITIA))
+					theirskill += 1
 	perc += (ourskill - theirskill)*15 	//skill is of the essence
 	perc += (user.STAINT - L.STAINT)*10	//but it's also mostly a mindgame
 	skill_factor = (ourskill - theirskill)/2

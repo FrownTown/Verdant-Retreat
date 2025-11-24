@@ -256,9 +256,9 @@
 	testing("startforce [newforce]")
 	if(!istype(user))
 		return newforce
-	var/dullness_ratio
+	var/dullness_ratio = 1
 	if(I.max_blade_int && I.sharpness != IS_BLUNT)
-		dullness_ratio = I.blade_int / I.max_blade_int
+		dullness_ratio = clamp(I.blade_int / I.max_blade_int, 0.05, 1)
 	var/cont = FALSE
 	var/used_str = user.STASTR
 	if(iscarbon(user))
@@ -683,13 +683,33 @@
 		else
 			return CLAMP(w_class * 6, 10, 100) // Multiply the item's weight class by 6, then clamp the value between 10 and 100
 
-/mob/living/proc/send_item_attack_message(obj/item/I, mob/living/user, hit_area)
+/mob/living/proc/send_item_attack_message(obj/item/I, mob/living/user, hit_area, obj/item/bodypart/BP, bladec)
 	var/message_verb = "attacked"
-	if(user.used_intent)
-		message_verb = "[pick(user.used_intent.attack_verb)]"
-	else if(!I.force_dynamic)
+	var/static/list/verb_override = list("hits", "strikes")
+	var/use_override = FALSE
+	var/verb_appendix
+	if(!I.force_dynamic)
 		return
+	if(bladec == BCLASS_PEEL)
+		if(ishuman(src))
+			var/mob/living/carbon/human/H = src
+			var/obj/item/used = H.get_best_worn_armor(hit_area, user.used_intent.item_d_type)
+			if(used)
+				if(used.peel_count)
+					verb_appendix =	" <font color ='#e7e7e7'>(\Roman[used.peel_count])</font>"
+				else
+					use_override = TRUE
+			else
+				use_override = TRUE
 	var/message_hit_area = ""
+	hit_area = parse_zone(hit_area, BP)
+	if(user.used_intent)
+		if(!use_override)
+			message_verb = "[pick(user.used_intent.attack_verb)]"
+		else
+			message_verb = "[pick(verb_override)]"
+	if(verb_appendix)
+		message_verb += verb_appendix
 	if(hit_area)
 		message_hit_area = " in the [span_userdanger(hit_area)]"
 	var/attack_message = "[src] is [message_verb][message_hit_area] with [I]!"

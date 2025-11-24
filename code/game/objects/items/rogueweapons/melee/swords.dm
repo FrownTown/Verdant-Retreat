@@ -50,8 +50,6 @@
 	swingdelay = 0
 	damfactor = 1
 	item_d_type = "blunt"
-
-
 /datum/intent/sword/chop
 	name = "chop"
 	icon_state = "inchop"

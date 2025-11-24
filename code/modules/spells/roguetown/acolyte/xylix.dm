@@ -70,13 +70,13 @@
 	defprob = 50
 	footstep_type = FOOTSTEP_MOB_BAREFOOT
 	del_on_death = TRUE
-	loot = list(/obj/item/smokebomb/decoy)
+	loot = list(/obj/item/bomb/smoke/decoy)
 	can_have_ai = FALSE
 	AIStatus = AI_OFF
 	ai_controller = /datum/ai_controller/mudcrab // doesnt really matter
 
 
-/obj/item/smokebomb/decoy/Initialize()
+/obj/item/bomb/smoke/decoy/Initialize()
 	. = ..()
 	playsound(loc, 'sound/magic/decoylaugh.ogg', 50)
 	explode()
@@ -106,12 +106,16 @@
 		if(!target.can_hear()) // Vicious mockery requires people to be able to hear you.
 			revert_cast()
 			return FALSE
-		target.apply_status_effect(/datum/status_effect/debuff/viciousmockery)
+		target.apply_status_effect(/datum/status_effect/debuff/viciousmockery, miracle)
 		SEND_SIGNAL(user, COMSIG_VICIOUSLY_MOCKED, target)
 		record_round_statistic(STATS_PEOPLE_MOCKED)
 		return TRUE
 	revert_cast()
 	return FALSE
+
+// Non-miracle variant for bards and other non-devotion classes
+/obj/effect/proc_holder/spell/invoked/mockery/bard
+	miracle = FALSE
 
 /obj/effect/proc_holder/spell/invoked/mockery/invocation(mob/user = usr)
 	if(ishuman(user))
@@ -149,10 +153,22 @@
 	duration = 600 // One minute
 	effectedstats = list("strength" = -1, "speed" = -1,"endurance" = -1, "intelligence" = -3)
 
+/datum/status_effect/debuff/viciousmockery/on_creation(mob/living/new_owner, is_miracle_cast = FALSE)
+	if(is_miracle_cast)
+		alert_type = /atom/movable/screen/alert/status_effect/debuff/viciousmockery/xylixian
+	else
+		alert_type = /atom/movable/screen/alert/status_effect/debuff/viciousmockery/bard
+	return ..()
+
 /atom/movable/screen/alert/status_effect/debuff/viciousmockery
 	name = "Vicious Mockery"
-	desc = "<span class='warning'>THAT ARROGANT BARD! ARGH!</span>\n"
 	icon_state = "muscles"
+
+/atom/movable/screen/alert/status_effect/debuff/viciousmockery/bard
+	desc = "<span class='warning'>THAT ARROGANT BARD! ARGH!</span>\n"
+
+/atom/movable/screen/alert/status_effect/debuff/viciousmockery/xylixian
+	desc = "<span class='warning'>THAT ARROGANT XYLIXIAN! ARGH!</span>\n"
 
 /obj/effect/proc_holder/spell/self/xylixslip
 	name = "Xylixian Slip"

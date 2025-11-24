@@ -248,6 +248,8 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	/// Angle of the icon while wielded, these are used for attack animations. Generally it's flat, but not always.
 	var/icon_angle_wielded = 0
 
+	var/no_use_cd = FALSE //if true, no cooldown when interacting with it
+
 	var/leashable = FALSE // More elegant solution to leash checks
 	var/bellsound = FALSE //Sanitycheck for bell jingles
 	var/bell = FALSE //Does item have bell in it, used for attachables
@@ -528,15 +530,6 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 					for(var/zone in zones)
 						inspec += "<b><font color = '#7e0000'>[capitalize(zone)]</font></b> | "
 				inspec += "<br>"
-			if(C.body_parts_inherent)
-				inspec += "<b>CANNOT BE PEELED: </b>"
-				var/list/inherentList = body_parts_covered2organ_names(C.body_parts_inherent)
-				if(length(inherentList) == 1)
-					inspec += "<b><font color = '#77cde2'>[capitalize(inherentList[1])]</font></b>"
-				else
-					inspec += "| "
-					for(var/zone in inherentList)
-						inspec += "<b><font color = '#77cde2'>[capitalize(zone)]</b></font> | "
 			if(C.prevent_crits)
 				if(length(C.prevent_crits))
 					inspec += "\n<b>PREVENTS CRITS:</b>"
@@ -550,8 +543,11 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 
 		if(max_integrity)
 			inspec += "\n<b>DURABILITY:</b> "
-			var/percent = round(((obj_integrity / max_integrity) * 100), 1)
-			inspec += "[percent]% ([obj_integrity])"
+			var/eff_maxint = max_integrity - (max_integrity * integrity_failure)
+			var/eff_currint = max(obj_integrity - (max_integrity * integrity_failure), 0)
+			var/ratio =	(eff_currint / eff_maxint)
+			var/percent = round((ratio * 100), 1)
+			inspec += "[percent]% ([floor(eff_currint)])"
 
 		var/output = inspec.Join()
 		if(!usr.client.prefs.no_examine_blocks)
@@ -1410,7 +1406,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 /obj/item/proc/repair_coverage()
 	body_parts_covered_dynamic = body_parts_covered
 
-/obj/item/proc/attackzone2coveragezone(location)
+/proc/attackzone2coveragezone(location)
 	switch(location)
 		if(BODY_ZONE_HEAD)
 			return HEAD

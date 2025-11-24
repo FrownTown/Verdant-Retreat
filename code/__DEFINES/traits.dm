@@ -28,6 +28,7 @@
 #define TRAIT_CRITICAL_WEAKNESS "Critical Weakness"
 #define TRAIT_MANIAC_AWOKEN "Awoken"
 #define TRAIT_INFINITE_STAMINA "Indefatigable" //for ai
+#define TRAIT_SLOW_SWIMMER "Slow Swimmer"
 #define TRAIT_NUDIST "Nudist" //you can't wear most clothes
 #define TRAIT_CYCLOPS_LEFT "Cyclops (Left)" //poked left eye
 #define TRAIT_CYCLOPS_RIGHT "Cyclops (Right)" //poked right eye
@@ -76,6 +77,7 @@
 #define TRAIT_PERMAMUTE "Permanent Mute"
 #define TRAIT_HERESIARCH "Forbidden Knowledge" //allows entry to ascendant church
 #define TRAIT_EXCOMMUNICATED "Excommunicated" //cannot be target of healing miracles of Ten or anastasia or cure rot
+#define TRAIT_PEASANTMILITIA "Angry Peasant" //Skill is treated as one higher with appropriate weapons
 #define TRAIT_SLAYER "Slayer Oath"
 #define TRAIT_NODEF "Recklessness"
 
@@ -205,6 +207,7 @@
 #define TRAIT_DYES "Dyemaster"
 #define TRAIT_GOODWRITER "Great Writer"
 #define TRAIT_ADRENALINE_RUSH "Adrenaline Rush"
+#define TRAIT_COMBAT_AWARE	"Combat Aware"
 #define TRAIT_SILVER_WEAK "Silver Weakness"
 #define TRAIT_DEADITE "Deadite"
 #define TRAIT_PUZZLEMASTER "Puzzle Master"
@@ -263,6 +266,7 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_CRITICAL_WEAKNESS = span_danger("I am weak to wounds that others could survive."),
 	TRAIT_MANIAC_AWOKEN = span_danger("I am <b>WAKING UP</b> and the sheeple know this. They will resist."),
 	TRAIT_INFINITE_STAMINA = "I have boundless energy, I will never tire.",
+	TRAIT_SLOW_SWIMMER = "My anatomy struggles to traverse through water quickly.",
 	TRAIT_NUDIST = "I <b>refuse</b> to wear clothes. They are a hindrance to my freedom.",
 	TRAIT_CYCLOPS_LEFT = span_warning("My left eye has been poked out..."),
 	TRAIT_CYCLOPS_RIGHT = span_warning("My right eye has been poked out..."),
@@ -371,6 +375,7 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_GOODWRITER = span_notice("I'm proficient at writing. Any skillbooks made by me will allow the reader to learn the subject more quickly."),
 	TRAIT_BLOODLOSS_IMMUNE = span_notice("While I may bleed, I will feel nothing from it."),
 	TRAIT_ADRENALINE_RUSH = span_notice("I'm invigorated in the midst of battle! I don't feel my wounds!"),
+	TRAIT_COMBAT_AWARE = span_notice("My honed senses and intuition allow me to spot notable things in the midst of battle with ease."),
 	TRAIT_SILVER_WEAK = span_notice("Silver is my bane."),
 	TRAIT_WINGS = span_info("My wings allow me to jump farther."),
 	TRAIT_UNDERDARK = span_info("My eyes are sensitive to Astrata's sunlight, but well-acclimated to the darkness of deep caverns."),
@@ -399,6 +404,8 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_SLAYER = span_warning("My vows forbid me from protecting my weakspots with armor."),
 	TRAIT_NODEF = span_warning("I expose myself in battle completely."),
 	TRAIT_MASTER_MASON = span_warning("I've been trained to make the most of stone"), 
+	TRAIT_PEASANTMILITIA = span_info("I am a commoner. When the Lord's soldiers do not come, I needs fend off villains and nite creechurs with the tools at hand. I fight best with simple tools and militia weapons."),
+	TRAIT_MASTER_MASON = span_warning("I've been trained to make the most of stone"),
 	TRAIT_CLERGY = span_notice("I am a servant of the local House of the Ten.")
 ))
 

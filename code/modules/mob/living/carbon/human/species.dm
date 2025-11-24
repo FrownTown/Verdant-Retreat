@@ -107,6 +107,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	var/sound/attack_sound = 'sound/combat/hits/punch/punch (1).ogg'
 	var/sound/miss_sound = 'sound/blank.ogg'
 
+	var/use_titles = FALSE
+	var/list/race_titles = list()
+
 	var/enflamed_icon = "Standing"
 
 	//Breathing!
@@ -1271,6 +1274,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				SEND_SIGNAL(user, COMSIG_HEAD_PUNCHED, target)
 
 		log_combat(user, target, "punched")
+		if(ishuman(user) && user.mind)
+			var/text = "[bodyzone2readablezone(selzone)]..."
+			user.filtered_balloon_alert(TRAIT_COMBAT_AWARE, text)
 
 		if(!nodmg)
 			if(user.limb_destroyer)
@@ -1506,6 +1512,11 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 						to_chat(user, span_danger("I crush [target] underneath myself![target.next_attack_msg.Join()]"))
 			target.next_attack_msg.Cut()
 			log_combat(user, target, "kicked")
+
+			if(ishuman(user) && user.mind)
+				var/text = "[bodyzone2readablezone(selzone)]..."
+				user.filtered_balloon_alert(TRAIT_COMBAT_AWARE, text)
+
 			user.do_attack_animation(target, ATTACK_EFFECT_DISARM)
 			if(!nodmg)
 				playsound(target, 'sound/combat/hits/kick/stomp.ogg', 100, TRUE, -1)
@@ -1736,8 +1747,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	if(!user.used_intent?.allow_offhand)
 		if(user.get_num_arms(FALSE) < 2 || user.get_inactive_held_item())
 			Iforce = 0
-	var/bladec = user.used_intent.blade_class
-	
+	var/bladec = user.used_intent.blade_class	
 	var/higher_intfactor = max(user.used_intent.masteritem?.intdamage_factor, user.used_intent.intent_intdamage_factor)
 	var/lowest_intfactor = min(user.used_intent.masteritem?.intdamage_factor, user.used_intent.intent_intdamage_factor)
 	var/used_intfactor = 1
@@ -1746,6 +1756,15 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	if(higher_intfactor > 1)	//Make sure to keep your weapon and intent intfactors consistent to avoid problems here!
 		used_intfactor = higher_intfactor
 	
+	if(ishuman(user) && user.mind)
+		var/text = "[bodyzone2readablezone(selzone)]..."
+		if(HAS_TRAIT(user, TRAIT_DECEIVING_MEEKNESS))
+			if(prob(10))
+				text = "<i>I can't tell...</i>"
+				user.filtered_balloon_alert(TRAIT_COMBAT_AWARE, text)
+		else
+			user.filtered_balloon_alert(TRAIT_COMBAT_AWARE, text)
+
 	var/armor_block = 0
 	var/obj/item/clothing/bypassed_armor
 	// Precision strikes: Swift weapons always, or NORMAL balance weapons with can_precision_strike when wielded
@@ -1857,7 +1876,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 
 	I.funny_attack_effects(H, user, nodmg)
 
-	H.send_item_attack_message(I, user, parse_zone(selzone, affecting))
+	H.send_item_attack_message(I, user, selzone, affecting, bladec)
 
 	if(nodmg)
 		return FALSE //dont play a sound
