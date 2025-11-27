@@ -25,6 +25,8 @@
 		if(HAS_TRAIT(user, TRAIT_CULTIC_THIEF)) // Matthios blesses his devout with rolling advantage on thieving checks.
 			advantageroll = roll("d6") + thiefskill + (user.STASPD / 2)
 		
+		var/chance2steal = round(((6 + thiefskill + (user.STASPD / 2) - (target_human.STAPER)) / 6 ) * 100, 1)
+
 		var/stealroll = max(initialstealroll, advantageroll)
 
 		var/list/stealablezones = list("chest", "neck", "groin", "r_hand", "l_hand")
@@ -96,7 +98,7 @@
 			if(stealroll < targetperception)
 				target_human.log_message("has had an attempted pickpocket by [key_name(user_human)]", LOG_ATTACK, color="white")
 				user_human.log_message("has attempted to pickpocket [key_name(target_human)]", LOG_ATTACK, color="white")
-				to_chat(user, span_danger("I failed to pick the pocket!"))
+				to_chat(user, span_danger("I failed to pick the pocket! [chance2steal]%"))
 				to_chat(target_human, span_danger("Someone tried pickpocketing me!"))
 				exp_to_gain /= 5 // these can be removed or changed on reviewer's discretion
 			// If we're pickpocketing someone else, and that person is conscious, grant XP
