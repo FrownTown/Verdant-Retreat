@@ -111,8 +111,8 @@
 /// Extract lux (Kills dah construct btw)
 
 /datum/surgery_step/extract_lux/construct
-	surgery_flags = SURGERY_INCISED | SURGERY_CLAMPED | SURGERY_RETRACTED | SURGERY_BROKEN | SURGERY_CONSTRUCT
 	surgery_flags_blocked = null
+	surgery_flags = SURGERY_INCISED | SURGERY_CLAMPED | SURGERY_RETRACTED | SURGERY_BROKEN | SURGERY_CONSTRUCT
 	skill_used = /datum/skill/craft/engineering
 
 /datum/surgery_step/extract_lux/construct/preop(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent)
