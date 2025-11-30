@@ -3,10 +3,10 @@
 
 //  CONFIG Me BAlancerS
 #ifndef QUEST_COOLDOWN_DS
-#define QUEST_COOLDOWN_DS (30*60*10)
+#define QUEST_COOLDOWN_DS (1*60*10)
 #endif
 #ifndef QUEST_REWARD_FAVOR
-#define QUEST_REWARD_FAVOR 250
+#define QUEST_REWARD_FAVOR 150
 #endif
 
 #ifndef CLERIC_PRICE_PATRON
@@ -50,7 +50,7 @@
 #endif
 
 #ifndef UNLOCK_SHUNNED_RP
-#define UNLOCK_SHUNNED_RP 10 
+#define UNLOCK_SHUNNED_RP 10
 #endif
 
 // MOB dont blame me im a retard
@@ -68,18 +68,18 @@
 
 	var/list/patron_relations = null
 
-	
+
 	var/list/quest_ui_entries = null
 	var/quest_reroll_charges = 0
-	var/quest_reroll_last_ds = 0 
+	var/quest_reroll_last_ds = 0
 
 // GLOB
-var/global/list/divine_miracles_cache  = list()  
-var/global/list/inhumen_miracles_cache = list()  
+var/global/list/divine_miracles_cache  = list()
+var/global/list/inhumen_miracles_cache = list()
 var/global/miracle_caches_built = FALSE
 
-var/global/list/divine_patrons_index = list()   
-var/global/list/inhumen_patrons_index = list()  
+var/global/list/divine_patrons_index = list()
+var/global/list/inhumen_patrons_index = list()
 var/global/divine_patrons_built = FALSE
 var/global/inhumen_patrons_built = FALSE
 
@@ -326,7 +326,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 	var/current_org_tab = "none"   // none | t1 | t2 | t3
 	var/current_art_tab = "none"
 	var/current_rel_tab = "none"   // none | ten | shunned
-	var/current_learn_tab = "own"  // own | all | shunned | 
+	var/current_learn_tab = "own"  // own | all | shunned |
 
 /obj/effect/proc_holder/spell/self/learnmiracle/proc/_ensure_relations(mob/living/carbon/human/H)
 	if(!H.patron_relations || !islist(H.patron_relations))
@@ -348,7 +348,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 			if(!(sn in H.patron_relations))
 				H.patron_relations[sn] = 0
 
-//  LEARN 
+//  LEARN
 /obj/effect/proc_holder/spell/self/learnmiracle/proc/_build_learn_buckets(mob/living/carbon/human/H, include_inhumen = FALSE)
 	if(!miracle_caches_built) build_miracle_caches()
 	_ensure_relations(H)
@@ -555,7 +555,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 	else
 		html += "<span style='color:#7f8c8d'>Only clergy can buy RP/MP.</span><br>"
 
-	// Studies general shit 
+	// Studies general shit
 	html += "<hr><b>Studies</b><br>"
 	html += "<table width='100%' cellspacing='2' cellpadding='2'>"
 	html += "<tr><th align='left'>Study</th><th width='110'>Status</th><th width='220'>Action</th></tr>"
@@ -569,7 +569,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 		html += "<span style='color:#7f8c8d'>-</span>"
 	html += "</td></tr>"
 
-	// Organs slops 
+	// Organs slops
 	html += "<tr><td>Organs T1</td><td>[status_yn(H.unlocked_research_org_t1)]</td><td align='center'>"
 	if(!H.unlocked_research_org_t1)
 		if(rp >= COST_ORG_T1)	html += "<a href='?src=[REF(src)];unlock=org_t1'>Unlock ([COST_ORG_T1] RP)</a>"
@@ -755,14 +755,14 @@ var/global/list/PATRON_ARTIFACTS = list(
 					else
 						html += "<i>No artefacts listed for this patron.</i>"
 
-	// Organs slop 
+	// Organs slop
 	html += _organs_shop_block(H)
 
 	var/datum/browser/B = new(user, "MIRACLE_RESEARCH", "", 740, 860)
 	B.set_content(html)
 	B.open()
 
-// ---- QUESTS UI 
+// ---- QUESTS UI
 /obj/effect/proc_holder/spell/self/learnmiracle/proc/open_quests_ui(mob/user)
 	var/mob/living/carbon/human/H = istype(user, /mob/living/carbon/human) ? user : null
 	if(!H) return
@@ -857,7 +857,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 	B2.set_content(html)
 	B2.open()
 
-// -- UPGRADE UI 
+// -- UPGRADE UI
 /obj/effect/proc_holder/spell/self/learnmiracle/proc/open_upgrade_ui(mob/user)
 	if(!istype(user, /mob/living/carbon/human)) return
 	var/mob/living/carbon/human/H = user
@@ -1028,7 +1028,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 		else if(tb2 == "shunned")
 			if(_shunned_relations_unlocked(H)) src.current_learn_tab = "shunned"
 			else src.current_learn_tab = "own"
-		else src.current_learn_tab = "[tb2]" 
+		else src.current_learn_tab = "[tb2]"
 		open_learn_ui(H); return
 
 	// --- Learn click ---
@@ -1157,7 +1157,7 @@ var/global/list/PATRON_ARTIFACTS = list(
 		to_chat(H, span_notice("Study unlocked: [key]."))
 		open_research_ui(H); return
 
-	// --- Unlock shunned 
+	// --- Unlock shunned
 	if(href_list["unlock_shunned_rel"])
 		if(H.personal_research_points < UNLOCK_SHUNNED_RP) { open_research_ui(H); return }
 		H.personal_research_points = max(0, H.personal_research_points - UNLOCK_SHUNNED_RP)
