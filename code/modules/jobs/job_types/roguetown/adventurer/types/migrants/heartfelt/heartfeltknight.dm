@@ -20,7 +20,7 @@
 	Now, alone and committed to safeguarding what remains of your court, you ride to the Peak, resolved to ensure their safe arrival."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_NO_GOLEM
-	outfit = /datum/outfit/job/roguetown/heartfelt/knight
+	outfit = /datum/outfit/job/heartfelt/knight
 	maximum_possible_slots = 1
 	pickprob = 100
 	category_tags = list(CTAG_HFT_KNIGHT)
@@ -53,7 +53,7 @@
 	/datum/skill/misc/riding = SKILL_LEVEL_EXPERT,
 	)
 
-/datum/outfit/job/roguetown/heartfelt/knight/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/heartfelt/knight/pre_equip(mob/living/carbon/human/H)
 	..()
 
 	gloves = /obj/item/clothing/gloves/roguetown/plate

@@ -3,7 +3,7 @@
 	tutorial = "You are a Doppelsoldner - \"Double-pay Mercenary\" - an experienced frontline swordsman trained by the Zenitstadt fencing guild."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	outfit = /datum/outfit/job/roguetown/mercenary/grenzelhoft
+	outfit = /datum/outfit/job/mercenary/grenzelhoft
 	category_tags = list(CTAG_MERCENARY)
 	class_select_category = CLASS_CAT_GRENZELHOFT
 	cmode_music = 'sound/music/combat_grenzelhoft.ogg'
@@ -38,7 +38,7 @@
 		/datum/skill/misc/athletics = SKILL_LEVEL_EXPERT,		//Trust me, they'll need it due to stamina drain on their base-sword.
 	)
 
-/datum/outfit/job/roguetown/mercenary/grenzelhoft/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/mercenary/grenzelhoft/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a Doppelsoldner - \"Double-pay Mercenary\" - an experienced frontline swordsman trained by the Zenitstadt fencing guild."))
 
@@ -75,7 +75,7 @@
 /datum/advclass/mercenary/grenzelhoft/halberdier
 	name = "Halberdier"
 	tutorial = "You're an experienced soldier skilled in the use of polearms and axes. Your equals make up the bulk of the mercenary guild's forces."
-	outfit = /datum/outfit/job/roguetown/mercenary/grenzelhoft_halberdier
+	outfit = /datum/outfit/job/mercenary/grenzelhoft_halberdier
 
 	subclass_languages = list(
 		/datum/language/grenzelhoftian,
@@ -105,7 +105,7 @@
 		/datum/skill/misc/athletics = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/mercenary/grenzelhoft_halberdier/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/mercenary/grenzelhoft_halberdier/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You're an experienced soldier skilled in the use of polearms and axes. Your equals make up the bulk of the mercenary guild's forces."))
 
@@ -141,7 +141,7 @@
 /datum/advclass/mercenary/grenzelhoft/crossbowman
 	name = "Armbrustschutze"
 	tutorial = "You're a proved marksman with a crossbow, and learned how to set up camp and defenses in the wild. The guild needs you."
-	outfit = /datum/outfit/job/roguetown/mercenary/grenzelhoft_crossbowman
+	outfit = /datum/outfit/job/mercenary/grenzelhoft_crossbowman
 
 	subclass_languages = list(
 		/datum/language/grenzelhoftian,
@@ -176,7 +176,7 @@
 		/datum/skill/craft/crafting = SKILL_LEVEL_APPRENTICE,	// crafting for pallisades, lumberjacking for not fucking up wood
 	)
 
-/datum/outfit/job/roguetown/mercenary/grenzelhoft_crossbowman/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/mercenary/grenzelhoft_crossbowman/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You're a proved marksman with a crossbow, and learned how to set up camp and defenses in the wild. The guild needs you."))
 

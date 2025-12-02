@@ -3,7 +3,7 @@
 	tutorial = "You were once a venerated and revered knight - now, a traitor who abandoned your liege. You lyve the lyfe of an outlaw, shunned and looked down upon by society."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	outfit = /datum/outfit/job/roguetown/wretch/deserter
+	outfit = /datum/outfit/job/wretch/deserter
 	horse = /mob/living/simple_animal/hostile/retaliate/rogue/saiga/saigabuck/tame/saddled
 	category_tags = list(CTAG_WRETCH)
 	traits_applied = list(TRAIT_HEAVYARMOR, TRAIT_DISGRACED_NOBLE)
@@ -37,7 +37,7 @@
 		/datum/skill/misc/reading = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/wretch/deserter/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/wretch/deserter/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You were once a venerated and revered knight - now, a traitor who abandoned your liege. You lyve the lyfe of an outlaw, shunned and looked down upon by society."))
 	H.dna.species.soundpack_m = new /datum/voicepack/male/warrior()
@@ -132,7 +132,7 @@
 /datum/advclass/wretch/deserter/maa
 	name = "Deserter"
 	tutorial = "You had your post. You had your duty. Dissatisfied, lacking in morale, or simply thinking yourself better than it. - You decided to walk. Now it follows you everywhere you go."
-	outfit = /datum/outfit/job/roguetown/wretch/desertermaa
+	outfit = /datum/outfit/job/wretch/desertermaa
 
 	disallowed_races = list()
 
@@ -165,7 +165,7 @@
 		/datum/skill/misc/tracking = SKILL_LEVEL_NOVICE,
 	)
 
-/datum/outfit/job/roguetown/wretch/desertermaa/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/wretch/desertermaa/pre_equip(mob/living/carbon/human/H)
 	..()
 	var/weapons = list("Warhammer & Shield","Sabre & Shield","Axe & Shield","Billhook","Greataxe","Halberd",)
 	var/weapon_choice = input("Choose your weapon.", "TAKE UP ARMS") as anything in weapons

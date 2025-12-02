@@ -3,7 +3,7 @@
 	tutorial = "You are a treasure hunter trained in hunting for valuables. Discern what is treasure or not, your fortune could be hidden anywhere."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	outfit = /datum/outfit/job/roguetown/adventurer/rogue
+	outfit = /datum/outfit/job/adventurer/rogue
 	category_tags = list(CTAG_ADVENTURER, CTAG_COURTAGENT, CTAG_LICKER_WRETCH)
 	class_select_category = CLASS_CAT_ROGUE
 
@@ -34,7 +34,7 @@
 		/datum/skill/craft/traps = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/adventurer/rogue/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/rogue/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a treasure hunter trained in hunting for valuables. Discern what is treasure or not, your fortune could be hidden anywhere."))
 	pants = /obj/item/clothing/under/roguetown/trou/leather
@@ -71,7 +71,7 @@
 /datum/advclass/rogue/thief
 	name = "Thief"
 	tutorial = "You are a scoundrel and a thief. A master in getting into places you shouldn't be and taking things that aren't rightfully yours."
-	outfit = /datum/outfit/job/roguetown/adventurer/thief
+	outfit = /datum/outfit/job/adventurer/thief
 
 	cmode_music = 'sound/music/combat_rogue.ogg'
 
@@ -103,7 +103,7 @@
 		/datum/skill/craft/traps = SKILL_LEVEL_EXPERT,
 	)
 
-/datum/outfit/job/roguetown/adventurer/thief/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/thief/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a scoundrel and a thief. A master in getting into places you shouldn't be and taking things that aren't rightfully yours."))
 	armor = /obj/item/clothing/suit/roguetown/armor/leather
@@ -130,7 +130,7 @@
 /datum/advclass/rogue/bard
 	name = "Bard"
 	tutorial = "You make your fortune in brothels, flop houses, and taverns – gaining fame for your songs and legends. If there is any truth to them, that is."
-	outfit = /datum/outfit/job/roguetown/adventurer/bard
+	outfit = /datum/outfit/job/adventurer/bard
 	subclass_social_rank = SOCIAL_RANK_PEASANT
 
 	cmode_music = 'sound/music/combat_bard.ogg'
@@ -158,7 +158,7 @@
 		/datum/skill/craft/traps = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/bard/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/bard/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You make your fortune in brothels, flop houses, and taverns – gaining fame for your songs and legends. If there is any truth to them, that is."))
 
@@ -206,7 +206,7 @@
 /datum/advclass/rogue/swashbuckler
 	name = "Swashbuckler"
 	tutorial = "You are a daring rogue of the seas! Swashbucklers wield agile swordplay and acrobatic prowess - fighting dirty to outmaneuver foes with flair."
-	outfit = /datum/outfit/job/roguetown/adventurer/swashbuckler
+	outfit = /datum/outfit/job/adventurer/swashbuckler
 	subclass_social_rank = SOCIAL_RANK_PEASANT
 
 	cmode_music = 'sound/music/jukeboxes/oldschool/Sea_Shanty2.ogg'
@@ -233,7 +233,7 @@
 		/datum/skill/misc/lockpicking = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/swashbuckler/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/swashbuckler/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a daring rogue of the seas! Swashbucklers wield agile swordplay and acrobatic prowess - fighting dirty to outmaneuver foes with flair."))
 	head = /obj/item/clothing/head/roguetown/helmet/tricorn

@@ -16,7 +16,7 @@
 	display_order = JDO_GUARD_CAPTAIN
 	advclass_cat_rolls = list(CTAG_CAPTAIN = 20)
 	spells = list(/obj/effect/proc_holder/spell/self/convertrole/guard)
-	outfit = /datum/outfit/job/roguetown/captain
+	outfit = /datum/outfit/job/captain
 	give_bank_account = 26
 	noble_income = 16
 	min_pq = 15
@@ -35,7 +35,7 @@
 		/datum/advclass/captain/cavalry
 	)
 
-/datum/outfit/job/roguetown/captain
+/datum/outfit/job/captain
 	neck = /obj/item/clothing/neck/roguetown/bevor
 	armor = /obj/item/clothing/suit/roguetown/armor/captain
 	shirt = /obj/item/clothing/suit/roguetown/armor/chainmail
@@ -82,7 +82,7 @@
 	tutorial = "You've fought shoulder to shoulder with the realm's worthiest Knights while embedded directly within \
 	massed infantry formations. As a peerless armed combatant and tactician both, you are a formidable presence \
 	on any battlefield."
-	outfit = /datum/outfit/job/roguetown/captain/infantry
+	outfit = /datum/outfit/job/captain/infantry
 	category_tags = list(CTAG_CAPTAIN)
 
 	subclass_stats = list(
@@ -113,7 +113,7 @@
 		/datum/skill/misc/riding = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/captain/infantry/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/captain/infantry/pre_equip(mob/living/carbon/human/H)
 	..()
 	backr = /obj/item/storage/backpack/rogue/satchel/black
 	backpack_contents = list(
@@ -169,7 +169,7 @@
 	name = "Cavalry Captain"
 	tutorial = "As the first among finest you ride at the speartip of cavalier forces, barreling saiga and blades through \
 	the soft flanks and hard fronts of enemy formations, remember Agincourt, and do not hit the dirt below."
-	outfit = /datum/outfit/job/roguetown/captain/cavalry
+	outfit = /datum/outfit/job/captain/cavalry
 	horse = /mob/living/simple_animal/hostile/retaliate/rogue/saiga/saigabuck/tame/saddled
 	category_tags = list(CTAG_CAPTAIN)
 
@@ -200,7 +200,7 @@
 		/datum/skill/misc/riding = SKILL_LEVEL_EXPERT,
 	)
 
-/datum/outfit/job/roguetown/captain/cavalry/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/captain/cavalry/pre_equip(mob/living/carbon/human/H)
 	..()
 	backr = /obj/item/storage/backpack/rogue/satchel/black
 	backpack_contents = list(

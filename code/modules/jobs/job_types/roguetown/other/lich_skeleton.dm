@@ -8,16 +8,16 @@ LICH SKELETONS
 	advclass_cat_rolls = list(CTAG_LSKELETON = 20)
 	tutorial = "You are bygone. Your will belongs to your master. Fulfil and kill."
 
-	outfit = /datum/outfit/job/roguetown/greater_skeleton/lich
+	outfit = /datum/outfit/job/greater_skeleton/lich
 
-/datum/outfit/job/roguetown/greater_skeleton/lich
+/datum/outfit/job/greater_skeleton/lich
 	cloak = /obj/item/clothing/cloak/half	//starts black, so they can be identified.
 	belt = /obj/item/storage/belt/rogue/leather/black
 	wrists = /obj/item/clothing/wrists/roguetown/bracers/paalloy
 	backl = /obj/item/storage/backpack/rogue/satchel
 	gloves = /obj/item/clothing/gloves/roguetown/chain/paalloy
 
-/datum/outfit/job/roguetown/greater_skeleton/lich/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/greater_skeleton/lich/pre_equip(mob/living/carbon/human/H)
 	..()
 	REMOVE_TRAIT(H, TRAIT_HEAVYARMOR, TRAIT_GENERIC)
 	REMOVE_TRAIT(H, TRAIT_EASYDISMEMBER, TRAIT_GENERIC)
@@ -26,11 +26,11 @@ LICH SKELETONS
 /datum/advclass/greater_skeleton/lich/legionnaire
 	name = "Ancient Legionnaire"
 	tutorial = "A veteran lineman. How far you've fallen."
-	outfit = /datum/outfit/job/roguetown/greater_skeleton/lich/legionnaire
+	outfit = /datum/outfit/job/greater_skeleton/lich/legionnaire
 
 	category_tags = list(CTAG_LSKELETON)
 
-/datum/outfit/job/roguetown/greater_skeleton/lich/legionnaire/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/greater_skeleton/lich/legionnaire/pre_equip(mob/living/carbon/human/H)
 	..()
 
 	H.STASTR = 12
@@ -116,11 +116,11 @@ LICH SKELETONS
 /datum/advclass/greater_skeleton/lich/ballistiares
 	name = "Ancient Ballistiares"
 	tutorial = "Your frame has wept off your skin. Your fingers are mere peaks. Yet your aim remains true."
-	outfit = /datum/outfit/job/roguetown/greater_skeleton/lich/ballistiares
+	outfit = /datum/outfit/job/greater_skeleton/lich/ballistiares
 
 	category_tags = list(CTAG_LSKELETON)
 
-/datum/outfit/job/roguetown/greater_skeleton/lich/ballistiares/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/greater_skeleton/lich/ballistiares/pre_equip(mob/living/carbon/human/H)
 	..()
 
 	H.STASTR = 10
@@ -177,11 +177,11 @@ LICH SKELETONS
 /datum/advclass/greater_skeleton/lich/sapper
 	name = "Broken-Bone Sapper"
 	tutorial = "Simple. Obedient. Like an ant in a colony."
-	outfit = /datum/outfit/job/roguetown/greater_skeleton/lich/sapper
+	outfit = /datum/outfit/job/greater_skeleton/lich/sapper
 
 	category_tags = list(CTAG_LSKELETON)
 
-/datum/outfit/job/roguetown/greater_skeleton/lich/sapper/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/greater_skeleton/lich/sapper/pre_equip(mob/living/carbon/human/H)
 	..()
 
 	H.STASTR = 10
@@ -229,7 +229,7 @@ LICH SKELETONS
 /datum/job/roguetown/greater_skeleton/lich/besieger
 	title = "Besieger Skeleton"
 	advclass_cat_rolls = list(CTAG_LSKELETON = 20)
-	outfit = /datum/outfit/job/roguetown/greater_skeleton/lich 
+	outfit = /datum/outfit/job/greater_skeleton/lich 
 
 /datum/job/roguetown/greater_skeleton/lich/besieger/after_spawn(mob/living/L, mob/M, client/player_client)
 	..()

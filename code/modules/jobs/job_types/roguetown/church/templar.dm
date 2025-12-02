@@ -8,7 +8,7 @@
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_SECOND_CLASS_UP
 	allowed_patrons = ALL_DIVINE_PATRONS
-	outfit = /datum/outfit/job/roguetown/templar
+	outfit = /datum/outfit/job/templar
 	min_pq = 10 //Deus vult, but only according to the proper escalation rules
 	max_pq = null
 	round_contrib_points = 2
@@ -53,7 +53,7 @@
 					MF.known_people -= prev_real_name
 					H.mind.person_knows_me(MF)
 
-/datum/outfit/job/roguetown/templar
+/datum/outfit/job/templar
 	job_bitflag = BITFLAG_CHURCH
 	has_loadout = TRUE
 	allowed_patrons = ALL_DIVINE_PATRONS
@@ -63,7 +63,7 @@
 /datum/advclass/templar/monk
 	name = "Monk"
 	tutorial = "You are a monk of the Church, trained in pugilism and acrobatics. You bear no armor but your faith, and your hands are lethal weapons in service to your God."
-	outfit = /datum/outfit/job/roguetown/templar/monk
+	outfit = /datum/outfit/job/templar/monk
 	category_tags = list(CTAG_TEMPLAR)
 	cmode_music = 'sound/music/combat_holy.ogg'
 
@@ -88,7 +88,7 @@
 		/datum/skill/magic/holy = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/templar/monk/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/templar/monk/pre_equip(mob/living/carbon/human/H)
 	..()
 	neck = /obj/item/clothing/neck/roguetown/psicross/astrata
 	cloak = /obj/item/clothing/cloak/tabard/crusader/tief
@@ -140,7 +140,7 @@
 	var/datum/devotion/C = new /datum/devotion(H, H.patron)
 	C.grant_miracles(H, cleric_tier = CLERIC_T2, passive_gain = CLERIC_REGEN_MINOR, devotion_limit = CLERIC_REQ_2)	//Capped to T2 miracles.
 
-/datum/outfit/job/roguetown/templar/monk/choose_loadout(mob/living/carbon/human/H)
+/datum/outfit/job/templar/monk/choose_loadout(mob/living/carbon/human/H)
 	. = ..()
 	var/weapons = list("Katar","Knuckle Dusters", "Quarterstaff")
 	switch(H.patron?.type)
@@ -209,7 +209,7 @@
 /datum/advclass/templar/crusader
 	name = "Templar"
 	tutorial = "You are a templar of the Church, trained in heavy weaponry and zealous warfare. You are the instrument of your God's wrath, clad in steel and faith."
-	outfit = /datum/outfit/job/roguetown/templar/crusader
+	outfit = /datum/outfit/job/templar/crusader
 	category_tags = list(CTAG_TEMPLAR)
 	cmode_music = 'sound/music/combat_holy.ogg'
 
@@ -239,7 +239,7 @@
 	)
 	extra_context = "This subclass gains Expert skill in their weapon of choice."
 
-/datum/outfit/job/roguetown/templar/crusader/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/templar/crusader/pre_equip(mob/living/carbon/human/H)
 	..()
 	switch(H.patron?.type)
 		if(/datum/patron/divine/astrata)
@@ -306,7 +306,7 @@
 	var/datum/devotion/C = new /datum/devotion(H, H.patron)
 	C.grant_miracles(H, cleric_tier = CLERIC_T2, passive_gain = CLERIC_REGEN_MINOR, devotion_limit = CLERIC_REQ_2)	//Capped to T2 miracles.
 
-/datum/outfit/job/roguetown/templar/crusader/choose_loadout(mob/living/carbon/human/H)
+/datum/outfit/job/templar/crusader/choose_loadout(mob/living/carbon/human/H)
 	. = ..()
 	var/weapons = list("Halberd","Longsword","Flail","Mace","Battle Axe")
 	switch(H.patron?.type)

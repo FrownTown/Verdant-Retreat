@@ -4,7 +4,7 @@
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
 	vampcompat = FALSE
-	outfit = /datum/outfit/job/roguetown/adventurer/cleric
+	outfit = /datum/outfit/job/adventurer/cleric
 	category_tags = list(CTAG_ADVENTURER, CTAG_COURTAGENT)
 	class_select_category = CLASS_CAT_CLERIC
 	subclass_social_rank = SOCIAL_RANK_YEOMAN
@@ -27,10 +27,10 @@
 		/datum/skill/magic/holy = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/cleric
+/datum/outfit/job/adventurer/cleric
 	allowed_patrons = ALL_PATRONS
 
-/datum/outfit/job/roguetown/adventurer/cleric/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/cleric/pre_equip(mob/living/carbon/human/H)
 	..()
 
 	// Add druidic skill for Dendor followers	
@@ -196,7 +196,7 @@
 /datum/advclass/cleric/paladin
 	name = "Paladin"
 	tutorial = "A holy warrior. Where others of the clergy may have spent their free time studying scriptures, you have instead honed your skills with a blade."
-	outfit = /datum/outfit/job/roguetown/adventurer/paladin
+	outfit = /datum/outfit/job/adventurer/paladin
 	subclass_social_rank = SOCIAL_RANK_YEOMAN
 
 	traits_applied = list(TRAIT_MEDIUMARMOR)
@@ -220,7 +220,7 @@
 		/datum/skill/magic/holy = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/paladin/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/paladin/pre_equip(mob/living/carbon/human/H)
 	to_chat(H, span_warning("A holy warrior. Where others of the clergy may have spent their free time studying scriptures, you have instead honed your skills with a blade."))
 	belt = /obj/item/storage/belt/rogue/leather
 	backl = /obj/item/storage/backpack/rogue/satchel
@@ -405,7 +405,7 @@
 /datum/advclass/cleric/cantor
 	name = "Cantor"
 	tutorial = "You were a bard once - but you've found a new calling. Your eyes have been opened to the divine, now you wander from city to city singing songs and telling tales of your patron's greatness."
-	outfit = /datum/outfit/job/roguetown/adventurer/cantor
+	outfit = /datum/outfit/job/adventurer/cantor
 	subclass_social_rank = SOCIAL_RANK_YEOMAN
 
 	traits_applied = list(TRAIT_DODGEEXPERT, TRAIT_EMPATH)
@@ -427,7 +427,7 @@
 		/datum/skill/misc/reading = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/adventurer/cantor/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/cantor/pre_equip(mob/living/carbon/human/H)
 	to_chat(H, span_warning("You were a bard once - but you've found a new calling. Your eyes have been opened to the divine, now you wander from city to city singing songs and telling tales of your patron's greatness."))
 	head = /obj/item/clothing/head/roguetown/bardhat
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/vest
@@ -596,7 +596,7 @@
 /datum/advclass/cleric/missionary
 	name = "Missionary"
 	tutorial = "You are a devout worshipper of the divine with a strong connection to your patron god. You've spent years studying scriptures and serving your deity - now you wander into foreign lands, spreading the word of your faith."
-	outfit = /datum/outfit/job/roguetown/adventurer/missionary
+	outfit = /datum/outfit/job/adventurer/missionary
 	subclass_social_rank = SOCIAL_RANK_YEOMAN
 
 	traits_applied = list()
@@ -620,7 +620,7 @@
 		/datum/skill/misc/medicine = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/missionary/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/missionary/pre_equip(mob/living/carbon/human/H)
 	to_chat(H, span_warning("You are a devout worshipper of the divine with a strong connection to your patron god. You've spent years studying scriptures and serving your deity - now you wander into foreign lands, spreading the word of your faith."))
 	backl = /obj/item/storage/backpack/rogue/satchel
 	shirt = /obj/item/clothing/suit/roguetown/shirt/undershirt/priest

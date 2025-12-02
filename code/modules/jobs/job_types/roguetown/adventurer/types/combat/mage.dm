@@ -3,7 +3,7 @@
 	tutorial = "You are a learned mage and a scholar, having spent your life studying the arcane and its ways."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	outfit = /datum/outfit/job/roguetown/adventurer/mage
+	outfit = /datum/outfit/job/adventurer/mage
 	category_tags = list(CTAG_ADVENTURER, CTAG_COURTAGENT)
 	class_select_category = CLASS_CAT_MAGE
 	subclass_social_rank = SOCIAL_RANK_YEOMAN
@@ -29,7 +29,7 @@
 		/datum/skill/misc/swimming = SKILL_LEVEL_NOVICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/mage/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/mage/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a learned mage and a scholar, having spent your life studying the arcane and its ways."))
 	head = /obj/item/clothing/head/roguetown/roguehood/mage
@@ -65,7 +65,7 @@
 /datum/advclass/mage/spellblade
 	name = "Spellblade"
 	tutorial = "You are skilled in both the arcyne art and the art of the blade. But you are not a master of either nor could you channel your magick in armor."
-	outfit = /datum/outfit/job/roguetown/adventurer/spellblade
+	outfit = /datum/outfit/job/adventurer/spellblade
 
 	traits_applied = list(TRAIT_MAGEARMOR, TRAIT_ARCYNE_T2)
 	subclass_stats = list(
@@ -89,7 +89,7 @@
 		/datum/skill/misc/swimming = SKILL_LEVEL_NOVICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/spellblade/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/spellblade/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are skilled in both the arcyne art and the art of the blade. But you are not a master of either nor could you channel your magick in armor."))
 	head = /obj/item/clothing/head/roguetown/bucklehat
@@ -140,7 +140,7 @@
 /datum/advclass/mage/spellsinger
 	name = "Spellsinger"
 	tutorial = "You belong to a school of bards renowned for their study of both the arcane and the arts."
-	outfit = /datum/outfit/job/roguetown/adventurer/spellsinger
+	outfit = /datum/outfit/job/adventurer/spellsinger
 
 	traits_applied = list(TRAIT_MAGEARMOR, TRAIT_ARCYNE_T2, TRAIT_EMPATH, TRAIT_GOODLOVER)
 	subclass_stats = list(
@@ -163,7 +163,7 @@
 		/datum/skill/misc/swimming = SKILL_LEVEL_NOVICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/spellsinger/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/spellsinger/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You belong to a school of bards renowned for their study of both the arcane and the arts."))
 	head = /obj/item/clothing/head/roguetown/spellcasterhat
@@ -216,7 +216,7 @@
 /datum/advclass/mage/spellthief
 	name = "Arcane Trickster"
 	tutorial = "Some Rogues enhance their fine-honed skills of stealth and agility with spells, learning magical tricks to aid them in their trade. Some use their talents as pickpockets and burglars, while others are pranksters."
-	outfit = /datum/outfit/job/roguetown/adventurer/spellthief
+	outfit = /datum/outfit/job/adventurer/spellthief
 	subclass_social_rank = SOCIAL_RANK_PEASANT
 
 	traits_applied = list(TRAIT_ARCYNE_T2, TRAIT_DODGEEXPERT, TRAIT_LIGHT_STEP) //dodge expert has the potential for being a big pain on spellcasters,  so we take away their mage armor as a trade.
@@ -247,7 +247,7 @@
 		/datum/skill/craft/traps = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/adventurer/spellthief/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/spellthief/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("Some Rogues enhance their fine-honed skills of stealth and agility with spells, learning magical tricks to aid them in their trade. Some use their talents as pickpockets and burglars, while others are pranksters."))
 	head = /obj/item/clothing/head/roguetown/witchhat //you can tell they're a spellthief by the pointy hat!

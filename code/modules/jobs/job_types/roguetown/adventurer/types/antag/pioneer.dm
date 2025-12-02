@@ -3,7 +3,7 @@
 	tutorial = "Pioneers redraw the battlefield. They cut roads through obstacles, unhinge gates, and lace the ground with clever devices-making allies swift and enemies slow."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	outfit = /datum/outfit/job/roguetown/bandit/pioneer
+	outfit = /datum/outfit/job/bandit/pioneer
 	category_tags = list(CTAG_BANDIT)
 	cmode_music = 'sound/music/combat_bandit.ogg'
 
@@ -41,7 +41,7 @@
 	)
 
 
-/datum/outfit/job/roguetown/bandit/pioneer/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/bandit/pioneer/pre_equip(mob/living/carbon/human/H)
 	..()
 	if (!(istype(H.patron, /datum/patron/inhumen/zizo) || istype(H.patron, /datum/patron/inhumen/matthios) || istype(H.patron, /datum/patron/inhumen/graggar) || istype(H.patron, /datum/patron/inhumen/baotha)))
 		to_chat(H, span_warning("My former deity has abandoned me.. Matthios is my new master."))

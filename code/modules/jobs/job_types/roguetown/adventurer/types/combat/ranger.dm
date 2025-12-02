@@ -3,7 +3,7 @@
 	tutorial = "You are a ranger well-versed in traversing untamed lands, with years of experience taking odd jobs as a pathfinder and bodyguard in areas of wilderness untraversable to common soldiery."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	outfit = /datum/outfit/job/roguetown/adventurer/ranger
+	outfit = /datum/outfit/job/adventurer/ranger
 	category_tags = list(CTAG_ADVENTURER, CTAG_COURTAGENT, CTAG_LICKER_WRETCH)
 	class_select_category = CLASS_CAT_RANGER
 	subclass_social_rank = SOCIAL_RANK_PEASANT
@@ -36,7 +36,7 @@
 		/datum/skill/misc/tracking = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/ranger/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/ranger/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a ranger well-versed in traversing untamed lands, with years of experience taking odd jobs as a pathfinder and bodyguard in areas of wilderness untraversable to common soldiery."))
 	shoes = /obj/item/clothing/shoes/roguetown/boots/leather
@@ -73,7 +73,7 @@
 /datum/advclass/ranger/assassin
 	name = "Assassin"
 	tutorial = "You've lived the life of a hired killer and have spent your time training with blades and crossbows alike."
-	outfit = /datum/outfit/job/roguetown/adventurer/assassin
+	outfit = /datum/outfit/job/adventurer/assassin
 
 	subclass_languages = list(/datum/language/thievescant)
 
@@ -99,7 +99,7 @@
 		/datum/skill/misc/lockpicking = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/assassin/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/assassin/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You've lived the life of a hired killer and have spent your time training with blades and crossbows alike."))
 	shoes = /obj/item/clothing/shoes/roguetown/boots
@@ -127,7 +127,7 @@
 /datum/advclass/ranger/bombadier
 	name = "Bombadier"
 	tutorial = "Bombs? You've got them. Plenty of them - and the skills to make more. You've spent years training under skilled alchemists and have found the perfect mix to create some chaos - now go blow something up!"
-	outfit = /datum/outfit/job/roguetown/adventurer/bombadier
+	outfit = /datum/outfit/job/adventurer/bombadier
 
 	cmode_music = 'sound/music/combat_condottiero.ogg'
 
@@ -150,7 +150,7 @@
 		/datum/skill/craft/crafting = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/bombadier/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/bombadier/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("Bombs? You've got them. Plenty of them - and the skills to make more. You've spent years training under skilled alchemists and have found the perfect mix to create some chaos - now go blow something up!"))
 	shoes = /obj/item/clothing/shoes/roguetown/boots
@@ -177,7 +177,7 @@
 /datum/advclass/ranger/bwanderer
 	name = "Biome Wanderer"
 	tutorial = "The dangers of the wilds vary upon the plains they rest upon, You happen to be experienced in many."
-	outfit = /datum/outfit/job/roguetown/adventurer/bwanderer
+	outfit = /datum/outfit/job/adventurer/bwanderer
 
 	traits_applied = list(TRAIT_OUTDOORSMAN)
 	subclass_stats = list(
@@ -206,7 +206,7 @@
 		/datum/skill/misc/tracking = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/adventurer/bwanderer/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/bwanderer/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("The dangers of the wilds vary upon the plains they rest upon, You happen to be experienced in many."))
 	head = /obj/item/clothing/head/roguetown/helmet/leather/volfhelm

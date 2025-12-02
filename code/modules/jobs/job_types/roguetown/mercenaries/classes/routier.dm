@@ -6,7 +6,7 @@
 	disallowed_races = list(
 		/datum/species/lamia,
 	)
-	outfit = /datum/outfit/job/roguetown/mercenary/routier
+	outfit = /datum/outfit/job/mercenary/routier
 	category_tags = list(CTAG_MERCENARY)
 	class_select_category = CLASS_CAT_OTAVA
 	cmode_music = 'sound/music/combat_routier.ogg'
@@ -42,7 +42,7 @@
 		/datum/skill/misc/riding = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/mercenary/routier/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/mercenary/routier/pre_equip(mob/living/carbon/human/H)
 	..()
 
 	// CLASS ARCHETYPES

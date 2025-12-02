@@ -3,7 +3,7 @@
 	tutorial = "You are a traveling noble visiting foreign lands. With wealth, come the poor, ready to pilfer you of your hard earned (inherited) coin, so tread lightly unless you want to meet a grizzly end."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_NO_GOLEM
-	outfit = /datum/outfit/job/roguetown/adventurer/noble
+	outfit = /datum/outfit/job/adventurer/noble
 	category_tags = list(CTAG_ADVENTURER, CTAG_COURTAGENT, CTAG_LICKER_WRETCH)
 	class_select_category = CLASS_CAT_NOBLE
 
@@ -29,7 +29,7 @@
 		/datum/skill/misc/music = SKILL_LEVEL_NOVICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/noble/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/noble/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a traveling noble visiting foreign lands. With wealth, come the poor, ready to pilfer you of your hard earned (inherited) coin, so tread lightly unless you want to meet a grizzly end."))
 	shoes = /obj/item/clothing/shoes/roguetown/boots
@@ -57,7 +57,7 @@
 /datum/advclass/noble/knighte
 	name = "Knight Errant"
 	tutorial = "You are a knight from a distant land, a scion of a noble house visiting Scarlet Reach for one reason or another."
-	outfit = /datum/outfit/job/roguetown/adventurer/knighte
+	outfit = /datum/outfit/job/adventurer/knighte
 
 	traits_applied = list(TRAIT_NOBLE, TRAIT_HEAVYARMOR)
 	subclass_stats = list(
@@ -83,7 +83,7 @@
 		/datum/skill/misc/reading = SKILL_LEVEL_JOURNEYMAN,
 	)
 
-/datum/outfit/job/roguetown/adventurer/knighte/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/knighte/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a knight from a distant land, a scion of a noble house visiting Scarlet Reach for one reason or another."))
 	var/helmets = list(
@@ -162,7 +162,7 @@
 /datum/advclass/noble/squire
 	name = "Squire Errant"
 	tutorial = "You are a squire who has traveled far in search of a master to train you and a lord to knight you."
-	outfit = /datum/outfit/job/roguetown/adventurer/squire
+	outfit = /datum/outfit/job/adventurer/squire
 	subclass_social_rank = SOCIAL_RANK_PEASANT
 
 	traits_applied = list(TRAIT_SQUIRE_REPAIR)
@@ -189,7 +189,7 @@
 		/datum/skill/misc/riding = SKILL_LEVEL_APPRENTICE,
 	)
 
-/datum/outfit/job/roguetown/adventurer/squire/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/job/adventurer/squire/pre_equip(mob/living/carbon/human/H)
 	..()
 	to_chat(H, span_warning("You are a squire who has traveled far in search of a master to train you and a lord to knight you."))
 	head = /obj/item/clothing/head/roguetown/roguehood
