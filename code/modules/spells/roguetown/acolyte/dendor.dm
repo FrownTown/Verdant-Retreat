@@ -96,7 +96,7 @@
 	if(!locate(/obj/structure/glowshroom) in target_turf)
 		new /obj/structure/glowshroom/dendorite(target_turf)
 
-	if(!locate(/obj/structure/glowshroom in target_turf_two))
+	if(!locate(/obj/structure/glowshroom) in target_turf_two)
 		new /obj/structure/glowshroom/dendorite(target_turf_two)
 
 	if(!locate(/obj/structure/glowshroom) in target_turf_three)

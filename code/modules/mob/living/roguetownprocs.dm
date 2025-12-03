@@ -37,8 +37,6 @@
 		if(used_intent.blade_class == BCLASS_STAB)
 			chance2hit += 6
 			precision_bonus += 8
-		if(used_intent.blade_class == BCLASS_PEEL)
-			chance2hit += 25
 		if(used_intent.blade_class == BCLASS_CUT)
 			chance2hit += 5
 			accuracy_bonus += 8
