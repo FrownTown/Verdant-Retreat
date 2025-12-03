@@ -670,6 +670,13 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			continue
 		returned_flags |= SURGERY_INCISED
 		break
+	if(owner?.construct) // Construct snowflake check.
+		for(var/datum/wound/slash/incision/construct/incision in wounds)
+			if(incision.is_sewn())
+				continue
+			returned_flags |= SURGERY_INCISED
+			break
+		returned_flags |= SURGERY_CONSTRUCT
 	var/static/list/retracting_behaviors = list(
 		TOOL_RETRACTOR,
 		TOOL_CROWBAR,

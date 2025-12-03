@@ -23,23 +23,29 @@
 	// If you're floored, you will aim feet and legs easily. There's a check for whether the victim is laying down already.
 	if(!(user.mobility_flags & MOBILITY_STAND) && (zone in list(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_PRECISE_R_FOOT, BODY_ZONE_PRECISE_L_FOOT)))
 		return zone
-	if( (target.dir == turn(get_dir(target,user), 180)))
+	if((target.dir == turn(get_dir(target,user), 180)))
 		return zone
 
 	var/chance2hit = 0
 
-	if(check_zone(zone) == zone)	//Are we targeting a big limb or chest?
-		chance2hit += 15
+	var/accuracy_bonus = 15
+	var/precision_bonus = 0
 
 	chance2hit += (user.get_skill_level(associated_skill) * 8)
 
 	if(used_intent)
 		if(used_intent.blade_class == BCLASS_STAB)
-			chance2hit += 10
-		if(used_intent.blade_class == BCLASS_CUT)
 			chance2hit += 6
-		if((used_intent.blade_class == BCLASS_BLUNT || used_intent.blade_class == BCLASS_SMASH) && check_zone(zone) != zone)	//A mace can't hit the eyes very well
-			chance2hit -= 10
+			precision_bonus += 8
+		if(used_intent.blade_class == BCLASS_PEEL)
+			chance2hit += 25
+		if(used_intent.blade_class == BCLASS_CUT)
+			chance2hit += 5
+			accuracy_bonus += 8
+		if((used_intent.blade_class == BCLASS_BLUNT || used_intent.blade_class == BCLASS_SMASH))	//A mace can't hit the eyes very well
+			precision_bonus -= 10
+		if((used_intent.blade_class == BCLASS_PUNCH))
+			accuracy_bonus += 5
 
 	if(I)
 		if(I.wlength == WLENGTH_SHORT)
@@ -54,36 +60,41 @@
 		chance2hit += (min((user.STAPER-15)*3, 15))
 
 	if(user.STAPER < 10)
-		chance2hit -= ((10-user.STAPER)*10)
+		chance2hit -= ((10-user.STAPER)*8)
+		precision_bonus -= ((10-user.STAPER)*2)
 
 	if(istype(user.rmb_intent, /datum/rmb_intent/aimed))
 		chance2hit += 20
+		precision_bonus += 5
 	if(istype(user.rmb_intent, /datum/rmb_intent/swift))
 		chance2hit -= 20
+		precision_bonus -= 5
 
 	if(HAS_TRAIT(user, TRAIT_CURSE_RAVOX))
-		chance2hit -= 30
+		chance2hit -= 25
+		precision_bonus -= 10
 
-	chance2hit = CLAMP(chance2hit, 5, 95)
+	var/accuracy_chance = CLAMP(chance2hit + accuracy_bonus, 5, 93)
+	var/precision_chance = CLAMP(chance2hit + precision_bonus, 5, 93)
 
 	var/precision_roll = FALSE
 	var/accuracy_roll = FALSE
 
-	accuracy_roll = prob(chance2hit)
+	accuracy_roll = prob(accuracy_chance)
 	if(accuracy_roll)
 		if(check_zone(zone) == zone)
 			return zone
 		else
-			precision_roll = prob(chance2hit)
+			precision_roll = prob(precision_chance)
 			if(precision_roll)
 				return zone
 			else
 				if(user.client?.prefs.showrolls)
-					to_chat(user, span_warning("Precision fail! [chance2hit]%"))
+					to_chat(user, span_warning("Precision fail! [precision_chance]%"))
 				return check_zone(zone)
 	else
 		if(user.client?.prefs.showrolls)
-			to_chat(user, span_warning("Accuracy fail! [chance2hit]%"))
+			to_chat(user, span_warning("Accuracy fail! [accuracy_chance]%"))
 		return BODY_ZONE_CHEST		
 
 /mob/proc/get_generic_parry_drain()

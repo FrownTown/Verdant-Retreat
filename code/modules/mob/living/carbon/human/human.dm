@@ -157,15 +157,10 @@
 /mob/living/carbon/human/Stat()
 	..()
 	if(mind)
-		var/datum/antagonist/vampirelord/VDL = mind.has_antag_datum(/datum/antagonist/vampirelord)
-		if(VDL)
+		var/datum/antagonist/vampire/VD = mind.has_antag_datum(/datum/antagonist/vampire)
+		if(VD)
 			if(statpanel("Stats"))
-				stat("Vitae:", VDL.vitae)
-		else
-			var/datum/antagonist/vampire/VD = mind.has_antag_datum(/datum/antagonist/vampire)
-			if(VD)
-				if(statpanel("Stats"))
-					stat("Vitae:", VD.vitae)
+				stat("Vitae:", bloodpool)
 		if((mind.assigned_role == "Orthodoxist") || (mind.assigned_role == "Inquisitor"))
 			if(statpanel("Status"))
 				stat("Confessions sent: [GLOB.confessors.len]")
@@ -621,7 +616,7 @@
 		if(hud_used.zone_select)
 			hud_used.zone_select.update_icon()
 
-/mob/living/carbon/human/fully_heal(admin_revive = FALSE)
+/mob/living/carbon/human/fully_heal(admin_revive = FALSE, break_restraints = FALSE)
 	dna?.species.spec_fully_heal(src)
 	if(admin_revive)
 		regenerate_limbs()
@@ -629,7 +624,7 @@
 	spill_embedded_objects()
 	set_heartattack(FALSE)
 	drunkenness = 0
-	..()
+	return ..()
 
 /mob/living/carbon/human/check_weakness(obj/item/weapon, mob/living/attacker)
 	. = ..()
