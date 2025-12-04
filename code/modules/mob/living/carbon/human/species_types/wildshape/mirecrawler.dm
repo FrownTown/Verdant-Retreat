@@ -3,7 +3,7 @@
 	race = /datum/species/mirecrawler
 	footstep_type = FOOTSTEP_MOB_CLAW
 	ambushable = FALSE
-	skin_armor = new /obj/item/clothing/suit/roguetown/armor/skin_armor/moss_skin
+	skin_armor = new /obj/item/clothing/suit/roguetown/armor/skin_armor/spider_skin
 
 /mob/living/carbon/human/species/wildshape/mirecrawler/death(gibbed, nocutscene = FALSE)
 	wildshape_untransform(TRUE, gibbed)
@@ -20,16 +20,17 @@
 		src.adjust_skillrank(/datum/skill/misc/swimming, 2, TRUE)
 		src.adjust_skillrank(/datum/skill/misc/athletics, 4, TRUE)
 		src.adjust_skillrank(/datum/skill/misc/tracking, 4, TRUE) //'Tracker' transformation
-		src.adjust_skillrank(/datum/skill/misc/sneaking, 4, TRUE)
-		src.adjust_skillrank(/datum/skill/misc/climbing, 4, TRUE) //I am in your walls
+		src.adjust_skillrank(/datum/skill/misc/sneaking, 5, TRUE)
+		src.adjust_skillrank(/datum/skill/misc/climbing, 6, TRUE) //I am in your walls
 //Give it miracles maybe as well if needed, but this boi is already good
 		src.STASTR = 5
 		src.STACON = 8
+		src.STAINT = 9 //Tiny spider brain.
 		src.STAPER = 15
 		src.STASPD = 15
 		update_move_intent_slowdown() // Apply speed changes
 
-		AddSpell(new /obj/effect/proc_holder/spell/self/spiderclaw)
+		AddSpell(new /obj/effect/proc_holder/spell/self/spiderfangs/mire)
 
 
 // mirecrawler SPECIES DATUM //
@@ -45,6 +46,7 @@
 		TRAIT_HARDDISMEMBER, //Decapping causes them to bug out, badly, and need admin intervention to fix. Bandaid fix.
 		TRAIT_PIERCEIMMUNE, //Prevents weapon dusting and caltrop effects due to them transforming when killed/stepping on shards.
 		TRAIT_LONGSTRIDER,
+		TRAIT_INFINITE_ENERGY, //It's a 5 strength spiderling, what's the worst that could happen?
 		TRAIT_PERFECT_TRACKER,
 	)
 	inherent_biotypes = MOB_HUMANOID
@@ -90,7 +92,7 @@
 	return TRUE
 
 // WOLF SPECIFIC ITEMS //
-/obj/item/clothing/suit/roguetown/armor/skin_armor/moss_skin
+/obj/item/clothing/suit/roguetown/armor/skin_armor/spider_skin
 	slot_flags = null
 	name = "pitiful carapace"
 	desc = ""
@@ -105,9 +107,59 @@
 	max_integrity = 80 
 	item_flags = DROPDEL
 
-/datum/intent/simple/mole 
+/obj/item/rogueweapon/spider_fang/mire //Like a less defense dagger
+	max_blade_int = 300
+	max_integrity = 300
+	force = 30 //This form has 5 strength by default so this is more like 15 damage.
+	swingsound = list('sound/vo/mobs/vw/attack (1).ogg','sound/vo/mobs/vw/attack (2).ogg','sound/vo/mobs/vw/attack (3).ogg','sound/vo/mobs/vw/attack (4).ogg')
+	possible_item_intents = list(/datum/intent/simple/spider/mire, /datum/intent/pick)
+
+/obj/item/rogueweapon/spider_fang/mire/right
+	icon_state = "claw_r"
+
+/obj/item/rogueweapon/spider_fang/mire/left
+	icon_state = "claw_l"
+
+/obj/item/rogueweapon/spider_fang/mire/Initialize()
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, TRAIT_GENERIC)
+	ADD_TRAIT(src, TRAIT_NOEMBED, TRAIT_GENERIC)
+
+/obj/effect/proc_holder/spell/self/spiderfangs/mire
+	name = "Spider Fangs"
+	desc = "!"
+	overlay_state = "claws"
+	antimagic_allowed = TRUE
+	recharge_time = 40 //4 seconds
+	ignore_cockblock = TRUE	
+
+/obj/effect/proc_holder/spell/self/spiderfangs/mire/cast(mob/user = usr)
+	..()
+	var/obj/item/rogueweapon/spider_fang/mire/left/l
+	var/obj/item/rogueweapon/spider_fang/mire/right/r
+
+	l = user.get_active_held_item()
+	r = user.get_inactive_held_item()
+	if(extended)
+		if(istype(l, /obj/item/rogueweapon/spider_fang/mire))
+			user.dropItemToGround(l, TRUE)
+			qdel(l)
+		if(istype(r, /obj/item/rogueweapon/spider_fang/mire))
+			user.dropItemToGround(r, TRUE)
+			qdel(r)
+		user.visible_message("Your fangs retract.", "You feel your fangs retracting.", "You hear a sound of fangs retracting.")
+		extended = FALSE
+	else
+		l = new(user,1)
+		r = new(user,2)
+		user.put_in_hands(l, TRUE, FALSE, TRUE)
+		user.put_in_hands(r, TRUE, FALSE, TRUE)
+		user.visible_message("Your fangs extend.", "You feel your fangs extending.", "You hear a sound of fangs extending.")
+		extended = TRUE
+
+/datum/intent/simple/spider/mire
 	name = "monch"
-	clickcd = 10
+	clickcd = 6 //Very fast.
 	icon_state = "incut"
 	blade_class = BCLASS_CUT
 	attack_verb = list("bites, chomps")
