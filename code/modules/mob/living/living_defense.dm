@@ -72,6 +72,8 @@
 		. = TRUE
 
 /mob/living/bullet_act(obj/projectile/P, def_zone = BODY_ZONE_CHEST)
+	if(SEND_SIGNAL(src, COMSIG_ATOM_BULLET_ACT, P, def_zone) & COMPONENT_ATOM_BLOCK_BULLET)
+		return
 	def_zone = bullet_hit_accuracy_check(P.accuracy + P.bonus_accuracy, def_zone)
 	var/ap = (P.flag == "blunt") ? BLUNT_DEFAULT_PENFACTOR : P.armor_penetration
 	if(ishuman(P.firer))
@@ -167,6 +169,8 @@
 		var/obj/item/I = AM
 		var/zone = throwingdatum?.target_zone || ran_zone(BODY_ZONE_CHEST, 65)
 		SEND_SIGNAL(I, COMSIG_MOVABLE_IMPACT_ZONE, src, zone)
+		if(SEND_SIGNAL(src, COMSIG_LIVING_IMPACT_ZONE, I, zone) & COMPONENT_CANCEL_THROW)
+			return FALSE
 		if(!blocked)
 			var/ap = (damage_flag == "blunt") ? BLUNT_DEFAULT_PENFACTOR : I.armor_penetration
 			var/armor = run_armor_check(zone, damage_flag, "", "", armor_penetration = ap, damage = I.throwforce, used_weapon = I)
@@ -225,6 +229,7 @@
 		adjust_fire_stacks(added)
 	else
 		adjust_fire_stacks(1)
+	ignite_mob() // we do this because fire stacks does not automatically mean ignited. fire_act is FIRE, so we should also ignite
 
 /mob/living/proc/grabbedby(mob/living/carbon/user, supress_message = FALSE, item_override)
 	if(!user || !src || anchored || !isturf(user.loc))

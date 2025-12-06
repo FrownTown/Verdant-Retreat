@@ -579,3 +579,14 @@
 	penfactor = 80
 	damfactor = 0.9
 	item_d_type = "stab"
+
+/obj/item/rogueweapon/mace/cudgel/ogre
+	name = "Head Knockah"
+	desc = "A bell ringer that's been repurposed by a crafty set of hands, its size can only be wielded effectively by a giant."
+	force = 25
+	icon = 'icons/roguetown/weapons/64.dmi'
+	icon_state = "ogre_cudgel"
+	minstr = 13
+	pixel_y = -16
+	pixel_x = -16
+	bigboy = TRUE

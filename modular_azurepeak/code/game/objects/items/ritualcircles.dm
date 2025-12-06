@@ -453,17 +453,22 @@
 /obj/structure/ritualcircle/dendor/proc/requestmadness(src)
 	var/ritualtargets = range(0, loc)
 	for(var/mob/living/carbon/human/target in ritualtargets)
+		if((target.patron?.type) != /datum/patron/divine/dendor)
+			to_chat(target, span_warning("The ritual's power does not recognize me..."))
+			continue
 		to_chat(target,span_userdanger("Do you like hurting other people?"))
 		target.flash_fullscreen("redflash3")
 		target.emote("agony")
 		target.Unconscious(200)
 		target.Knockdown(200)
 		target.mind?.AddSpell(new /obj/effect/proc_holder/spell/targeted/shapeshift/dendormole)
-		target.mind?.AddSpell(new /obj/effect/proc_holder/spell/self/moleclaw)
 
 /obj/structure/ritualcircle/dendor/proc/spiderkin(src)
 	var/ritualtargets = range(0, loc)
 	for(var/mob/living/carbon/human/target in ritualtargets)
+		if((target.patron?.type) != /datum/patron/divine/dendor)
+			to_chat(target, span_warning("The ritual's power does not recognize me..."))
+			continue
 		to_chat(target,span_userdanger("The webs of madness and nature whisper to me. The webs are eternal. Long live the Nest!"))
 		target.flash_fullscreen("redflash3")
 		target.emote("agony")
