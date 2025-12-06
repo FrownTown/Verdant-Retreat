@@ -115,29 +115,84 @@
 			// Always apply the status effect for visual effects
 			target.apply_status_effect(/datum/status_effect/buff/healing, amount)
 
-				// Find and heal the most damaged limb
-				var/obj/item/bodypart/most_damaged_limb = get_most_damaged_limb(H)
-				if(most_damaged_limb && most_damaged_limb.get_damage() > 0)
-					most_damaged_limb.heal_damage(healing * 2, healing * 2, healing * 2)
-					H.update_damage_overlays()
-					to_chat(H, span_notice("The miracle mends my [most_damaged_limb.name]!"))
-
-				// Clear internal bleeding from lethal wounds
-				for(var/obj/item/bodypart/BP in H.bodyparts)
-					if(length(BP.wounds))
-						for(var/datum/wound/lethal/L in BP.wounds)
-							if(L.internal_bleed_rate > 0)
-								L.internal_bleed_rate = 0
-			else
-				message_out = span_warning("The wounds tear and rip around the embedded objects!")
-				message_self = span_warning("Agonising pain shoots through your body as magycks try to sew around the embedded objects!")
-				H.adjustBruteLoss(20)
-				playsound(target, 'sound/combat/dismemberment/dismem (2).ogg', 100)
-				H.emote("agony")
+			// Find and heal the most damaged limb
+			var/obj/item/bodypart/most_damaged_limb = get_most_damaged_limb(target)
+			if(most_damaged_limb && most_damaged_limb.get_damage() > 0)
+				most_damaged_limb.heal_damage(amount * 2, amount * 2, amount * 2)
+				target.update_damage_overlays()
+				to_chat(target, span_notice("The miracle mends my [most_damaged_limb.name]!"))
 		else
-			target.apply_status_effect(/datum/status_effect/buff/healing, healing)
-		target.visible_message(message_out, message_self)
-		return TRUE
+			target.visible_message(span_warning("The wounds tear and rip around the embedded objects!"), span_warning("Agonising pain shoots through your body as magycks try to sew around the embedded objects!"))
+			target.adjustBruteLoss(20)
+			playsound(target, 'sound/combat/dismemberment/dismem (2).ogg', 100)
+			target.emote("agony")
+	else
+		target.apply_status_effect(/datum/status_effect/buff/healing, amount)
+
+	charge_counter = 0
+	if(action)
+		action.UpdateButtonIcon()
+
+	var/the_line = pick(user.patron.miracle_healing_lines)
+	the_line = replacetext(the_line, "%TARGET", "[target]")
+	target.visible_message(span_info(the_line))
+
+/obj/effect/proc_holder/spell/invoked/lesser_heal/proc/get_situational_bonus(mob/living/user, mob/living/target)
+	var/situational_info = user.patron.situational_bonus(user, target)
+	var/conditional_buff = situational_info[1] ? TRUE : FALSE
+	var/situational_bonus = situational_info[2] ? situational_info[2] : 0
+
+	var/healing = base_healing
+	if (conditional_buff)
+		to_chat(user, span_info("Channeling my patron's power is easier in these conditions!"))
+		healing += situational_bonus
+	
+	return healing
+
+/obj/effect/proc_holder/spell/invoked/lesser_heal/cast(list/targets, mob/living/user)
+	. = ..()
+	if(isliving(targets[1]))
+		var/mob/living/target = targets[1]
+		var/mob/living/carbon/human/H = user
+
+		if (!user.patron || !H)
+			return FALSE
+		
+		// perform all of our pre-heal checks inside can_heal, including revert_casts, if needed
+		if (!can_heal(user, target))
+			return FALSE
+		
+		if (target != user)
+			if (H.devotion?.level == CLERIC_T4)
+				user.visible_message(span_notice("[user] gestures towards [target] with a whispered prayer!"))
+			else
+				user.visible_message(span_notice("[user] lays their hands upon [target], willing flesh and bone to mend..."))
+
+			var/datum/beam/healing_beam = user.Beam(target, icon_state="medbeam", time=5 MINUTES)
+			apply_healing(target, user, get_situational_bonus(user, target))
+			playsound(target, 'sound/magic/heal.ogg', 100)
+			while (do_after(user, 10.5 SECONDS, target = target))
+				if (H.devotion?.check_devotion(src))
+					if (can_heal(user, target))
+						playsound(target, 'sound/magic/heal.ogg', 100)
+						apply_healing(target, user, get_situational_bonus(user, target))
+						H.devotion?.update_devotion(-devotion_cost)
+						to_chat(user, "<font color='purple'>I lose [devotion_cost] devotion!</font>")
+					else
+						healing_beam.End()
+						return TRUE
+				else
+					to_chat(user, span_warning("My devotion runs dry - I can call upon [user.patron.name] no further for the moment!"))
+					healing_beam.End()
+					return TRUE
+
+			healing_beam.End()
+			return TRUE
+		else
+			user.visible_message(span_info("[user] quickly lays their hands upon themselves!"))
+			apply_healing(target, user, get_situational_bonus(user, target))
+			return TRUE
+	
 	revert_cast()
 	return FALSE
 

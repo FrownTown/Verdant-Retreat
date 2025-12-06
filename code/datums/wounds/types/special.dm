@@ -428,12 +428,11 @@
 	critical = TRUE
 	sleep_healing = 0
 	sewn_whp = 25
-	bleed_rate = 25 // Represents bleeding from the entry wound, so you can sew this up but still bleed internally
+	bleed_rate = 25
 	can_sew = TRUE
 	sewn_bleed_rate = 0 // Stops external bleeding when sewn
 	var/organ_damage = 0
 	var/attack_damage = 0
-	var/internal_bleed_rate = 0 // Internal bleeding rate, set when wound is sewn
 
 /datum/wound/lethal/New(damage = 0)
 	. = ..()
@@ -441,20 +440,7 @@
 		attack_damage = damage
 		organ_damage = clamp(damage * (rand(10, 20)/10), 40, 100) // (rand(10, 20)/10) is a little trick to get a random 2-digit float between 1.0 and 2.0
 
-/datum/wound/lethal/sew_wound()
-	. = ..()
-	if(.)
-		// When sewn, external bleeding stops but internal bleeding continues at 1/4 speed
-		internal_bleed_rate = initial(bleed_rate) * 0.25
-		if(owner)
-			owner.visible_message(span_warning("The external bleeding from [owner]'s [name] stops, but the wound still seeps internally..."))
 
-/datum/wound/lethal/on_life()
-	. = ..()
-	// Apply internal bleeding if the wound is sewn
-	if(is_sewn() && internal_bleed_rate > 0 && iscarbon(owner))
-		var/mob/living/carbon/C = owner
-		C.blood_volume = max(0, C.blood_volume - (internal_bleed_rate * 0.1)) // Internal bleeding affects blood volume directly
 
 /datum/wound/lethal/heal_wound(heal_amount)
 	if(iscarbon(owner) && organ_damage > 0)
