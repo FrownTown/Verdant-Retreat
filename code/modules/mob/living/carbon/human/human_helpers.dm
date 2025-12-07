@@ -126,9 +126,9 @@
 	if(domhand)
 		used_str = get_str_arms(used_hand)
 
-	// Apply strength scaling with soft cap (unarmed uses 3x weapon scaling)
+	// Apply strength scaling with soft cap (unarmed uses 2x weapon scaling)
 	if(used_str >= 11)
-		var/strmod = (used_str > STRENGTH_SOFTCAP && !HAS_TRAIT(src, TRAIT_STRENGTH_UNCAPPED)) ? (((STRENGTH_SOFTCAP - 10) * STRENGTH_MULT * 3) + ((used_str - STRENGTH_SOFTCAP) * STRENGTH_CAPPEDMULT * 3)) : ((used_str - 10) * STRENGTH_MULT * 3)
+		var/strmod = (used_str > STRENGTH_SOFTCAP && !HAS_TRAIT(src, TRAIT_STRENGTH_UNCAPPED)) ? (((STRENGTH_SOFTCAP - 10) * STRENGTH_MULT * 2) + ((used_str - STRENGTH_SOFTCAP) * STRENGTH_CAPPEDMULT * 2)) : ((used_str - 10) * STRENGTH_MULT * 2)
 		damage = max(damage + (damage * strmod), 1)
 
 	if(used_str <= 9)

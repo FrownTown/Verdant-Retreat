@@ -646,6 +646,14 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				return FALSE
 			if(!H.get_bodypart(BODY_ZONE_HEAD))
 				return FALSE
+			// Prevent wearing a coif in mask slot if already wearing one in head or neck
+			if(istype(I, /obj/item/clothing/neck/roguetown/coif) || istype(I, /obj/item/clothing/neck/roguetown/chaincoif))
+				if(istype(H.head, /obj/item/clothing/neck/roguetown/coif) || istype(H.head, /obj/item/clothing/neck/roguetown/chaincoif))
+					return FALSE
+				if(istype(H.wear_neck, /obj/item/clothing/neck/roguetown/coif) || istype(H.wear_neck, /obj/item/clothing/neck/roguetown/chaincoif))
+					if(!disable_warning)
+						to_chat(H, span_warning("I'm already wearing a coif on my neck!"))
+					return FALSE
 			return equip_delay_self_check(I, H, bypass_equip_delay_self)
 		if(SLOT_MOUTH)
 			if(H.mouth)
@@ -660,6 +668,12 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				return FALSE
 			if( !(I.slot_flags & ITEM_SLOT_NECK) )
 				return FALSE
+			// Prevent wearing a coif in neck slot if already wearing one in mask or head
+			if(istype(I, /obj/item/clothing/neck/roguetown/coif) || istype(I, /obj/item/clothing/neck/roguetown/chaincoif))
+				if(istype(H.wear_mask, /obj/item/clothing/neck/roguetown/coif) || istype(H.wear_mask, /obj/item/clothing/neck/roguetown/chaincoif))
+					return FALSE
+				if(istype(H.head, /obj/item/clothing/neck/roguetown/coif) || istype(H.head, /obj/item/clothing/neck/roguetown/chaincoif))
+					return FALSE
 			return TRUE
 		if(SLOT_BACK)
 			if(H.back)
@@ -763,6 +777,12 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				return FALSE
 			if(!H.get_bodypart(BODY_ZONE_HEAD))
 				return FALSE
+			// Prevent wearing a coif in head slot if already wearing one in mask or neck
+			if(istype(I, /obj/item/clothing/neck/roguetown/coif) || istype(I, /obj/item/clothing/neck/roguetown/chaincoif))
+				if(istype(H.wear_mask, /obj/item/clothing/neck/roguetown/coif) || istype(H.wear_mask, /obj/item/clothing/neck/roguetown/chaincoif))
+					return FALSE
+				if(istype(H.wear_neck, /obj/item/clothing/neck/roguetown/coif) || istype(H.wear_neck, /obj/item/clothing/neck/roguetown/chaincoif))
+					return FALSE
 			return equip_delay_self_check(I, H, bypass_equip_delay_self)
 		if(SLOT_PANTS)
 			if(H.wear_pants)
@@ -1353,26 +1373,33 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 /datum/species/proc/spec_unarmedattacked(mob/living/carbon/human/user, mob/living/carbon/human/target, damage, armor_block, actual_damage, obj/item/bodypart/affecting)
 	// Handle punch recoil damage for non-expert pugilists
 	if(!HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN) && armor_block > 0)
-		var/blocked_damage = damage - actual_damage
-		var/recoil_damage = blocked_damage * 0.5
+		// Check if wearing gloves - if so, no recoil damage
+		var/obj/item/clothing/gloves/user_gloves = user.gloves
+		if(user_gloves)
+			return // Gloves completely protect from punch recoil
 
-		if(recoil_damage > 0)
-			// Get the hand bodypart being used to punch
-			var/obj/item/bodypart/punching_hand = user.hand_bodyparts[user.active_hand_index]
+		// Only apply recoil damage if punching HEAVY armor
+		var/obj/item/clothing/target_armor = target.get_best_worn_armor(affecting.body_zone, "blunt")
+		if(!target_armor)
+			return // No armor, no recoil
 
-			// Check if wearing gloves that can protect
-			var/obj/item/clothing/gloves/user_gloves = user.gloves
-			if(user_gloves && user_gloves.max_integrity && user_gloves.obj_integrity > 0)
-				var/glove_armor = user_gloves.armor?.getRating("blunt") || 0
-				var/glove_protection = min(glove_armor, recoil_damage)
-				recoil_damage = max(recoil_damage - glove_protection, 0)
+		// Check if the armor is heavy class
+		var/armor_class = target_armor.armor_class
+		if(armor_class == ARMOR_CLASS_NONE && target_armor.integ_armor_mod != ARMOR_CLASS_NONE)
+			armor_class = target_armor.integ_armor_mod
 
-				// Gloves take damage from the impact
-				user_gloves.take_damage(blocked_damage * 0.3, "blunt", "melee", 0)
+		// Only hurt the puncher if they're hitting heavy armor
+		if(armor_class == ARMOR_CLASS_HEAVY)
+			var/blocked_damage = damage - actual_damage
+			var/recoil_damage = blocked_damage * 0.5
 
-			// Apply remaining recoil damage to hand
-			if(recoil_damage > 0 && punching_hand)
-				user.apply_damage(recoil_damage, BRUTE, punching_hand, 0)
+			if(recoil_damage > 0)
+				// Get the hand bodypart being used to punch
+				var/obj/item/bodypart/punching_hand = user.hand_bodyparts[user.active_hand_index]
+
+				// Apply recoil damage to hand
+				if(punching_hand)
+					user.apply_damage(recoil_damage, BRUTE, punching_hand, 0)
 	return
 
 /datum/species/proc/disarm(mob/living/carbon/human/user, mob/living/carbon/human/target, datum/martial_art/attacker_style)
@@ -1806,27 +1833,32 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 		if(selzone in GLOB.precision_vulnerable_zones)
 			var/mob/living/carbon/human/attacker = user
 			var/obj/item/clothing/outer_armor = H.get_best_armor(selzone, I.d_type, bladec, pen)
-			var/armor_class = outer_armor.armor_class == ARMOR_CLASS_NONE && outer_armor.integ_armor_mod != ARMOR_CLASS_NONE ? outer_armor.integ_armor_mod : outer_armor.armor_class
-			if(outer_armor && armor_class == ARMOR_CLASS_HEAVY || (istype(outer_armor, /obj/item/clothing/head/roguetown/helmet) && outer_armor:flags_cover & HEADCOVERSEYES))
-				var/precision_chance = max(pen - outer_armor.armor.getRating(I.d_type) - GLOB.precision_vulnerable_zones[selzone], 0) // This way, it's easier to find gaps in damaged armor, and easier to achieve with high-penetration attacks
 
-				if(I.associated_skill)
-					precision_chance += attacker.get_skill_level(I.associated_skill) * 10
-				if(((user in H.grabbedby) || (H in user.grabbedby)) && I.wbalance == WBALANCE_SWIFT)
-					precision_chance += 50 // Way easier to find gaps when you're holding the enemy or vice versa
-				if(I.wlength > WLENGTH_SHORT)
-					precision_chance -= 10*I.wlength
-				if(I.wbalance == WBALANCE_NORMAL)
-					precision_chance -= 15
-				precision_chance += (attacker.STAPER - 10) * 5
-				precision_chance -= (max(H.STASPD, H.STACON) - 10) * 5
-				precision_chance = clamp(precision_chance, 1, 95)
+			if(outer_armor)
+				var/armor_class = outer_armor.armor_class == ARMOR_CLASS_NONE && outer_armor.integ_armor_mod != ARMOR_CLASS_NONE ? outer_armor.integ_armor_mod : outer_armor.armor_class
+				if(armor_class == ARMOR_CLASS_HEAVY || (istype(outer_armor, /obj/item/clothing/head/roguetown/helmet) && outer_armor:flags_cover & HEADCOVERSEYES))
+					var/precision_chance = max(pen - outer_armor.armor.getRating(I.d_type) - GLOB.precision_vulnerable_zones[selzone], 0) // This way, it's easier to find gaps in damaged armor, and easier to achieve with high-penetration attacks
 
-				if(prob(precision_chance))
-					bypassed_armor = outer_armor
-					H.visible_message(span_danger("[user] strikes through a gap in [H]'s armor!"), span_userdanger("[user] finds a gap in my armor!"))
+					if(I.associated_skill)
+						precision_chance += attacker.get_skill_level(I.associated_skill) * 10
+					if(((user in H.grabbedby) || (H in user.grabbedby)) && I.wbalance == WBALANCE_SWIFT)
+						precision_chance += 50 // Way easier to find gaps when you're holding the enemy or vice versa
+					if(I.wlength > WLENGTH_SHORT)
+						precision_chance -= 10*I.wlength
+					if(I.wbalance == WBALANCE_NORMAL)
+						precision_chance -= 15
+					precision_chance += (attacker.STAPER - 10) * 5
+					precision_chance -= (max(H.STASPD, H.STACON) - 10) * 5
+					precision_chance = clamp(precision_chance, 1, 95)
 
-	armor_block = H.run_armor_check(selzone, I.d_type, "", "",pen, damage = Iforce, blade_dulling=user.used_intent.blade_class, intdamfactor = used_intfactor, bypass_item = bypassed_armor, used_weapon = I)
+					if(prob(precision_chance))
+						bypassed_armor = outer_armor
+						H.visible_message(span_danger("[user] strikes through a gap in [H]'s armor!"), span_userdanger("[user] finds a gap in my armor!"))
+
+	var/intent_damage_mult = user.used_intent.damfactor
+	var/combined_intdamfactor = used_intfactor * intent_damage_mult
+
+	armor_block = H.run_armor_check(selzone, I.d_type, "", "",pen, damage = Iforce, blade_dulling=user.used_intent.blade_class, intdamfactor = combined_intdamfactor, bypass_item = bypassed_armor, used_weapon = I)
 
 	var/nodmg = FALSE
 	var/raw_damage = 0

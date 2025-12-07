@@ -142,9 +142,15 @@
 		if(used.blocksound)
 			playsound(loc, get_armor_sound(used.blocksound, blade_dulling), 100)
 		var/intdamage = damage
-		// Penetrative damage deals significantly less to the armor. Tentative.
+		// Calculate integrity damage based on penetration
 		if((damage + armor_penetration) > protection)
+			// Attack penetrated - integrity damage is the overflow damage
 			intdamage = (damage + armor_penetration) - protection
+		else
+			// Attack was blocked - transfer a portion of blocked damage to integrity
+			// This ensures even non-penetrating attacks slowly degrade armor
+			var/blocked_damage = protection - (damage + armor_penetration)
+			intdamage = damage * 0.3 + (blocked_damage * 0.15)
 		if(intdamfactor != 1)
 			intdamage *= intdamfactor
 		if(d_type == "blunt")

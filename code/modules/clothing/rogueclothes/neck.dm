@@ -41,7 +41,7 @@
 	item_state = "coif"
 	max_integrity = 125
 	flags_inv = HIDEHAIR
-	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD
+	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD|ITEM_SLOT_MASK
 	blocksound = SOFTHIT
 	body_parts_covered = NECK|HAIR|EARS|HEAD
 	armor = ARMOR_LEATHER
@@ -63,7 +63,7 @@
 	item_state = "coif" // Lacks its own sprite/grey-sprite.
 	max_integrity = 100
 	flags_inv = HIDEHAIR
-	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD
+	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD|ITEM_SLOT_MASK
 	blocksound = SOFTHIT
 	body_parts_covered = NECK|HAIR|EARS|HEAD
 	armor = ARMOR_PADDED_BAD
@@ -100,7 +100,7 @@
 	armor = ARMOR_MAILLE
 	integ_armor_mod = ARMOR_CLASS_MEDIUM
 	resistance_flags = FIRE_PROOF
-	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD
+	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD|ITEM_SLOT_MASK
 	body_parts_covered = NECK|HAIR|EARS|HEAD
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT)
 	adjustable = CAN_CADJUST
@@ -156,6 +156,7 @@
 	desc = "A coif of meticulously crafted iron rings. It isn't steel, but metal is metal, and it might just save your life."
 	icon_state = "ichaincoif"
 	max_integrity = 150
+	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD|ITEM_SLOT_MASK
 	anvilrepair = /datum/skill/craft/armorsmithing
 	smeltresult = /obj/item/ingot/iron
 
@@ -173,6 +174,7 @@
 	max_integrity = 350
 	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR|HIDESNOUT
 	resistance_flags = FIRE_PROOF
+	slot_flags = ITEM_SLOT_NECK|ITEM_SLOT_HEAD|ITEM_SLOT_MASK
 	body_parts_covered = NECK|MOUTH|NOSE|HAIR|EARS|HEAD
 	adjustable = CAN_CADJUST
 	smeltresult = /obj/item/ingot/steel

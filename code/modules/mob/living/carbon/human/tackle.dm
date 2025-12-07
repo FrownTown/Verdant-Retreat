@@ -86,7 +86,8 @@
 /mob/living/carbon/human/proc/tackle_grapple_check(mob/living/carbon/human/target)
 	if(!target || QDELETED(target))
 		return
-		
-	target.grabbedby(src, TRUE)
 
-	target.grippedby(src, FALSE)
+	if(!target.grabbedby(src, TRUE))
+		return
+
+	target.grippedby(src, TRUE)
