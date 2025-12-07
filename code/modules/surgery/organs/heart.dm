@@ -28,6 +28,20 @@
 
 	sellprice = 25
 
+/obj/item/organ/heart/proc/missing_heart_effects(mob/living/carbon/human/H)
+	var/we_breath = !HAS_TRAIT_FROM(H, TRAIT_NOBREATH, SPECIES_TRAIT)
+	if(!H.undergoing_cardiac_arrest())
+		return
+	if(we_breath)
+		H.adjustOxyLoss(8)
+		H.Unconscious(80)
+	H.adjustBruteLoss(2)
+
+/obj/item/organ/heart/Insert(mob/living/carbon/M, special = 0)
+	..()
+	if(owner)
+		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
+
 /obj/item/organ/heart/Destroy()
 	for(var/datum/culling_duel/D in GLOB.graggar_cullings)
 		var/obj/item/organ/heart/d_challenger_heart = D.challenger_heart?.resolve()
@@ -60,6 +74,8 @@
 		icon_state = "[icon_base]-off"
 
 /obj/item/organ/heart/Remove(mob/living/carbon/M, special = 0)
+	if(owner && ishuman(owner))
+		RegisterSignal(owner, COMSIG_LIVING_LIFE, PROC_REF(missing_heart_effects))
 	..()
 	if(!special)
 		addtimer(CALLBACK(src, PROC_REF(stop_if_unowned)), 120)

@@ -22,6 +22,23 @@
 #define HAS_NO_TOXIN 1
 #define HAS_PAINFUL_TOXIN 2
 
+/obj/item/organ/liver/proc/missing_liver_effects(mob/living/carbon/C)
+	C.reagents.end_metabolization(C, keep_liverless = TRUE)
+	C.reagents.metabolize(C, can_overdose=FALSE, liverless = TRUE)
+	if(C.mind && (HAS_TRAIT(C, TRAIT_STABLELIVER) || HAS_TRAIT(C, TRAIT_NOMETABOLISM)))
+		return
+	C.adjustToxLoss(4, TRUE, TRUE)
+
+/obj/item/organ/liver/Insert(mob/living/carbon/M, special = 0)
+	..()
+	if(owner)
+		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
+
+/obj/item/organ/liver/Remove(mob/living/carbon/M, special = 0)
+	if(owner)
+		RegisterSignal(owner, COMSIG_LIVING_LIFE, PROC_REF(missing_liver_effects))
+	..()
+
 /obj/item/organ/liver/on_life()
 	var/mob/living/carbon/C = owner
 	..()	//perform general on_life()
