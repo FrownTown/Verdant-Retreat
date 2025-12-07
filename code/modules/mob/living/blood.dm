@@ -230,7 +230,7 @@
 
 		for(var/datum/wound/W as anything in BP.wounds)
 			if(W?.bleed_rate)
-				if(istype(W, /datum/wound/artery) || istype(W, /datum/wound/lethal) || istype(W, /datum/wound/grievous))
+				if(W.severity >= WOUND_SEVERITY_CRITICAL)
 					bp_critical += W.bleed_rate
 				else
 					bp_bleed += W.bleed_rate
