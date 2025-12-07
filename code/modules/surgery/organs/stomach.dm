@@ -18,6 +18,16 @@
 
 	var/disgust_metabolism = 1
 
+/obj/item/organ/stomach/proc/missing_stomach_effects(mob/living/carbon/C)
+	if(HAS_TRAIT(C, TRAIT_NOHUNGER) || HAS_TRAIT(C, TRAIT_NOMETABOLISM))
+		return
+	C.stamina_add(-5)
+	if(C.dna?.species && !(NOBLOOD in C.dna.species.species_traits))
+		C.blood_volume = max(C.blood_volume - 10, 0)
+	if(prob(5) && !C.stat)
+		C.emote("painscream")
+		to_chat(C, span_warning("My insides burn with horrible agony!"))
+
 /obj/item/organ/stomach/on_life()
 	var/mob/living/carbon/human/H = owner
 	var/datum/reagent/Nutri
@@ -83,11 +93,17 @@
 			H.throw_alert("disgust", /atom/movable/screen/alert/disgusted)
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "disgust", /datum/mood_event/disgusted)
 
+/obj/item/organ/stomach/Insert(mob/living/carbon/M, special = 0)
+	..()
+	if(owner)
+		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
+
 /obj/item/organ/stomach/Remove(mob/living/carbon/M, special = 0)
 	var/mob/living/carbon/human/H = owner
 	if(istype(H))
 		H.clear_alert("disgust")
 		SEND_SIGNAL(H, COMSIG_CLEAR_MOOD_EVENT, "disgust")
+		RegisterSignal(H, COMSIG_LIVING_LIFE, PROC_REF(missing_stomach_effects))
 	..()
 
 /obj/item/organ/stomach/fly

@@ -74,8 +74,6 @@
 		//heart attack stuff
 		handle_heart()
 		handle_liver()
-		handle_stomach()
-		handle_lungs()
 		update_stamina()
 		update_energy()
 		if(charflaw && !charflaw.ephemeral && mind)

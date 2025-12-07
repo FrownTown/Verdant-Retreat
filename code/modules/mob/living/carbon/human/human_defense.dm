@@ -13,12 +13,22 @@
 		organnum++
 	return (armorval/max(organnum, 1))
 
+/mob/living/carbon/human/proc/clear_armor_cache()
+	if(best_armor_cache)
+		best_armor_cache.len = 0
+
 /mob/living/carbon/human/proc/get_best_armor(def_zone, d_type, blade_dulling = null, armor_penetration = 0)
 	if(!d_type)
 		return null
 	if(isbodypart(def_zone))
 		var/obj/item/bodypart/CBP = def_zone
 		def_zone = CBP.body_zone
+
+	if(!blade_dulling && armor_penetration == 0 && best_armor_cache)
+		var/cache_key = "[def_zone]|[d_type]"
+		if(cache_key in best_armor_cache)
+			return best_armor_cache[cache_key]
+
 	var/obj/item/clothing/best_armor
 	var/best_effective_value = 0
 	var/list/body_parts = list(skin_armor, head, wear_mask, wear_wrists, gloves, wear_neck, cloak, wear_armor, wear_shirt, shoes, wear_pants, backr, backl, belt, s_store, glasses, ears, wear_ring)
@@ -50,11 +60,11 @@
 
 					switch(effective_class)
 						if(ARMOR_CLASS_LIGHT)
-							blunt_modifier = -10 * effectiveness  // Scale penalty towards 0
+							blunt_modifier = -10 * effectiveness
 						if(ARMOR_CLASS_HEAVY)
-							blunt_modifier = 20 * effectiveness   // Scale bonus towards 0
+							blunt_modifier = 20 * effectiveness
 							if(istype(C, /obj/item/clothing/head/helmet))
-								blunt_modifier += 10 * effectiveness // Scale helmet bonus towards 0
+								blunt_modifier += 10 * effectiveness
 
 					// Effective penetration for this armor
 					var/effective_pen = armor_penetration + blunt_modifier
@@ -67,6 +77,11 @@
 				if(effective_val > best_effective_value)
 					best_effective_value = effective_val
 					best_armor = C
+
+	if(!blade_dulling && armor_penetration == 0 && best_armor_cache)
+		var/cache_key = "[def_zone]|[d_type]"
+		best_armor_cache[cache_key] = best_armor
+
 	return best_armor
 
 /mob/living/carbon/human/proc/checkarmor(def_zone, d_type, damage, armor_penetration, blade_dulling, intdamfactor = 1, bypass_item = null, obj/item/used_weapon)
@@ -142,13 +157,9 @@
 		if(used.blocksound)
 			playsound(loc, get_armor_sound(used.blocksound, blade_dulling), 100)
 		var/intdamage = damage
-		// Calculate integrity damage based on penetration
 		if((damage + armor_penetration) > protection)
-			// Attack penetrated - integrity damage is the overflow damage
 			intdamage = (damage + armor_penetration) - protection
 		else
-			// Attack was blocked - transfer a portion of blocked damage to integrity
-			// This ensures even non-penetrating attacks slowly degrade armor
 			var/blocked_damage = protection - (damage + armor_penetration)
 			intdamage = damage * 0.3 + (blocked_damage * 0.15)
 		if(intdamfactor != 1)
@@ -156,7 +167,7 @@
 		if(d_type == "blunt")
 			if(used.armor?.getRating("blunt") > 0)
 				var/bluntrating = used.armor.getRating("blunt")
-				intdamage -= intdamage * ((bluntrating / 2) / 100)	//Half of the blunt rating reduces blunt damage taken by %-age.
+				intdamage -= intdamage * ((bluntrating / 2) / 100)
 		if(istype(used_weapon) && used_weapon.is_silver && ((used.smeltresult in list(/obj/item/ingot/aaslag, /obj/item/ingot/aalloy, /obj/item/ingot/purifiedaalloy)) || used.GetComponent(/datum/component/cursed_item)))
 			// Blessed silver delivers more int damage against "cursed" alloys, see component for multiplier values
 			var/datum/component/silverbless/bless = used_weapon.GetComponent(/datum/component/silverbless)

@@ -17,6 +17,24 @@
 
 	sellprice = 20
 
+/obj/item/organ/lungs/proc/missing_lungs_effects(mob/living/carbon/C)
+	if(HAS_TRAIT(C, TRAIT_NOBREATH))
+		return
+	C.adjustOxyLoss(5, TRUE)
+	if(prob(10) && !C.stat)
+		C.emote("gasp")
+		to_chat(C, span_warning("I gasp for air, but nothing comes!"))
+
+/obj/item/organ/lungs/Insert(mob/living/carbon/M, special = 0)
+	..()
+	if(owner)
+		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
+
+/obj/item/organ/lungs/Remove(mob/living/carbon/M, special = 0)
+	if(owner)
+		RegisterSignal(owner, COMSIG_LIVING_LIFE, PROC_REF(missing_lungs_effects))
+	..()
+
 /obj/item/organ/lungs/on_life()
 	..()
 	var/mob/living/carbon/C = owner
