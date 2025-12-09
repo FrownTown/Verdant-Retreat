@@ -51,8 +51,6 @@
 		"water": "voda",
 		"wine": "vino",
 		"beer": "pivo",
-		"alchohol": "vodka",
-		"booze": "vodka",
 		"grandmother": "babushka",
 		"grandfather": "dedushka",
 		"grandma": "babushka",
@@ -71,10 +69,7 @@
 		"yippee": "ura",
 		"hooray": "ura",
 		"hurrah": "ura",
-		"forward": "forward!",
-		"forwards!": "goida!",
-		"advance!": "goida!",
-		"charge!": "goida!",
+		"charge": "goida",
 		"rebellion": "revolyutsiya",
 		"revolution": "revolyutsiya",
 		"captain": "kapitan",
@@ -87,9 +82,6 @@
 	
     },
     "start": {
-        "th": "zh",
-		"wh": "vw",
-		"w": "vw"
 
     },
     "end": {
@@ -100,13 +92,15 @@
 		"fucking bitch": "suka blyat",
 		"fucking hell": "suka blyat",
 		"fuck you": "suka blyat",
-		"glory to": "slava",
 		"glory to the": "slava",
+		"glory to": "slava",
 		"let's go": "goida",
 		"come on": "goida"
 
 	},
     "syllable": {
+        "th": "dh",
+		"w": "v"
 
     }
 }
