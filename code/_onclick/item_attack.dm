@@ -496,6 +496,27 @@
 				to_chat(user, span_info("The blade is dull..."))
 			newforce *= (lerpratio * 2)
 	testing("endforce [newforce]")
+
+	var/variance_center = 0
+
+	if(ishuman(user))
+		var/mob/living/carbon/human/H = user
+		variance_center += (H.STALUC - 10) * 0.15
+
+		if(I.associated_skill)
+			var/skill_level = H.get_skill_level(I.associated_skill)
+			variance_center += skill_level * 0.2
+
+	var/variance_roll = (rand(-50, 50) + rand(-50, 50) + rand(-50, 50)) / 3
+
+	variance_roll += variance_center * 100
+
+	variance_roll = clamp(variance_roll, -50, 50)
+
+	newforce = newforce * (1 + (variance_roll / 100))
+	newforce = max(round(newforce, 1), 1)
+
+	testing("endforce [newforce]")
 	return newforce
 
 /obj/attacked_by(obj/item/I, mob/living/user)

@@ -232,9 +232,6 @@
 		var/bp_max_bleed = 0
 
 		for(var/datum/wound/W as anything in BP.wounds)
-			if(!W)
-				continue
-
 			if(W.bleed_rate)
 				if(W.bleed_rate > bp_max_bleed)
 					bp_max_bleed = W.bleed_rate
