@@ -302,7 +302,7 @@
 		if (HT)
 			var/target_zone = HT.zone_selected
 			var/user_zone = HU.zone_selected
-			if (target_zone && user_zone && (target_zone != BODY_ZONE_CHEST && user_zone != BODY_ZONE_CHEST) && target_zone == user_zone)
+			if (!user.has_status_effect(/datum/status_effect/debuff/baitcd) && !user.has_status_effect(/datum/status_effect/debuff/baited) && target_zone && user_zone && (target_zone != BODY_ZONE_CHEST && user_zone != BODY_ZONE_CHEST) && target_zone == user_zone)
 				HU.attempt_bait(user, target)
 				HU.changeNext_move(0.5 SECONDS)
 				return
