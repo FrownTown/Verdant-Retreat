@@ -501,11 +501,11 @@
 
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		variance_center += (H.STALUC - 10) * 0.05
+		variance_center += (H.STALUC - 10) * 0.0125
 
 		if(I.associated_skill)
 			var/skill_level = H.get_skill_level(I.associated_skill)
-			variance_center += skill_level * 0.05
+			variance_center += skill_level * 0.025
 
 	var/variance_roll = get_damage_variance(I.associated_skill, variance_center)
 
@@ -525,11 +525,11 @@
 		if(/datum/skill/combat/knives) // Low variance, but tend to roll high with a big curve
 			variance_range = 25
 			curve_depth = 4
-			variance_center += 0.4
+			variance_center += 0.3
 		if(/datum/skill/combat/swords)
 			variance_range = 35
 			curve_depth = 2
-			variance_center += 0.2
+			variance_center += 0.15
 		if(/datum/skill/combat/axes, /datum/skill/labor/lumberjacking)
 			variance_range = 70
 			curve_depth = 6
