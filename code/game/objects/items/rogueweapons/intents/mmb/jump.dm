@@ -123,7 +123,10 @@
 			throw_at(A, jrange, 1, src, spin = FALSE)
 			while(src.throwing)
 				sleep(1)
-			throw_at(get_step(src, src.dir), 1, 1, src, spin = FALSE)
+
+			if(!tackle_succeeded)
+				throw_at(get_step(src, src.dir), 1, 1, src, spin = FALSE)
+			tackle_succeeded = FALSE // Reset for next jump
 		else
 			throw_at(A, jrange, 1, src, spin = FALSE)
 

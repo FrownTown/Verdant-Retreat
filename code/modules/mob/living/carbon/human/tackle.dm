@@ -1,4 +1,4 @@
-/mob/living/carbon/human/proc/try_tackle(mob/living/carbon/target)
+/mob/living/carbon/human/proc/try_tackle(mob/living/carbon/target, datum/thrownthing/throwingdatum)
 	if(!target || !iscarbon(target))
 		return FALSE
 
@@ -49,10 +49,10 @@
 	tackle_chance += (STACON - target.STACON) * 3
 	tackle_chance += (tackler_wrestling - target_wrestling) * 8
 	tackle_chance += armor_bonus
-	tackle_chance = clamp(tackle_chance, 5, 99)
+	tackle_chance = clamp(tackle_chance, 5, 95)
 
 	if(client?.prefs.showrolls)
-		to_chat(src, span_info("[tackle_chance]"))
+		to_chat(src, span_info("Tackle chance: [tackle_chance]%!"))
 
 	visible_message(span_danger("[src] charges at [target]!"), span_danger("I charge at [target]!"))
 
@@ -65,14 +65,16 @@
 		return FALSE
 
 	var/turf/target_turf = get_turf(target)
-	if(target_turf && target_turf != get_turf(src))
-		forceMove(target_turf)
+
+	is_jumping = FALSE
+	throwing = null
+	forceMove(target_turf)
 
 	target.Knockdown(30)
+	target.Stun(15)
 	Knockdown(30)
 
 	target.drop_all_held_items()
-	drop_all_held_items()
 
 	visible_message(span_boldwarning("[src] tackles [target] to the ground!"), span_boldwarning("I tackle [target] to the ground!"))
 	playsound(get_turf(src), "punch_hard", 100, TRUE)
