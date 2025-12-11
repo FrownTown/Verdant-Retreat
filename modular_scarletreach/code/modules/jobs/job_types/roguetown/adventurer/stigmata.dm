@@ -5,6 +5,7 @@
 	outfit = /datum/outfit/job/adventurer/stigmata
 	class_select_category = CLASS_CAT_CLERIC
 	category_tags = list(CTAG_ADVENTURER, CTAG_COURTAGENT)
+	allowed_races = RACES_NO_GOLEM
 
 	subclass_stats = list(
 		STATKEY_CON = 5,
