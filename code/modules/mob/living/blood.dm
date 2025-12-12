@@ -220,8 +220,9 @@
 	if(NOBLOOD in dna?.species?.species_traits)
 		return 0
 
-	// Recalculate cached values only when dirty
-	if(bleed_cache_dirty)
+	// Recalculate cached values only when dirty AND not already updated this tick
+	// This prevents multiple recalculations when multiple wounds clot in the same tick
+	if(bleed_cache_dirty && bleed_cache_last_update != world.time)
 		recalculate_bleed_cache()
 
 	// Apply blood pressure scaling to cached values (this changes every tick based on blood_volume)
@@ -270,6 +271,7 @@
 	cached_critical_bleed = total_critical
 	cached_grab_suppression = total_grab_suppress
 	bleed_cache_dirty = FALSE
+	bleed_cache_last_update = world.time
 
 //Makes a blood drop, leaking amt units of blood from the mob
 /mob/living/proc/bleed(amt)

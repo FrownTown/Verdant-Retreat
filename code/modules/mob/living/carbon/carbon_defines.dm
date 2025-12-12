@@ -19,6 +19,8 @@
 	var/cached_grab_suppression = 1.0
 	/// Whether the bleed cache needs recalculation
 	var/bleed_cache_dirty = TRUE
+	/// Last world.time the bleed cache was recalculated (prevents multiple recalcs per tick)
+	var/bleed_cache_last_update = 0
 	///Can't talk. Value goes down every life proc. //NOTE TO FUTURE CODERS: DO NOT INITIALIZE NUMERICAL VARS AS NULL OR I WILL MURDER YOU.
 	var/silent = FALSE
 	///How many dream images we have left to send
