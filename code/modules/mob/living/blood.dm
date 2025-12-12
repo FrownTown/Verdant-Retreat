@@ -250,22 +250,21 @@
 	var/total_grab_suppress = 1.0
 
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
-		var/list/bleed_data = BP.get_bleed_data()
-
-		// Handle bandage effectiveness check (side effect)
-		if(bleed_data["bandaged"])
+		// Check if bandaged - handle expiry and skip if effective
+		if(BP.is_bandaged())
 			var/bandage_effectiveness = 0.5
 			var/obj/item/bp_bandage = BP.bandage
 			if(istype(bp_bandage, /obj/item/natural/cloth))
 				var/obj/item/natural/cloth/cloth = bp_bandage
 				bandage_effectiveness = cloth.bandage_effectiveness
-			if(bandage_effectiveness < bleed_data["max"])
+			if(bandage_effectiveness < BP.get_max_bleed())
 				BP.bandage_expire()
-			continue  // Bandaged limbs don't contribute to bleeding
+			else
+				continue  // Bandaged limbs don't contribute to bleeding
 
-		total_normal += bleed_data["normal"]
-		total_critical += bleed_data["critical"]
-		total_grab_suppress *= bleed_data["grab_suppress"]
+		total_normal += BP.get_normal_bleed()
+		total_critical += BP.get_critical_bleed()
+		total_grab_suppress *= BP.get_grab_suppression()
 
 	cached_normal_bleed = total_normal
 	cached_critical_bleed = total_critical
