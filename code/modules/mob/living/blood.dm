@@ -211,6 +211,9 @@
 		bleed_rate += embedded.embedding?.embedded_bloodloss
 	return bleed_rate
 
+/// Returns the total bleed rate for this carbon mob.
+/// Separates critical bleeding (from severe wounds) which is harder to suppress.
+/// Performance-optimized: single loop over bodyparts with early bailouts.
 /mob/living/carbon/get_bleed_rate()
 	if (!blood_volume)
 		return 0
@@ -219,37 +222,49 @@
 
 	var/normal_bleed = 0
 	var/critical_bleed = 0
-
 	var/grab_suppression = 1.0
-	for(var/obj/item/bodypart/BP as anything in bodyparts)
-		if(length(BP.grabbedby))
-			for(var/obj/item/grabbing/G in BP.grabbedby)
-				grab_suppression *= G.bleed_suppressing
 
+	// Single combined loop over all bodyparts
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
 		var/bp_bleed = BP.bleeding
 		var/bp_critical = 0
 		var/bp_max_bleed = 0
 
-		for(var/datum/wound/W as anything in BP.wounds)
-			if(W.bleed_rate)
-				if(W.bleed_rate > bp_max_bleed)
-					bp_max_bleed = W.bleed_rate
+		// Calculate grab suppression for this bodypart (moved from separate loop)
+		var/list/grabs = BP.grabbedby
+		if(length(grabs))
+			for(var/obj/item/grabbing/G as anything in grabs)
+				grab_suppression *= G.bleed_suppressing
 
-				if(W.severity >= WOUND_SEVERITY_CRITICAL)
-					bp_critical += W.bleed_rate
-					bp_bleed -= W.bleed_rate
+		// Process wounds - only iterate if wounds exist
+		var/list/wound_list = BP.wounds
+		if(length(wound_list))
+			for(var/datum/wound/W as anything in wound_list)
+				var/w_bleed = W.bleed_rate
+				if(w_bleed)
+					if(w_bleed > bp_max_bleed)
+						bp_max_bleed = w_bleed
+					// Critical wounds bleed separately (harder to suppress)
+					if(W.severity >= WOUND_SEVERITY_CRITICAL)
+						bp_critical += w_bleed
+						bp_bleed -= w_bleed
 
-		for(var/obj/item/I as anything in BP.embedded_objects)
-			if(I.embedding?.embedded_bloodloss)
-				var/embed_bleed = I.embedding.embedded_bloodloss
-				if(embed_bleed > bp_max_bleed)
-					bp_max_bleed = embed_bleed
+		// Process embedded objects - only iterate if embeds exist
+		var/list/embeds = BP.embedded_objects
+		if(length(embeds))
+			for(var/obj/item/I as anything in embeds)
+				var/datum/embedding/embed_data = I.embedding
+				if(embed_data?.embedded_bloodloss)
+					var/embed_bleed = embed_data.embedded_bloodloss
+					if(embed_bleed > bp_max_bleed)
+						bp_max_bleed = embed_bleed
 
-		if(BP.bandage && !HAS_BLOOD_DNA(BP.bandage))
+		// Handle bandage effectiveness check
+		var/obj/item/bp_bandage = BP.bandage
+		if(bp_bandage && !HAS_BLOOD_DNA(bp_bandage))
 			var/bandage_effectiveness = 0.5
-			if(istype(BP.bandage, /obj/item/natural/cloth))
-				var/obj/item/natural/cloth/cloth = BP.bandage
+			if(istype(bp_bandage, /obj/item/natural/cloth))
+				var/obj/item/natural/cloth/cloth = bp_bandage
 				bandage_effectiveness = cloth.bandage_effectiveness
 			if(bandage_effectiveness < bp_max_bleed)
 				BP.bandage_expire()
@@ -257,10 +272,12 @@
 		normal_bleed += bp_bleed
 		critical_bleed += bp_critical
 
+	// Apply grab suppression - critical bleeds are harder to suppress (50% effectiveness)
 	if(grab_suppression != 1.0)
 		normal_bleed *= grab_suppression
 		critical_bleed *= grab_suppression * 0.5
 
+	// Apply blood pressure scaling - lower blood = lower pressure = less bleeding
 	if(normal_bleed > 0 && blood_volume < BLOOD_VOLUME_NORMAL)
 		var/blood_pressure = blood_volume / BLOOD_VOLUME_NORMAL
 		normal_bleed *= (blood_pressure ** 2)
