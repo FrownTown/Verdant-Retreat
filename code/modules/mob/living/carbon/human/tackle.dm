@@ -15,8 +15,9 @@
 	if(target.has_status_effect(/datum/status_effect/buff/clash))
 		Knockdown(30)
 		Immobilize(2 SECONDS)
+		drop_all_held_items()
 		stamina_add(-20)
-		visible_message(span_warning("[src] charges at [target] but is repelled by their guard!"), span_warning("I charge at [target] but am repelled by their guard!"))
+		visible_message(span_warning("[src] charges at [target], but is repelled by their guard!"), span_warning("I charge at [target] but am repelled by their guard!"))
 		playsound(get_turf(src), "bodyfall", 100, TRUE)
 		return FALSE
 
@@ -29,9 +30,13 @@
 		angle_diff = 360 - angle_diff
 
 	if(angle_diff <= 45)
-		direction_bonus = 50
+		direction_bonus = 50 // Huge bonus for tackling from the rear
 	else if(angle_diff <= 135)
-		direction_bonus = 25
+		direction_bonus = 10 // Very minor bonus for side taklces
+	else if(target.cmode)
+		direction_bonus = -50 // Huge penalty when tackling head-on against someone in combat mode
+	else
+		direction_bonus = -25 // Smaller penalty if they're facing you but not combat ready
 
 	var/tackler_wrestling = 0
 	var/target_wrestling = 0
@@ -44,7 +49,7 @@
 	var/target_armor_weight = ishuman(target) ? target:highest_ac_worn() : 0
 	var/armor_bonus = (tackler_armor_weight - target_armor_weight) * 5
 
-	var/tackle_chance = 50 + direction_bonus
+	var/tackle_chance = 50 + direction_bonus // Becomes 0 if tackling someone in combat mode from the front
 	tackle_chance += (STASTR - target.STASTR) * 3
 	tackle_chance += (STACON - target.STACON) * 3
 	tackle_chance += (tackler_wrestling - target_wrestling) * 8
@@ -59,6 +64,7 @@
 	if(!prob(tackle_chance))
 		Knockdown(30)
 		Immobilize(2 SECONDS)
+		drop_all_held_items()
 		stamina_add(-20)
 		visible_message(span_warning("[src] fails to tackle [target] and falls!"), span_warning("I fail to tackle [target] and fall!"))
 		playsound(get_turf(src), "bodyfall", 100, TRUE)
