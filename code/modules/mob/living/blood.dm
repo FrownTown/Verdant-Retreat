@@ -167,11 +167,6 @@
 						remove_status_effect(/datum/status_effect/debuff/bleeding)
 						remove_status_effect(/datum/status_effect/debuff/bleedingworse)
 
-			// Automatic unconsciousness at BAD threshold
-			if(blood_volume <= BLOOD_VOLUME_BAD && !IsUnconscious() && prob(12))
-				Unconscious(10 SECONDS)
-				to_chat(src, span_userdanger("The world fades to black..."))
-
 			// CON-based soft crit threshold: higher CON = survive at lower blood levels
 			// Base is 122 at 10 CON, -10 blood per CON point above 10
 			// This means high CON characters enter soft crit later (at lower blood volume)
