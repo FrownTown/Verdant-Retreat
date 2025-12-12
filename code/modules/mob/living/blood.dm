@@ -168,7 +168,7 @@
 						remove_status_effect(/datum/status_effect/debuff/bleedingworse)
 
 			// Automatic unconsciousness at BAD threshold
-			if(blood_volume <= BLOOD_VOLUME_BAD && !IsUnconscious())
+			if(blood_volume <= BLOOD_VOLUME_BAD && !IsUnconscious() && prob(12))
 				Unconscious(10 SECONDS)
 				to_chat(src, span_userdanger("The world fades to black..."))
 
@@ -211,46 +211,36 @@
 		bleed_rate += embedded.embedding?.embedded_bloodloss
 	return bleed_rate
 
-/// Returns the total bleed rate for this carbon mob.
-/// Separates critical bleeding (from severe wounds) which is harder to suppress.
-/// Performance-optimized: uses caching and delegates to bodypart.get_bleed_data()
 /mob/living/carbon/get_bleed_rate()
 	if (!blood_volume)
 		return 0
 	if(NOBLOOD in dna?.species?.species_traits)
 		return 0
 
-	// Recalculate cached values only when dirty AND not already updated this tick
-	// This prevents multiple recalculations when multiple wounds clot in the same tick
 	if(bleed_cache_dirty && bleed_cache_last_update != world.time)
 		recalculate_bleed_cache()
 
-	// Apply blood pressure scaling to cached values (this changes every tick based on blood_volume)
 	var/normal_bleed = cached_normal_bleed
 	var/critical_bleed = cached_critical_bleed
 
-	// Apply grab suppression from cache
 	if(cached_grab_suppression != 1.0)
 		normal_bleed *= cached_grab_suppression
-		critical_bleed *= cached_grab_suppression * 0.5  // Critical bleeds harder to suppress
+		critical_bleed *= cached_grab_suppression * 0.5
 
-	// Apply blood pressure scaling - lower blood = lower pressure = less bleeding
 	if(normal_bleed > 0 && blood_volume < BLOOD_VOLUME_NORMAL)
-		var/blood_pressure = blood_volume / BLOOD_VOLUME_NORMAL
+		var/blood_pressure = max(blood_volume / BLOOD_VOLUME_NORMAL, 0.2)
 		normal_bleed *= (blood_pressure ** 2)
 		critical_bleed *= min(blood_pressure * 1.5, 1)
 
 	return normal_bleed + critical_bleed
 
-/// Recalculates the bleed cache by aggregating data from all bodyparts.
-/// Called when bleed_cache_dirty is TRUE.
+
 /mob/living/carbon/proc/recalculate_bleed_cache()
 	var/total_normal = 0
 	var/total_critical = 0
 	var/total_grab_suppress = 1.0
 
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
-		// Check if bandaged - handle expiry
 		var/is_bandaged = FALSE
 		if(BP.is_bandaged())
 			var/bandage_effectiveness = 0.5
@@ -261,13 +251,10 @@
 			if(bandage_effectiveness < BP.get_max_bleed())
 				BP.bandage_expire()
 			else
-				is_bandaged = TRUE  // Bandaged limbs don't contribute to bleeding, but still contribute grab suppression
+				is_bandaged = TRUE
 
-		// Always calculate grab suppression, even for bandaged limbs
-		// Grabs on bandaged limbs should still reduce bleeding from other wounds
 		total_grab_suppress *= BP.get_grab_suppression()
 
-		// Only add bleed contribution if not bandaged
 		if(!is_bandaged)
 			total_normal += BP.get_normal_bleed()
 			total_critical += BP.get_critical_bleed()
