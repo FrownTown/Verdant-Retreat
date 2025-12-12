@@ -101,8 +101,7 @@
 			// This means we should skip any further processing for the bodypart
 			if(part)
 				part.grabbedby -= src
-				// Invalidate bleed caches since grab was removed from bodypart
-				part.invalidate_bp_bleed_cache()
+				// Invalidate bleed cache since grab was removed from bodypart
 				carbonmob.invalidate_bleed_cache()
 				part = null
 				sublimb_grabbed = null
@@ -211,10 +210,9 @@
 			user.stamina_add(rand(7,15))
 			if(M.grippedby(user))			//Aggro grip
 				bleed_suppressing = 0.5		//Better bleed suppression
-				// Invalidate bleed caches since grab suppression changed
+				// Invalidate bleed cache since grab suppression changed
 				if(limb_grabbed && iscarbon(M))
 					var/mob/living/carbon/C = M
-					limb_grabbed.invalidate_bp_bleed_cache()
 					C.invalidate_bleed_cache()
 		if(/datum/intent/grab/choke)
 			if(user.buckled)

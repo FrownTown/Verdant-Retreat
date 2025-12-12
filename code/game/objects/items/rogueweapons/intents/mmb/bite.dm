@@ -140,8 +140,7 @@
 		B.name = "[src]'s [parse_zone(used_limb)]"
 		var/obj/item/bodypart/BP = get_bodypart(check_zone(used_limb))
 		BP.grabbedby += B
-		// Invalidate bleed caches since grab was added to bodypart
-		BP.invalidate_bp_bleed_cache()
+		// Invalidate bleed cache since grab was added to bodypart
 		if(iscarbon(src))
 			var/mob/living/carbon/C = src
 			C.invalidate_bleed_cache()

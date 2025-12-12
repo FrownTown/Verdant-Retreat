@@ -164,8 +164,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	bodypart_owner = affected
 	owner = bodypart_owner.owner
 	bodypart_owner.bleeding += bleed_rate // immediately apply our base bleeding
-	// Invalidate bleed caches since we added a new wound
-	affected.invalidate_bp_bleed_cache()
+	// Invalidate bleed cache since we added a new wound
 	if(iscarbon(owner))
 		var/mob/living/carbon/C = owner
 		C.invalidate_bleed_cache()
@@ -197,8 +196,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	var/obj/item/bodypart/was_bodypart = bodypart_owner
 	var/mob/living/was_owner = owner
 	LAZYREMOVE(bodypart_owner.wounds, src)
-	// Invalidate bleed caches since we removed a wound
-	was_bodypart.invalidate_bp_bleed_cache()
+	// Invalidate bleed cache since we removed a wound
 	bodypart_owner = null
 	owner = null
 	if(iscarbon(was_owner))
@@ -307,8 +305,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 		bleed_rate = amount
 		bodypart_owner.bleeding += bleed_rate
 
-	// Invalidate bleed caches since bleed rate changed
-	bodypart_owner.invalidate_bp_bleed_cache()
+	// Invalidate bleed cache since bleed rate changed
 	if(iscarbon(owner))
 		var/mob/living/carbon/C = owner
 		C.invalidate_bleed_cache()

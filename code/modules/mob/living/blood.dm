@@ -236,23 +236,63 @@
 	var/total_grab_suppress = 1.0
 
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
-		var/is_bandaged = FALSE
+		// Calculate this bodypart's bleed inline (avoid function call overhead)
+		var/bp_normal = BP.bleeding  // Base bleeding from wounds
+		var/bp_critical = 0
+		var/bp_max_bleed = 0
+
+		// Process wounds - separate normal and critical, track max
+		var/list/wound_list = BP.wounds
+		if(length(wound_list))
+			for(var/datum/wound/W as anything in wound_list)
+				var/w_bleed = W.bleed_rate
+				if(w_bleed)
+					if(w_bleed > bp_max_bleed)
+						bp_max_bleed = w_bleed
+					if(W.severity >= WOUND_SEVERITY_CRITICAL)
+						bp_critical += w_bleed
+						bp_normal -= w_bleed  // Move from normal to critical
+
+		// Process embedded objects
+		var/list/embeds = BP.embedded_objects
+		if(length(embeds))
+			for(var/obj/item/I as anything in embeds)
+				var/embed_bleed = I.embedding?.embedded_bloodloss
+				if(embed_bleed)
+					bp_normal += embed_bleed
+					if(embed_bleed > bp_max_bleed)
+						bp_max_bleed = embed_bleed
+
+		// Check bandage effectiveness AFTER calculating max bleed
 		if(BP.is_bandaged())
 			var/bandage_effectiveness = 0.5
-			var/obj/item/bp_bandage = BP.bandage
-			if(istype(bp_bandage, /obj/item/natural/cloth))
-				var/obj/item/natural/cloth/cloth = bp_bandage
+			if(istype(BP.bandage, /obj/item/natural/cloth))
+				var/obj/item/natural/cloth/cloth = BP.bandage
 				bandage_effectiveness = cloth.bandage_effectiveness
-			if(bandage_effectiveness < BP.get_max_bleed())
+
+			if(bandage_effectiveness < bp_max_bleed)
+				// Bandage is overwhelmed, expire it and continue bleeding
 				BP.bandage_expire()
 			else
-				is_bandaged = TRUE
+				// Bandage is effective, skip this bodypart entirely
+				continue
 
-		total_grab_suppress *= BP.get_grab_suppression()
+		// Calculate grab suppression for this bodypart
+		var/bp_grab_suppress = 1.0
+		var/list/grabs = BP.grabbedby
+		if(length(grabs))
+			for(var/obj/item/grabbing/G as anything in grabs)
+				bp_grab_suppress *= G.bleed_suppressing
 
-		if(!is_bandaged)
-			total_normal += BP.get_normal_bleed()
-			total_critical += BP.get_critical_bleed()
+		// Apply surgery clamp if present
+		if(BP.cached_surgery_flags & SURGERY_CLAMPED)
+			bp_normal = min(bp_normal, 0.5)
+			bp_critical = min(bp_critical, 0.5)
+
+		// Accumulate totals
+		total_normal += max(bp_normal, 0)
+		total_critical += bp_critical
+		total_grab_suppress *= bp_grab_suppress
 
 	cached_normal_bleed = total_normal
 	cached_critical_bleed = total_critical

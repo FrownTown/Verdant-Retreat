@@ -446,8 +446,7 @@
 			O.grabbee = src
 			O.limb_grabbed = BP
 			BP.grabbedby += O
-			// Invalidate bleed caches since grab was added to bodypart
-			BP.invalidate_bp_bleed_cache()
+			// Invalidate bleed cache since grab was added to bodypart
 			C.invalidate_bleed_cache()
 			if(item_override)
 				O.sublimb_grabbed = item_override
