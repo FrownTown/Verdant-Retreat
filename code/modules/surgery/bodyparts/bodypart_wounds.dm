@@ -104,16 +104,12 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		return FALSE
 	return TRUE
 
-/// Returns the total bleed rate on this bodypart
+/// Returns the total bleed rate on this bodypart (simple version for backwards compatibility)
 /obj/item/bodypart/proc/get_bleed_rate()
 	var/bleed_rate = bleeding
 	if(bandage && !HAS_BLOOD_DNA(bandage))
 		try_bandage_expire()
 		return 0
-	/*
-	for(var/datum/wound/wound in wounds)
-		if(istype(wound, /datum/wound))
-			bleed_rate += wound.bleed_rate*/
 	for(var/obj/item/embedded as anything in embedded_objects)
 		if(!embedded.embedding.embedded_bloodloss)
 			continue
@@ -121,11 +117,76 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	for(var/obj/item/grabbing/grab in grabbedby)
 		bleed_rate *= grab.bleed_suppressing
 	bleed_rate = max(round(bleed_rate, 0.1), 0)
-	
+
 	if(cached_surgery_flags & SURGERY_CLAMPED)
 		return min(bleed_rate, 0.5)
 
 	return bleed_rate
+
+/// Returns detailed bleed information for carbon mobs (optimization for advanced bleed calculations)
+/// Returns list("normal" = X, "critical" = Y, "max" = Z, "grab_suppress" = W, "bandaged" = bool)
+/obj/item/bodypart/proc/get_bleed_data()
+	var/list/result = list("normal" = 0, "critical" = 0, "max" = 0, "grab_suppress" = 1.0, "bandaged" = FALSE)
+
+	// Check if bandaged - if so, handle expiration check and return early
+	if(bandage && !HAS_BLOOD_DNA(bandage))
+		result["bandaged"] = TRUE
+		// We need max_bleed to check bandage effectiveness
+		var/bp_max_bleed = 0
+		for(var/datum/wound/W as anything in wounds)
+			if(W.bleed_rate > bp_max_bleed)
+				bp_max_bleed = W.bleed_rate
+		for(var/obj/item/I as anything in embedded_objects)
+			var/embed_bleed = I.embedding?.embedded_bloodloss
+			if(embed_bleed && embed_bleed > bp_max_bleed)
+				bp_max_bleed = embed_bleed
+		result["max"] = bp_max_bleed
+		return result
+
+	var/normal_bleed = bleeding  // Base bleeding from wounds (already cached by wound system)
+	var/critical_bleed = 0
+	var/max_bleed = 0
+
+	// Process wounds - separate critical from normal bleeding
+	var/list/wound_list = wounds
+	if(length(wound_list))
+		for(var/datum/wound/W as anything in wound_list)
+			var/w_bleed = W.bleed_rate
+			if(w_bleed)
+				if(w_bleed > max_bleed)
+					max_bleed = w_bleed
+				// Critical wounds bleed separately (harder to suppress via grabs)
+				if(W.severity >= WOUND_SEVERITY_CRITICAL)
+					critical_bleed += w_bleed
+					normal_bleed -= w_bleed  // Remove from normal since it's in critical
+
+	// Process embedded objects
+	var/list/embeds = embedded_objects
+	if(length(embeds))
+		for(var/obj/item/I as anything in embeds)
+			var/embed_bleed = I.embedding?.embedded_bloodloss
+			if(embed_bleed)
+				normal_bleed += embed_bleed
+				if(embed_bleed > max_bleed)
+					max_bleed = embed_bleed
+
+	// Calculate grab suppression for this bodypart
+	var/grab_suppress = 1.0
+	var/list/grabs = grabbedby
+	if(length(grabs))
+		for(var/obj/item/grabbing/G as anything in grabs)
+			grab_suppress *= G.bleed_suppressing
+
+	// Apply surgery clamp if present
+	if(cached_surgery_flags & SURGERY_CLAMPED)
+		normal_bleed = min(normal_bleed, 0.5)
+		critical_bleed = min(critical_bleed, 0.5)
+
+	result["normal"] = max(normal_bleed, 0)
+	result["critical"] = max(critical_bleed, 0)
+	result["max"] = max_bleed
+	result["grab_suppress"] = grab_suppress
+	return result
 
 /obj/item/bodypart/proc/calculate_lethal_death_chance(raw_damage, armor_block, mob/living/user)
 	if(!owner || !raw_damage)
@@ -548,6 +609,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	embedder.is_embedded = TRUE
 	embedder.forceMove(src)
 	if(owner)
+		// Invalidate bleed cache since we added an embedded object
+		if(iscarbon(owner))
+			var/mob/living/carbon/C = owner
+			C.invalidate_bleed_cache()
 		embedder.add_mob_blood(owner)
 		if (!silent)
 			playsound(owner, 'sound/combat/newstuck.ogg', 100, vary = TRUE)
@@ -582,6 +647,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	else
 		qdel(embedder)
 	if(owner)
+		// Invalidate bleed cache since we removed an embedded object
+		if(iscarbon(owner))
+			var/mob/living/carbon/C = owner
+			C.invalidate_bleed_cache()
 		if(!owner.has_embedded_objects())
 			owner.clear_alert("embeddedobject")
 			SEND_SIGNAL(owner, COMSIG_CLEAR_MOOD_EVENT, "embedded")
@@ -595,6 +664,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		return FALSE
 	bandage = new_bandage
 	new_bandage.forceMove(src)
+	// Invalidate bleed cache since bandage affects bleeding
+	if(owner && iscarbon(owner))
+		var/mob/living/carbon/C = owner
+		C.invalidate_bleed_cache()
 	return TRUE
 
 /obj/item/bodypart/proc/try_bandage_expire()
@@ -626,6 +699,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		return FALSE
 	if(!bandage)
 		return FALSE
+	// Invalidate bleed cache since bandage is expiring
+	if(iscarbon(owner))
+		var/mob/living/carbon/C = owner
+		C.invalidate_bleed_cache()
 	if(owner.stat != DEAD)
 		to_chat(owner, span_warning("Blood soaks through the bandage on my [name]."))
 	return bandage.add_mob_blood(owner)
@@ -639,6 +716,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	else
 		qdel(bandage)
 	bandage = null
+	// Invalidate bleed cache since bandage was removed
+	if(owner && iscarbon(owner))
+		var/mob/living/carbon/C = owner
+		C.invalidate_bleed_cache()
 	owner?.update_damage_overlays()
 	return TRUE
 

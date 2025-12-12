@@ -101,6 +101,8 @@
 			// This means we should skip any further processing for the bodypart
 			if(part)
 				part.grabbedby -= src
+				// Invalidate bleed cache since grab was removed from bodypart
+				carbonmob.invalidate_bleed_cache()
 				part = null
 				sublimb_grabbed = null
 	if(isturf(grabbed))
