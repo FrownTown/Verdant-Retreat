@@ -211,6 +211,11 @@
 			user.stamina_add(rand(7,15))
 			if(M.grippedby(user))			//Aggro grip
 				bleed_suppressing = 0.5		//Better bleed suppression
+				// Invalidate bleed caches since grab suppression changed
+				if(limb_grabbed && iscarbon(M))
+					var/mob/living/carbon/C = M
+					limb_grabbed.invalidate_bp_bleed_cache()
+					C.invalidate_bleed_cache()
 		if(/datum/intent/grab/choke)
 			if(user.buckled)
 				to_chat(user, span_warning("I can't do this while buckled!"))

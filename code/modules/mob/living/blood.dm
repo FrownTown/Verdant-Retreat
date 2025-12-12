@@ -250,7 +250,8 @@
 	var/total_grab_suppress = 1.0
 
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
-		// Check if bandaged - handle expiry and skip if effective
+		// Check if bandaged - handle expiry
+		var/is_bandaged = FALSE
 		if(BP.is_bandaged())
 			var/bandage_effectiveness = 0.5
 			var/obj/item/bp_bandage = BP.bandage
@@ -260,11 +261,16 @@
 			if(bandage_effectiveness < BP.get_max_bleed())
 				BP.bandage_expire()
 			else
-				continue  // Bandaged limbs don't contribute to bleeding
+				is_bandaged = TRUE  // Bandaged limbs don't contribute to bleeding, but still contribute grab suppression
 
-		total_normal += BP.get_normal_bleed()
-		total_critical += BP.get_critical_bleed()
+		// Always calculate grab suppression, even for bandaged limbs
+		// Grabs on bandaged limbs should still reduce bleeding from other wounds
 		total_grab_suppress *= BP.get_grab_suppression()
+
+		// Only add bleed contribution if not bandaged
+		if(!is_bandaged)
+			total_normal += BP.get_normal_bleed()
+			total_critical += BP.get_critical_bleed()
 
 	cached_normal_bleed = total_normal
 	cached_critical_bleed = total_critical
