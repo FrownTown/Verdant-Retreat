@@ -464,7 +464,6 @@
 	user.visible_message(span_warning("[target] has had \a [src] clipped onto [target.p_their()] [collar.name] by [user]!"), span_warning("I clip \a [src] onto [target]'s [collar.name]!"))
 	collar.bell = TRUE
 	collar.bellsound = TRUE
-	collar.AddComponent(/datum/component/squeak, SFX_COLLARJINGLE, 50, 100, 1)
 	if(istype(src, /obj/item/catbell/cow))
 		collar.icon_state = /obj/item/clothing/neck/roguetown/collar/cowbell::icon_state
 		collar.desc = "A leather collar with a jingly cowbell attached."
