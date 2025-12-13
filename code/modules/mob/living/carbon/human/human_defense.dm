@@ -1,9 +1,9 @@
-/mob/living/carbon/human/getarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item = null, obj/item/used_weapon)
+/mob/living/carbon/human/getarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item = null, obj/item/used_weapon, mob/living/attacker)
 	var/armorval = 0
 	var/organnum = 0
 
 	if(def_zone)
-		return checkarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item, used_weapon)
+		return checkarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item, used_weapon, attacker)
 		//If a specific bodypart is targetted, check how that bodypart is protected and return the value.
 
 	//If you don't specify a bodypart, it checks ALL my bodyparts for protection, and averages out the values
@@ -84,7 +84,7 @@
 
 	return best_armor
 
-/mob/living/carbon/human/proc/checkarmor(def_zone, d_type, damage, armor_penetration, blade_dulling, intdamfactor = 1, bypass_item = null, obj/item/used_weapon)
+/mob/living/carbon/human/proc/checkarmor(def_zone, d_type, damage, armor_penetration, blade_dulling, intdamfactor = 1, bypass_item = null, obj/item/used_weapon, mob/living/attacker)
 	if(!d_type)
 		return 0
 	if(isbodypart(def_zone))
@@ -127,7 +127,13 @@
 					var/effective_armor = val * effectiveness
 
 					// Apply blunt weapon modifiers based on armor class (scaled by effectiveness)
+					// For unarmed attacks (no weapon), only apply modifier if attacker has TRAIT_CIVILIZEDBARBARIAN
+					var/apply_blunt_modifier = FALSE
 					if(d_type == "blunt")
+						if(used_weapon || (attacker && HAS_TRAIT(attacker, TRAIT_CIVILIZEDBARBARIAN)))
+							apply_blunt_modifier = TRUE
+
+					if(apply_blunt_modifier)
 						var/blunt_modifier = 0
 						var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
 
@@ -138,7 +144,7 @@
 								blunt_modifier = 10 * effectiveness // Scale penalty towards 0 as armor degrades
 							if(ARMOR_CLASS_HEAVY)
 								blunt_modifier = 20 * effectiveness  // Scale bonus towards 0 as armor degrades
-						
+
 						if(istype(C, /obj/item/clothing/head/helmet))
 							blunt_modifier += 25 * effectiveness // Scale helmet bonus towards 0
 
