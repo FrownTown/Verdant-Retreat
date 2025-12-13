@@ -158,18 +158,19 @@
 
 /obj/item/clothing/gloves/roguetown/plate/atgervi
 	name = "beast claws"
-	desc = "A menacing pair of plated claws, a closely protected tradition of the Atgervi Shamans. The four claws embody the four great beasts. Decorated with symbols of the gods they praise and the Gods they reject."
+	desc = "A menacing pair of plated claws, a closely protected tradition of the Atgervi Shamans. The four claws embody the four great beasts. Decorated with symbols of the gods they praise and the Gods they reject. Right-click to toggle between claws and fists."
 	icon_state = "atgervi_shaman_gloves"
 	item_state = "atergvi_shaman_gloves"
 	unarmed_bonus = 1.25
 	var/claw_mode = FALSE
 
-/obj/item/clothing/gloves/roguetown/plate/atgervi/attack_self(mob/user)
+/obj/item/clothing/gloves/roguetown/plate/atgervi/attack_right(mob/user)
 	if(!ishuman(user) || !HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN))
-		return ..()
+		return
 
 	var/mob/living/carbon/human/H = user
 	if(H.get_item_by_slot(SLOT_GLOVES) != src)
+		to_chat(user, span_warning("I need to be wearing the claws to switch modes!"))
 		return
 
 	claw_mode = !claw_mode
