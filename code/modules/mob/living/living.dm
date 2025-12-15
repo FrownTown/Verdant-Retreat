@@ -2152,8 +2152,9 @@
 		ttime = 10 - (STAPER - 5)
 		if(ttime < 0)
 			ttime = 0
-
-	visible_message(span_info("[src] looks down through [T]."))
+	
+	if(m_intent != MOVE_INTENT_SNEAK)
+		visible_message(span_info("[src] looks down through [T]."))
 
 	if(!do_after(src, ttime, target = src))
 		return
