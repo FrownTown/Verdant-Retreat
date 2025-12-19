@@ -338,25 +338,21 @@
 
 /obj/item/grabbing/proc/twistlimb(mob/living/user) //implies limb_grabbed and sublimb are things
 	var/mob/living/carbon/C = grabbed
-	var/armor_block = C.run_armor_check(limb_grabbed, "slash")
+	var/armor_block = C.run_armor_check(limb_grabbed, "twist")
 	var/damage = user.get_punch_dmg()
 	playsound(C.loc, "genblunt", 100, FALSE, -1)
 	C.next_attack_msg.Cut()
-	if(isdoll(C)) {
+
+	var/actual_damage = ishuman(C) ? C:get_actual_damage(damage, armor_block, limb_grabbed, "twist") : max(damage - armor_block, 0)
+
+	if(isdoll(C))
 		armor_block = C.getarmor(sublimb_grabbed, "blunt")
-		if(armor_block < 1)
-			
-		else
-		
-			C.apply_damage(damage, BRUTE, limb_grabbed, armor_block)
-	}
-	else {
-	
-		armor_block = C.run_armor_check(limb_grabbed, "slash")
-		C.apply_damage(damage, BRUTE, limb_grabbed, armor_block)
-	}	
-		
-	limb_grabbed.bodypart_attacked_by(BCLASS_TWIST, damage, user, sublimb_grabbed, crit_message = TRUE)
+		if(armor_block >= 1)
+			C.apply_damage(actual_damage, BRUTE, limb_grabbed, 0)
+	else
+		C.apply_damage(actual_damage, BRUTE, limb_grabbed, 0)
+
+	limb_grabbed.bodypart_attacked_by(BCLASS_TWIST, actual_damage, user, sublimb_grabbed, crit_message = TRUE)
 	C.visible_message(span_danger("[user] twists [C]'s [parse_zone(sublimb_grabbed)]![C.next_attack_msg.Join()]"), \
 					span_userdanger("[user] twists my [parse_zone(sublimb_grabbed)]![C.next_attack_msg.Join()]"), span_hear("I hear a sickening sound of pugilism!"), COMBAT_MESSAGE_RANGE, user)
 	to_chat(user, span_warning("I twist [C]'s [parse_zone(sublimb_grabbed)].[C.next_attack_msg.Join()]"))

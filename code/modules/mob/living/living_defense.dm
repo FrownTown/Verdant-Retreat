@@ -56,19 +56,7 @@
 	if(!is_edged)
 		return
 
-	var/mob/living/carbon/human/H = src
-	var/obj/item/clothing/blocking_armor = H.get_best_armor(def_zone, damage_flag, wound_class, armor_penetration)
-	var/blunt_threshold = 15
-	if(blocking_armor)
-		switch(blocking_armor.armor_class)
-			if(ARMOR_CLASS_LIGHT)
-				blunt_threshold = 15
-			if(ARMOR_CLASS_MEDIUM)
-				blunt_threshold = 20
-			if(ARMOR_CLASS_HEAVY)
-				blunt_threshold = 25
-
-	if(damage < blunt_threshold)
+	if(damage < armor)
 		. = TRUE
 
 /mob/living/bullet_act(obj/projectile/P, def_zone = BODY_ZONE_CHEST)
@@ -88,7 +76,7 @@
 	var/nodmg = FALSE
 
 	var/raw_damage = P.damage
-	var/actual_damage = max(raw_damage - armor, 0)
+	var/actual_damage = ishuman(src) ? src:get_actual_damage(raw_damage, armor, def_zone, P.flag) : max(raw_damage - armor, 0)
 	var/wound_class = P.woundclass
 
 	if(!P.nodamage && on_hit_state != BULLET_ACT_BLOCK)
@@ -97,7 +85,7 @@
 			wound_class = BCLASS_BLUNT
 			actual_damage = ceil(actual_damage * 0.5)
 
-		if(!apply_damage(raw_damage, P.damage_type, def_zone, armor))
+		if(!apply_damage(actual_damage, P.damage_type, def_zone, 0))
 			nodmg = TRUE
 			next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 		else
@@ -178,7 +166,7 @@
 			var/nodmg = FALSE
 
 			var/raw_damage = I.throwforce
-			var/actual_damage = max(raw_damage - armor, 0)
+			var/actual_damage = ishuman(src) ? src:get_actual_damage(raw_damage, armor, zone, damage_flag) : max(raw_damage - armor, 0)
 			var/wound_bclass = I.thrown_bclass
 			var/was_blunted = check_armor_blunting(actual_damage, armor, wound_bclass, zone, damage_flag, ap)
 
@@ -186,7 +174,7 @@
 				wound_bclass = BCLASS_BLUNT
 				actual_damage = ceil(actual_damage * 0.5)
 
-			if(!apply_damage(raw_damage, I.damtype, zone, armor))
+			if(!apply_damage(actual_damage, I.damtype, zone, 0))
 				nodmg = TRUE
 				next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 			else

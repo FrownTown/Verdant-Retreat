@@ -1,8 +1,8 @@
-#define ARROW_DAMAGE		35
-#define BOLT_DAMAGE			50
+#define ARROW_DAMAGE		50
+#define BOLT_DAMAGE			60
 #define BULLET_DAMAGE		80
-#define ARROW_PENETRATION	30
-#define BOLT_PENETRATION	40
+#define ARROW_PENETRATION	20
+#define BOLT_PENETRATION	50
 #define BULLET_PENETRATION	100
 
 //parent of all bolts and arrows ฅ^•ﻌ•^ฅ
@@ -170,7 +170,7 @@
 	ammo_type = /obj/item/ammo_casing/caseless/rogue/arrow/iron
 
 	damage = ARROW_DAMAGE
-	armor_penetration = 0
+	armor_penetration = ARROW_PENETRATION
 	embedchance = 30
 	npc_damage_mult = 2
 
@@ -186,7 +186,7 @@
 
 	accuracy = 75
 	damage = 25
-	armor_penetration = ARROW_PENETRATION
+	armor_penetration = ARROW_PENETRATION * 2
 	embedchance = 80
 	speed = 0.6
 	npc_damage_mult = 3

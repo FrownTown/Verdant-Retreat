@@ -126,12 +126,13 @@
 	if(domhand)
 		used_str = get_str_arms(used_hand)
 
-	// Apply strength scaling with soft cap (unarmed uses 2x weapon scaling)
+	var/expertise = HAS_TRAIT(src, TRAIT_CIVILIZEDBARBARIAN) ? TRUE : FALSE
+	var/strmult = expertise ? 2 : 1
 	if(used_str >= 11)
-		var/strmod = (used_str > STRENGTH_SOFTCAP && !HAS_TRAIT(src, TRAIT_STRENGTH_UNCAPPED)) ? (((STRENGTH_SOFTCAP - 10) * STRENGTH_MULT * 2) + ((used_str - STRENGTH_SOFTCAP) * STRENGTH_CAPPEDMULT * 2)) : ((used_str - 10) * STRENGTH_MULT * 2)
+		var/strmod = (used_str > STRENGTH_SOFTCAP && !HAS_TRAIT(src, TRAIT_STRENGTH_UNCAPPED)) ? (((STRENGTH_SOFTCAP - 10) * STRENGTH_MULT * strmult) + ((used_str - STRENGTH_SOFTCAP) * STRENGTH_CAPPEDMULT * strmult)) : ((used_str - 10) * STRENGTH_MULT * strmult)
 		damage = max(damage + (damage * strmod), 1)
 
-	if(used_str <= 9)
+	if(used_str <= 9 && !expertise) // Having expertise now prevents you from being too weak to punch, but you still lose out on the bonus
 		damage = max(damage - (damage * ((10 - used_str) * 0.1)), 1)
 
 	if(istype(G, /obj/item/clothing/gloves/roguetown))

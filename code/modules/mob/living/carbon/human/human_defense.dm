@@ -228,7 +228,7 @@
 
 /mob/living/carbon/human/proc/checkcritarmor(def_zone, d_type)
 	if(!d_type)
-		return FALSE
+		return 0
 	if(isbodypart(def_zone))
 		var/obj/item/bodypart/CBP = def_zone
 		def_zone = CBP.body_zone
@@ -241,7 +241,9 @@
 			if(zone2covered(def_zone, C.body_parts_covered_dynamic))
 				if(C.obj_integrity > 1)
 					if(d_type in C.prevent_crits)
-						return TRUE
+						// Crit resistance scales with armor durability: 100% at full durability, 0% at 0 durability
+						var/durability_percent = (C.obj_integrity / C.max_integrity) * 100
+						return durability_percent
 
 
 //This proc returns obj/item/clothing, the armor that has "soaked" the crit. Using it for dismemberment check
@@ -517,7 +519,9 @@
 			if(check_shields(M, damage, "the [M.name]"))
 				return 0
 			if(stat != DEAD)
-				apply_damage(damage, BRUTE, affecting, run_armor_check(affecting, "slash", damage = damage))
+				var/armor = run_armor_check(affecting, "slash", damage = damage)
+				var/actual_damage = get_actual_damage(damage, armor, affecting, "slash")
+				apply_damage(actual_damage, BRUTE, affecting, 0)
 		return 1
 
 
@@ -541,13 +545,14 @@
 		var/armor = run_armor_check(affecting, M.d_type, armor_penetration = ap, damage = damage)
 		next_attack_msg.Cut()
 
+		var/actual_damage = get_actual_damage(damage, armor, affecting, M.d_type)
 		var/nodmg = FALSE
-		if(!apply_damage(damage, M.melee_damage_type, affecting, armor))
+		if(!apply_damage(actual_damage, M.melee_damage_type, affecting, 0))
 			nodmg = TRUE
 			next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 		else
 			SEND_SIGNAL(M, COMSIG_MOB_AFTERATTACK_SUCCESS, src)
-			affecting.bodypart_attacked_by(M.a_intent.blade_class, damage - armor, M, dam_zone, crit_message = TRUE)
+			affecting.bodypart_attacked_by(M.a_intent.blade_class, actual_damage, M, dam_zone, crit_message = TRUE)
 		visible_message(span_danger("\The [M] [pick(M.a_intent.attack_verb)] [src]![next_attack_msg.Join()]"), \
 					span_danger("\The [M] [pick(M.a_intent.attack_verb)] me![next_attack_msg.Join()]"), null, COMBAT_MESSAGE_RANGE)
 		next_attack_msg.Cut()
@@ -808,6 +813,32 @@
 	for(var/obj/item/I as anything in inventory_items_to_kill)
 		I?.acid_act(acidpwr, acid_volume)
 	return 1
+
+/mob/living/carbon/human/proc/get_dt_divisor(obj/item/clothing/armor_piece)
+	if(!armor_piece)
+		return ARMOR_DT_DIVISOR_LIGHT
+	. = armor_piece.armor_class == ARMOR_CLASS_NONE ? armor_piece.integ_armor_mod : armor_piece.armor_class
+	switch(.)
+		if(ARMOR_CLASS_MEDIUM)
+			. = ARMOR_DT_DIVISOR_MEDIUM
+		if(ARMOR_CLASS_HEAVY)
+			. = ARMOR_DT_DIVISOR_HEAVY
+		else
+			. = ARMOR_DT_DIVISOR_LIGHT
+
+/mob/living/carbon/human/proc/get_actual_damage(raw_damage, armor, def_zone, damage_type)
+	var/armor_piece = get_best_armor(def_zone, damage_type)
+	var/dt_divisor = get_dt_divisor(armor_piece)
+
+	var/damage_threshold = armor / dt_divisor
+
+	if(raw_damage < damage_threshold)
+		return 0
+
+	if(prob(damage_threshold))
+		return 0
+
+	return max(floor(raw_damage * (1 - (armor / 100))), 0)
 
 /mob/living/carbon/human/help_shake_act(mob/living/carbon/M)
 	if(!istype(M))

@@ -273,7 +273,10 @@ This allows the devs to draw whatever shape they want at the cost of it feeling 
 		var/armor_block = HT.run_armor_check(zone, d_type, 0, damage = dam, used_weapon = iparent, armor_penetration = 0)
 		if(no_pen)
 			armor_block = 100
-		if(HT.apply_damage(dam, iparent.damtype, affecting, armor_block))
+
+		dam = ishuman(HT) ? HT.get_actual_damage(dam, armor_block, zone, d_type) : max(floor(dam * ((1-armor_block)/100)), 0)
+
+		if(HT.apply_damage(dam, iparent.damtype, affecting, 0))
 			affecting.bodypart_attacked_by(bclass, dam, howner, armor = armor_block, crit_message = TRUE, weapon = iparent)
 			msg += "<b> It pierces through to their flesh!</b>"
 			playsound(HT, pick(iparent.hitsound), 80, TRUE)

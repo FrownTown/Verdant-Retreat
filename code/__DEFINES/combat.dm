@@ -366,6 +366,12 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define SHARPNESS_TIER1_THRESHOLD	0.8	//%-age threshold when damage starts to fall off -- mainly damfactor and STR factor. NOT base damage value.
 #define SHARPNESS_TIER2_THRESHOLD	0.25//%-age threshold when damage *really* falls off. Base damage value included.
 
+//Armor damage threshold system
+#define ARMOR_DT_DIVISOR_LIGHT		2	//Light armor: DT = armor/2
+#define ARMOR_DT_DIVISOR_MEDIUM		2	//Medium armor: DT = armor/2
+#define ARMOR_DT_DIVISOR_HEAVY		2	//Heavy armor: DT = armor/2
+#define ARMOR_MAX_REDUCTION			85	//Maximum armor percentage reduction (100 armor = 100% reduction)
+
 #define UNARMED_DAMAGE_DEFAULT		12
 #define STR_PEN_FACTOR			3.5
 #define PER_PEN_FACTOR		2
