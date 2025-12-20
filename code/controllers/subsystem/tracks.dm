@@ -28,7 +28,8 @@ SUBSYSTEM_DEF(tracks)
 	tracks_created = 0 
 
 /datum/controller/subsystem/tracks/stat_entry()
-	..("P:[processing.len] | Pool:[track_pool.len+structure_track_pool.len+thievescant_pool.len] | R:[tracks_recycled] | N:[tracks_created]")
+	if(processing)
+		..("P:[processing.len] | Pool:[track_pool.len+structure_track_pool.len+thievescant_pool.len] | R:[tracks_recycled] | N:[tracks_created]")
 
 /datum/controller/subsystem/tracks/fire(resumed = 0)
 	if (!resumed)

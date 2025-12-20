@@ -109,7 +109,7 @@
 	H.dna.species.soundpack_m = new /datum/voicepack/male/warrior()
 
 	head = /obj/item/clothing/head/roguetown/helmet/leather/shaman_hood
-	gloves = /obj/item/clothing/gloves/roguetown/angle/gronnfur
+	gloves = /obj/item/clothing/gloves/roguetown/plate/atgervi/
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/atgervi
 	shirt = /obj/item/clothing/suit/roguetown/shirt/undershirt
 	pants = /obj/item/clothing/under/roguetown/trou/leather/atgervi
@@ -119,7 +119,6 @@
 	belt = /obj/item/storage/belt/rogue/leather
 	neck = /obj/item/storage/belt/rogue/pouch/coins/poor
 	beltl = /obj/item/flashlight/flare/torch
-	H.put_in_hands(new /obj/item/rogueweapon/handclaw/gronn, FALSE)
 
 	var/datum/devotion/C = new /datum/devotion(H, H.patron)
 	C.grant_miracles(H, cleric_tier = CLERIC_T2, passive_gain = CLERIC_REGEN_MINOR, devotion_limit = CLERIC_REQ_2)	//Capped to T2 miracles.
