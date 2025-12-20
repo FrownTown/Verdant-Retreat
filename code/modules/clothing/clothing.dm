@@ -110,9 +110,9 @@
 
 	// Determine durability for limbs based on coverage
 	// Items covering ONLY hands/feet (bracers, gauntlets, boots) get 100%
-	// Items covering chest+arms or chest+legs (full armor) get 80% on limbs
+	// Items covering chest+arms or chest+legs (full armor) get 80% on limbs rounded to the nearest multiple of 5
 	var/has_torso = (body_parts_covered & (CHEST | GROIN))
-	var/limb_durability = has_torso ? ceil(base_durability * 0.8) : base_durability
+	var/limb_durability = has_torso ? round(base_durability * 0.8, 5) : base_durability
 
 	if(body_parts_covered & (ARM_LEFT | HAND_LEFT))
 		zone_integrity_l_arm = limb_durability
@@ -123,26 +123,96 @@
 	if(body_parts_covered & (LEG_RIGHT | FOOT_RIGHT))
 		zone_integrity_r_leg = limb_durability
 
+/// Check if this clothing uses zone-specific integrity tracking at all
+/obj/item/clothing/proc/uses_zone_integrity()
+	return (zone_integrity_chest != null || zone_integrity_groin != null || \
+	        zone_integrity_l_arm != null || zone_integrity_r_arm != null || \
+	        zone_integrity_l_leg != null || zone_integrity_r_leg != null)
+
+/// Check if this clothing has zone-specific integrity tracking for a given body zone
+/obj/item/clothing/proc/has_zone_integrity(def_zone)
+	switch(def_zone)
+		if(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_STOMACH)
+			return zone_integrity_chest != null
+		if(BODY_ZONE_PRECISE_GROIN)
+			return zone_integrity_groin != null
+		if(BODY_ZONE_L_ARM, BODY_ZONE_PRECISE_L_HAND)
+			return zone_integrity_l_arm != null
+		if(BODY_ZONE_R_ARM, BODY_ZONE_PRECISE_R_HAND)
+			return zone_integrity_r_arm != null
+		if(BODY_ZONE_L_LEG, BODY_ZONE_PRECISE_L_FOOT)
+			return zone_integrity_l_leg != null
+		if(BODY_ZONE_R_LEG, BODY_ZONE_PRECISE_R_FOOT)
+			return zone_integrity_r_leg != null
+	return FALSE
+
+/// Modify zone integrity by a delta amount, clamping to [0, max]
+/// Returns the new integrity value, or null if the zone doesn't exist
+/obj/item/clothing/proc/modify_zone_integrity(def_zone, delta)
+	if(!has_zone_integrity(def_zone))
+		return null
+
+	var/zone_max = get_zone_max_integrity(def_zone)
+
+	switch(def_zone)
+		if(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_STOMACH)
+			zone_integrity_chest = clamp(zone_integrity_chest + delta, 0, zone_max)
+			return zone_integrity_chest
+		if(BODY_ZONE_PRECISE_GROIN)
+			zone_integrity_groin = clamp(zone_integrity_groin + delta, 0, zone_max)
+			return zone_integrity_groin
+		if(BODY_ZONE_L_ARM, BODY_ZONE_PRECISE_L_HAND)
+			zone_integrity_l_arm = clamp(zone_integrity_l_arm + delta, 0, zone_max)
+			return zone_integrity_l_arm
+		if(BODY_ZONE_R_ARM, BODY_ZONE_PRECISE_R_HAND)
+			zone_integrity_r_arm = clamp(zone_integrity_r_arm + delta, 0, zone_max)
+			return zone_integrity_r_arm
+		if(BODY_ZONE_L_LEG, BODY_ZONE_PRECISE_L_FOOT)
+			zone_integrity_l_leg = clamp(zone_integrity_l_leg + delta, 0, zone_max)
+			return zone_integrity_l_leg
+		if(BODY_ZONE_R_LEG, BODY_ZONE_PRECISE_R_FOOT)
+			zone_integrity_r_leg = clamp(zone_integrity_r_leg + delta, 0, zone_max)
+			return zone_integrity_r_leg
+
+	return null
+
+/// Get a human-readable name for a body zone
+/obj/item/clothing/proc/get_zone_name(def_zone)
+	switch(def_zone)
+		if(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_STOMACH)
+			return "chest"
+		if(BODY_ZONE_PRECISE_GROIN)
+			return "groin"
+		if(BODY_ZONE_L_ARM, BODY_ZONE_PRECISE_L_HAND)
+			return "left arm"
+		if(BODY_ZONE_R_ARM, BODY_ZONE_PRECISE_R_HAND)
+			return "right arm"
+		if(BODY_ZONE_L_LEG, BODY_ZONE_PRECISE_L_FOOT)
+			return "left leg"
+		if(BODY_ZONE_R_LEG, BODY_ZONE_PRECISE_R_FOOT)
+			return "right leg"
+	return "unknown"
+
 /// Get the current integrity for a specific body zone
 /// Returns the zone-specific integrity if tracked, otherwise returns obj_integrity
 /obj/item/clothing/proc/get_zone_integrity(def_zone)
 	switch(def_zone)
-		if(BODY_ZONE_CHEST)
+		if(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_STOMACH)
 			if(zone_integrity_chest != null)
 				return zone_integrity_chest
 		if(BODY_ZONE_PRECISE_GROIN)
 			if(zone_integrity_groin != null)
 				return zone_integrity_groin
-		if(BODY_ZONE_L_ARM)
+		if(BODY_ZONE_L_ARM, BODY_ZONE_PRECISE_L_HAND)
 			if(zone_integrity_l_arm != null)
 				return zone_integrity_l_arm
-		if(BODY_ZONE_R_ARM)
+		if(BODY_ZONE_R_ARM, BODY_ZONE_PRECISE_R_HAND)
 			if(zone_integrity_r_arm != null)
 				return zone_integrity_r_arm
-		if(BODY_ZONE_L_LEG)
+		if(BODY_ZONE_L_LEG, BODY_ZONE_PRECISE_L_FOOT)
 			if(zone_integrity_l_leg != null)
 				return zone_integrity_l_leg
-		if(BODY_ZONE_R_LEG)
+		if(BODY_ZONE_R_LEG, BODY_ZONE_PRECISE_R_FOOT)
 			if(zone_integrity_r_leg != null)
 				return zone_integrity_r_leg
 	return obj_integrity
@@ -154,22 +224,22 @@
 	var/limb_mult = has_torso ? 0.8 : 1.0
 
 	switch(def_zone)
-		if(BODY_ZONE_CHEST)
+		if(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_STOMACH)
 			if(zone_integrity_chest != null)
 				return max_integrity
 		if(BODY_ZONE_PRECISE_GROIN)
 			if(zone_integrity_groin != null)
 				return max_integrity
-		if(BODY_ZONE_L_ARM)
+		if(BODY_ZONE_L_ARM, BODY_ZONE_PRECISE_L_HAND)
 			if(zone_integrity_l_arm != null)
 				return max_integrity * limb_mult
-		if(BODY_ZONE_R_ARM)
+		if(BODY_ZONE_R_ARM, BODY_ZONE_PRECISE_R_HAND)
 			if(zone_integrity_r_arm != null)
 				return max_integrity * limb_mult
-		if(BODY_ZONE_L_LEG)
+		if(BODY_ZONE_L_LEG, BODY_ZONE_PRECISE_L_FOOT)
 			if(zone_integrity_l_leg != null)
 				return max_integrity * limb_mult
-		if(BODY_ZONE_R_LEG)
+		if(BODY_ZONE_R_LEG, BODY_ZONE_PRECISE_R_FOOT)
 			if(zone_integrity_r_leg != null)
 				return max_integrity * limb_mult
 	return max_integrity
@@ -200,25 +270,7 @@
 /obj/item/clothing/proc/damage_zone(def_zone, damage_amount, damage_type = BRUTE, damage_flag = "", sound_effect = TRUE)
 	var/old_integrity = obj_integrity
 
-	switch(def_zone)
-		if(BODY_ZONE_CHEST)
-			if(zone_integrity_chest != null)
-				zone_integrity_chest = max(0, zone_integrity_chest - damage_amount)
-		if(BODY_ZONE_PRECISE_GROIN)
-			if(zone_integrity_groin != null)
-				zone_integrity_groin = max(0, zone_integrity_groin - damage_amount)
-		if(BODY_ZONE_L_ARM)
-			if(zone_integrity_l_arm != null)
-				zone_integrity_l_arm = max(0, zone_integrity_l_arm - damage_amount)
-		if(BODY_ZONE_R_ARM)
-			if(zone_integrity_r_arm != null)
-				zone_integrity_r_arm = max(0, zone_integrity_r_arm - damage_amount)
-		if(BODY_ZONE_L_LEG)
-			if(zone_integrity_l_leg != null)
-				zone_integrity_l_leg = max(0, zone_integrity_l_leg - damage_amount)
-		if(BODY_ZONE_R_LEG)
-			if(zone_integrity_r_leg != null)
-				zone_integrity_r_leg = max(0, zone_integrity_r_leg - damage_amount)
+	modify_zone_integrity(def_zone, -damage_amount)
 
 	update_overall_integrity()
 	show_damage_notification(old_integrity, obj_integrity)
@@ -714,26 +766,17 @@ BLIND     // can't see anything
 /obj/item/clothing/take_damage(damage_amount, damage_type = BRUTE, damage_flag, sound_effect, attack_dir, armor_penetration)
 	var/old_integrity = obj_integrity
 
-	var/has_zones = (zone_integrity_chest != null || zone_integrity_groin != null || zone_integrity_l_arm != null || zone_integrity_r_arm != null || zone_integrity_l_leg != null || zone_integrity_r_leg != null)
-	if(has_zones)
+	if(uses_zone_integrity())
 		// Damage all zones when take_damage is called (non-targeted damage like fire/acid)
-		if(zone_integrity_chest != null)
-			zone_integrity_chest = max(0, zone_integrity_chest - damage_amount)
-		if(zone_integrity_groin != null)
-			zone_integrity_groin = max(0, zone_integrity_groin - damage_amount)
-		if(zone_integrity_l_arm != null)
-			zone_integrity_l_arm = max(0, zone_integrity_l_arm - damage_amount)
-		if(zone_integrity_r_arm != null)
-			zone_integrity_r_arm = max(0, zone_integrity_r_arm - damage_amount)
-		if(zone_integrity_l_leg != null)
-			zone_integrity_l_leg = max(0, zone_integrity_l_leg - damage_amount)
-		if(zone_integrity_r_leg != null)
-			zone_integrity_r_leg = max(0, zone_integrity_r_leg - damage_amount)
+		var/list/all_zones = list(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+		for(var/zone in all_zones)
+			if(has_zone_integrity(zone))
+				modify_zone_integrity(zone, -damage_amount)
 
 		update_overall_integrity()
 		show_damage_notification(old_integrity, obj_integrity)
 
-		// Call parent without letting it change obj_integrity
+		// Call parent but reset obj_integrity to the old value to avoid double damage
 		var/current_integrity = obj_integrity
 		. = ..()
 		obj_integrity = current_integrity

@@ -164,17 +164,19 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			acheck_dflag = "stab"
 	armor = owner.run_armor_check(zone_precise, acheck_dflag, damage = 0)
 	if(ishuman(owner))
-		// Prevent crits on armor-blunted attacks
+		// Attacks blunted by armor never result in a critical hit
 		if(was_blunted)
 			do_crit = FALSE
 		else
 			var/probbonus = 0
 			var/mob/living/carbon/human/human_owner = owner
-			var/crit_resistance = human_owner.checkcritarmor(zone_precise, bclass)  // Returns 0-50 crit resistance percentage
+			var/crit_resistance = human_owner.checkcritarmor(zone_precise, bclass)  // Returns 0-100 based on armor durability percentage
 			if(user)
 				if(user.goodluck(2))
 					probbonus = user.STALUC*2
-			if(!prob((get_damage()/max_damage)*(100 - (owner.STACON * 2) + probbonus - crit_resistance)))
+			var/crit_chance = (get_damage()/max_damage)*(100 - (owner.STACON * 2) + probbonus - crit_resistance)
+			// world.log << "CRIT DEBUG: dam=[dam] limb_dam=[get_damage()]/[max_damage] armor=[armor] crit_resist=[crit_resistance] final_chance=[crit_chance]"
+			if(!prob(crit_chance))
 				do_crit = FALSE
 			//if(owner.mind && (get_damage() <= (max_damage * 0.9))) //No crits unless the damage is maxed out.
 			//	do_crit = FALSE // We used to check if they are buckled or lying down but being grounded is a big enough advantage.

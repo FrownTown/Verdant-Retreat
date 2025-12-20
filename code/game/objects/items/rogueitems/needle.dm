@@ -86,13 +86,17 @@
 			var/zone_needs_repair = FALSE
 			var/zone_integrity = I.obj_integrity
 
-			if(istype(I, /obj/item/clothing))
+			if(istype(I, /obj/item/clothing) && I:uses_zone_integrity())
 				var/obj/item/clothing/C = I
+				if(!C.has_zone_integrity(target_zone))
+					to_chat(user, span_warning("This armor doesn't cover the [parse_zone(target_zone)]."))
+					return
 				zone_integrity = C.get_zone_integrity(target_zone)
 				var/zone_max = C.get_zone_max_integrity(target_zone)
 				if(zone_integrity < zone_max)
 					zone_needs_repair = TRUE
 			else
+				// Non-clothing or clothing without zone tracking
 				if(I.obj_integrity < I.max_integrity)
 					zone_needs_repair = TRUE
 
@@ -167,38 +171,11 @@
 				playsound(loc, 'sound/foley/sewflesh.ogg', 50, TRUE, -2)
 				var/repair_amount = BASE_SEW_REPAIR + skill * SEW_REPAIR_PER_LEVEL
 
-				if(istype(I, /obj/item/clothing))
+				if(istype(I, /obj/item/clothing) && I:has_zone_integrity(target_zone))
 					var/obj/item/clothing/C = I
-					// Repair the specific zone being worked on
-					var/zone_name = target_zone
-					var/zone_max = C.get_zone_max_integrity(target_zone)
-					switch(target_zone)
-						if(BODY_ZONE_CHEST)
-							if(C.zone_integrity_chest != null)
-								C.zone_integrity_chest = min(C.zone_integrity_chest + repair_amount, zone_max)
-								zone_name = "chest"
-						if(BODY_ZONE_PRECISE_GROIN)
-							if(C.zone_integrity_groin != null)
-								C.zone_integrity_groin = min(C.zone_integrity_groin + repair_amount, zone_max)
-								zone_name = "groin"
-						if(BODY_ZONE_L_ARM)
-							if(C.zone_integrity_l_arm != null)
-								C.zone_integrity_l_arm = min(C.zone_integrity_l_arm + repair_amount, zone_max)
-								zone_name = "left arm"
-						if(BODY_ZONE_R_ARM)
-							if(C.zone_integrity_r_arm != null)
-								C.zone_integrity_r_arm = min(C.zone_integrity_r_arm + repair_amount, zone_max)
-								zone_name = "right arm"
-						if(BODY_ZONE_L_LEG)
-							if(C.zone_integrity_l_leg != null)
-								C.zone_integrity_l_leg = min(C.zone_integrity_l_leg + repair_amount, zone_max)
-								zone_name = "left leg"
-						if(BODY_ZONE_R_LEG)
-							if(C.zone_integrity_r_leg != null)
-								C.zone_integrity_r_leg = min(C.zone_integrity_r_leg + repair_amount, zone_max)
-								zone_name = "right leg"
+					C.modify_zone_integrity(target_zone, repair_amount)
 					C.update_overall_integrity()
-					user.visible_message(span_info("[user] repairs [I]'s [zone_name]!"))
+					user.visible_message(span_info("[user] repairs [I]'s [C.get_zone_name(target_zone)]!"))
 				else
 					I.obj_integrity = min(I.obj_integrity + repair_amount, I.max_integrity)
 					user.visible_message(span_info("[user] repairs [I]!"))

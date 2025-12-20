@@ -27,38 +27,23 @@
 		// Check if this is clothing with zone tracking
 		if(istype(I, /obj/item/clothing))
 			var/obj/item/clothing/C = I
-			var/target_zone = user.zone_selected
-			var/zone_integrity = C.get_zone_integrity(target_zone)
-			var/zone_max = C.get_zone_max_integrity(target_zone)
+			var/repair_percent = 0.25
+			var/needs_repair = FALSE
 
-			if(zone_integrity < zone_max)
-				var/repair_amount = zone_max * 0.25
+			// Repair all zones simultaneously
+			var/list/zones = list(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+			for(var/zone in zones)
+				if(C.has_zone_integrity(zone))
+					var/old_integrity = C.get_zone_integrity(zone)
+					var/zone_max = C.get_zone_max_integrity(zone)
+					if(old_integrity < zone_max)
+						needs_repair = TRUE
+						C.modify_zone_integrity(zone, zone_max * repair_percent)
 
-				// Repair the specific zone being targeted
-				switch(target_zone)
-					if(BODY_ZONE_CHEST)
-						if(C.zone_integrity_chest != null)
-							C.zone_integrity_chest = min(C.zone_integrity_chest + repair_amount, zone_max)
-					if(BODY_ZONE_PRECISE_GROIN)
-						if(C.zone_integrity_groin != null)
-							C.zone_integrity_groin = min(C.zone_integrity_groin + repair_amount, zone_max)
-					if(BODY_ZONE_L_ARM)
-						if(C.zone_integrity_l_arm != null)
-							C.zone_integrity_l_arm = min(C.zone_integrity_l_arm + repair_amount, zone_max)
-					if(BODY_ZONE_R_ARM)
-						if(C.zone_integrity_r_arm != null)
-							C.zone_integrity_r_arm = min(C.zone_integrity_r_arm + repair_amount, zone_max)
-					if(BODY_ZONE_L_LEG)
-						if(C.zone_integrity_l_leg != null)
-							C.zone_integrity_l_leg = min(C.zone_integrity_l_leg + repair_amount, zone_max)
-					if(BODY_ZONE_R_LEG)
-						if(C.zone_integrity_r_leg != null)
-							C.zone_integrity_r_leg = min(C.zone_integrity_r_leg + repair_amount, zone_max)
-
+			if(needs_repair)
 				C.update_overall_integrity()
 				user.visible_message(span_info("[I] glows in a faint mending light."))
 				playsound(I, 'sound/foley/sewflesh.ogg', 50, TRUE, -2)
-
 				if(I.obj_broken && I.obj_integrity >= I.max_integrity)
 					I.obj_fix()
 			else

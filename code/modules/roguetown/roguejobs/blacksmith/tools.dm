@@ -75,8 +75,11 @@
 		var/zone_needs_repair = FALSE
 		var/zone_integrity = attacked_item.obj_integrity
 
-		if(istype(attacked_item, /obj/item/clothing))
+		if(istype(attacked_item, /obj/item/clothing) && attacked_item:uses_zone_integrity())
 			var/obj/item/clothing/C = attacked_item
+			if(!C.has_zone_integrity(target_zone))
+				to_chat(user, span_warning("This armor doesn't cover the [parse_zone(target_zone)]."))
+				return
 			zone_integrity = C.get_zone_integrity(target_zone)
 			var/zone_max = C.get_zone_max_integrity(target_zone)
 			if(zone_integrity < zone_max)
@@ -110,46 +113,20 @@
 		if(repair_percent)
 			repair_percent *= attacked_item.max_integrity
 
-			if(istype(attacked_item, /obj/item/clothing))
+			if(istype(attacked_item, /obj/item/clothing) && attacked_item:has_zone_integrity(target_zone))
 				var/obj/item/clothing/C = attacked_item
-				var/zone_name = target_zone
-				var/max_zone_integrity = C.get_zone_max_integrity(target_zone)
 				var/old_zone_integrity = zone_integrity
 
-				switch(target_zone)
-					if(BODY_ZONE_CHEST)
-						if(C.zone_integrity_chest != null)
-							C.zone_integrity_chest = min(C.zone_integrity_chest + repair_percent, max_zone_integrity)
-							zone_integrity = C.zone_integrity_chest
-							zone_name = "torso"
-					if(BODY_ZONE_PRECISE_GROIN)
-						if(C.zone_integrity_groin != null)
-							C.zone_integrity_groin = min(C.zone_integrity_groin + repair_percent, max_zone_integrity)
-							zone_integrity = C.zone_integrity_groin
-							zone_name = "groin"
-					if(BODY_ZONE_L_ARM)
-						if(C.zone_integrity_l_arm != null)
-							C.zone_integrity_l_arm = min(C.zone_integrity_l_arm + repair_percent, max_zone_integrity)
-							zone_integrity = C.zone_integrity_l_arm
-							zone_name = "left arm"
-					if(BODY_ZONE_R_ARM)
-						if(C.zone_integrity_r_arm != null)
-							C.zone_integrity_r_arm = min(C.zone_integrity_r_arm + repair_percent, max_zone_integrity)
-							zone_integrity = C.zone_integrity_r_arm
-							zone_name = "right arm"
-					if(BODY_ZONE_L_LEG)
-						if(C.zone_integrity_l_leg != null)
-							C.zone_integrity_l_leg = min(C.zone_integrity_l_leg + repair_percent, max_zone_integrity)
-							zone_integrity = C.zone_integrity_l_leg
-							zone_name = "left leg"
-					if(BODY_ZONE_R_LEG)
-						if(C.zone_integrity_r_leg != null)
-							C.zone_integrity_r_leg = min(C.zone_integrity_r_leg + repair_percent, max_zone_integrity)
-							zone_integrity = C.zone_integrity_r_leg
-							zone_name = "right leg"
+				var/new_zone_integrity = C.modify_zone_integrity(target_zone, repair_percent)
+				if(new_zone_integrity != null)
+					zone_integrity = new_zone_integrity
 
 				C.update_overall_integrity()
 				exp_gained = zone_integrity - old_zone_integrity
+
+				var/zone_name = C.get_zone_name(target_zone)
+				if(target_zone == BODY_ZONE_CHEST || target_zone == BODY_ZONE_PRECISE_STOMACH)
+					zone_name = "torso"
 
 				if(repair_percent == 0.01)
 					to_chat(user, span_warning("You fumble your way into slightly repairing [attacked_item]'s [zone_name]."))
