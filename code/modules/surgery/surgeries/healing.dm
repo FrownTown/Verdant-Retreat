@@ -99,7 +99,6 @@
 				umsg += ", carefully treating the internal injuries"
 				tmsg += ", carefully treating the internal injuries"
 	display_results(user, target, span_notice("[umsg]."),
-		"[tmsg].",
 		"[tmsg].")
 	target.update_damage_hud()
 	return TRUE
