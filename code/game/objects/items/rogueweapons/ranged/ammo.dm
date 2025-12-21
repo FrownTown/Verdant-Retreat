@@ -1,7 +1,7 @@
 #define ARROW_DAMAGE		50
 #define BOLT_DAMAGE			60
 #define BULLET_DAMAGE		80
-#define ARROW_PENETRATION	20
+#define ARROW_PENETRATION	30
 #define BOLT_PENETRATION	50
 #define BULLET_PENETRATION	100
 
@@ -186,7 +186,7 @@
 
 	accuracy = 75
 	damage = 25
-	armor_penetration = ARROW_PENETRATION * 2
+	armor_penetration = ARROW_PENETRATION + 20
 	embedchance = 80
 	speed = 0.6
 	npc_damage_mult = 3
