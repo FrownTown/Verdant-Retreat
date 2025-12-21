@@ -62,12 +62,12 @@
 
 					switch(effective_class)
 						if(ARMOR_CLASS_LIGHT)
-							blunt_modifier = -10 * effectiveness
+							blunt_modifier = -8 * effectiveness
 						if(ARMOR_CLASS_HEAVY)
 							if(blade_dulling in blunt_weps)
-								blunt_modifier = 20 * effectiveness
+								blunt_modifier = 12 * effectiveness
 								if(istype(C, /obj/item/clothing/head/helmet))
-									blunt_modifier += 10 * effectiveness
+									blunt_modifier += 6 * effectiveness
 
 					// Effective penetration for this armor
 					var/effective_pen = armor_penetration + blunt_modifier
@@ -144,14 +144,14 @@
 
 						switch(effective_class)
 							if(ARMOR_CLASS_LIGHT)
-								blunt_modifier = -8 * effectiveness // Scale penalty towards 0 as armor degrades
+								blunt_modifier = -6 * effectiveness // Scale penalty towards 0 as armor degrades
 							if(ARMOR_CLASS_MEDIUM)
-								blunt_modifier = 10 * effectiveness // Scale penalty towards 0 as armor degrades
+								blunt_modifier = 6 * effectiveness // Scale penalty towards 0 as armor degrades
 							if(ARMOR_CLASS_HEAVY)
-								blunt_modifier = 20 * effectiveness  // Scale bonus towards 0 as armor degrades
+								blunt_modifier = 12 * effectiveness  // Scale bonus towards 0 as armor degrades
 
 						if(istype(C, /obj/item/clothing/head/helmet))
-							blunt_modifier += 25 * effectiveness // Scale helmet bonus towards 0
+							blunt_modifier += 15 * effectiveness // Scale helmet bonus towards 0
 
 						var/modified_pen = armor_penetration + blunt_modifier
 						effective_armor = max(effective_armor - modified_pen, 0)
