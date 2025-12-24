@@ -62,23 +62,8 @@
 						apply_blunt_modifier = TRUE
 				
 				if(apply_blunt_modifier)
-					var/blunt_modifier = 0
-					var/effective_class = C.armor_class == ARMOR_CLASS_NONE && C.integ_armor_mod != ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
-
-					switch(effective_class)
-						if(ARMOR_CLASS_LIGHT)
-							blunt_modifier = -6 * effectiveness
-						if(ARMOR_CLASS_MEDIUM)
-							blunt_modifier = 6 * effectiveness
-						if(ARMOR_CLASS_HEAVY)
-							if(blade_dulling in blunt_weps)
-								blunt_modifier = 12 * effectiveness
-								if(istype(C, /obj/item/clothing/head/helmet))
-									blunt_modifier += 6 * effectiveness
-
-					// Effective penetration for this armor
+					var/blunt_modifier = get_blunt_ap_mod(C, effectiveness)
 					var/effective_pen = armor_penetration + blunt_modifier
-					// Reduce armor value by how much penetration we have
 					effective_val = max(effective_val - effective_pen, 0)
 				else
 					// For non-blunt attacks, just use regular penetration
@@ -150,20 +135,7 @@
 							apply_blunt_modifier = TRUE
 
 					if(apply_blunt_modifier)
-						var/blunt_modifier = 0
-						var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
-
-						switch(effective_class)
-							if(ARMOR_CLASS_LIGHT)
-								blunt_modifier = -6 * effectiveness // Scale penalty towards 0 as armor degrades
-							if(ARMOR_CLASS_MEDIUM)
-								blunt_modifier = 6 * effectiveness // Scale penalty towards 0 as armor degrades
-							if(ARMOR_CLASS_HEAVY)
-								blunt_modifier = 12 * effectiveness  // Scale bonus towards 0 as armor degrades
-
-								if(istype(C, /obj/item/clothing/head/helmet))
-									blunt_modifier += 6 * effectiveness // Scale helmet bonus towards 0
-
+						var/blunt_modifier = get_blunt_ap_mod(C, effectiveness)
 						var/modified_pen = armor_penetration + blunt_modifier
 						effective_armor = max(effective_armor - modified_pen, 0)
 					else
@@ -267,6 +239,22 @@
 						var/durability_percent = (zone_integrity / zone_max) * 100
 						return durability_percent
 
+/mob/living/carbon/human/proc/get_blunt_ap_mod(obj/item/clothing/C, effectiveness)
+	var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
+	var/blunt_modifier = 0
+
+	switch(effective_class)
+		if(ARMOR_CLASS_LIGHT)
+			blunt_modifier = BLUNT_AP_MOD_LIGHT * effectiveness // Scale penalty towards 0 as armor degrades
+		if(ARMOR_CLASS_MEDIUM)
+			blunt_modifier = BLUNT_AP_MOD_MEDIUM * effectiveness // Scale penalty towards 0 as armor degrades
+		if(ARMOR_CLASS_HEAVY)
+			blunt_modifier = BLUNT_AP_MOD_HEAVY * effectiveness  // Scale bonus towards 0 as armor degrades
+
+			if(istype(C, /obj/item/clothing/head/helmet))
+				blunt_modifier += BLUNT_AP_MOD_HEAVY_HELMET * effectiveness // Scale helmet bonus towards 0
+
+	return blunt_modifier
 
 //This proc returns obj/item/clothing, the armor that has "soaked" the crit. Using it for dismemberment check
 /mob/living/carbon/human/proc/checkcritarmorreference(def_zone, bclass)

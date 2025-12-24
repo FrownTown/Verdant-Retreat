@@ -374,11 +374,16 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define ARMOR_DT_DIVISOR_LIGHT		2	//Light armor: DT = armor/2
 #define ARMOR_DT_DIVISOR_MEDIUM		2	//Medium armor: DT = armor/2
 #define ARMOR_DT_DIVISOR_HEAVY		2	//Heavy armor: DT = armor/2
-#define ARMOR_MAX_REDUCTION			85	//Maximum armor percentage reduction (100 armor = 100% reduction)
+#define ARMOR_MAX_REDUCTION			100	//Maximum armor percentage reduction (100 armor = 100% reduction)
 
 #define UNARMED_DAMAGE_DEFAULT		12
 #define STR_PEN_FACTOR			3.5
 #define PER_PEN_FACTOR		2
+
+#define BLUNT_AP_MOD_LIGHT -7 // Effectively -2 STR
+#define BLUNT_AP_MOD_MEDIUM 3.5 // Effectively +1 STR
+#define BLUNT_AP_MOD_HEAVY 10.5 // Effectively +3 STR
+#define BLUNT_AP_MOD_HEAVY_HELMET 3.5 // Effectively +1 STR
 
 /// Damage multiplier of silver weapons against mobs with TRAIT_SIMPLE_WOUNDS
 #define SILVER_SIMPLEMOB_DAM_MULT 2
