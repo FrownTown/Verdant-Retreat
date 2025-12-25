@@ -42,6 +42,7 @@
 	flag = "magic"
 	range = 15
 	speed = 1
+	woundclass = BCLASS_ACID
 	var/aoe_range = 1
 
 /obj/projectile/magic/acidsplash/on_hit(atom/target, blocked = FALSE)
@@ -70,7 +71,16 @@
 
 /datum/status_effect/buff/acidsplash/tick()
 	var/mob/living/target = owner
-	target.adjustFireLoss(5)
+	if(!iscarbon(target))
+		target.adjustFireLoss(5, bclass = BCLASS_ACID)
+
+	else
+		var/mob/living/carbon/C = target
+		// Pick a random bodypart to apply acid damage to
+		var/list/possible_parts = C.bodyparts.Copy()
+		if(length(possible_parts))
+			var/obj/item/bodypart/BP = pick(possible_parts)
+			BP.receive_damage(0, 5, bclass = BCLASS_ACID)
 
 /atom/movable/screen/alert/status_effect/buff/acidsplash
 	name = "Acid Burn"

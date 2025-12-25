@@ -14,6 +14,11 @@ GLOBAL_LIST_INIT(artery_bclasses, list(
 	BCLASS_PIERCE,
 ))
 
+GLOBAL_LIST_INIT(dismember_bclasses, list(
+	BCLASS_CUT,
+	BCLASS_CHOP
+))
+
 GLOBAL_LIST_INIT(artery_strong_bclasses, list(
 	BCLASS_CHOP,
 	BCLASS_PICK,
@@ -44,6 +49,9 @@ GLOBAL_LIST_INIT(stab_bclasses, list(
 
 GLOBAL_LIST_INIT(charring_bclasses, list(
 	BCLASS_BURN,
+	BCLASS_FROST,
+	BCLASS_ELECTRICAL,
+	BCLASS_ACID,
 ))
 
 GLOBAL_LIST_INIT(whipping_bclasses, list(

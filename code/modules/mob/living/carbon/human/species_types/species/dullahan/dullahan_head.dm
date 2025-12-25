@@ -230,7 +230,10 @@
 			head_items[item_slot] = worn_item
 			worn_item.forceMove(src)
 
-/obj/item/bodypart/head/dullahan/drop_limb(special)
+/obj/item/bodypart/head/dullahan/drop_limb(special, destroy = FALSE)
+	if(destroy)
+		destroy = FALSE // Dullahan heads can't be gibbed, they just get knocked off instead
+
 	var/mob/living/carbon/human/user = original_owner
 	var/datum/species/dullahan/user_species = user.dna.species
 

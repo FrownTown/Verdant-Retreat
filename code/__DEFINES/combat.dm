@@ -215,6 +215,9 @@
 #define BCLASS_EFFECT		"effect"
 #define BCLASS_PUNISH		"punish"
 #define BCLASS_SUNDER       "sunder"
+#define BCLASS_FROST		"frost"
+#define BCLASS_ELECTRICAL	"electrical"
+#define BCLASS_ACID			"acid"
 
 //Material class (what material is striking)
 #define MCLASS_GENERIC		1

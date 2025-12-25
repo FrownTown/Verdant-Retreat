@@ -39,6 +39,7 @@
 	flag = "magic"
 	light_color = "#802121"
 	light_outer_range = 7
+	woundclass = BCLASS_ELECTRICAL
 
 /obj/projectile/magic/bloodlightning/on_hit(target)
 	. = ..()

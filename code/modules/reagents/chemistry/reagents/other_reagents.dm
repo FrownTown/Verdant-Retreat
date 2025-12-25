@@ -68,6 +68,16 @@
 	alpha = 100
 	taste_mult = 0.1
 
+/datum/reagent/water/reaction_mob(mob/living/L, method=TOUCH, reac_volume)
+	. = ..()
+	if(method == TOUCH && reac_volume >= 15 && L.fire_stacks > 0)
+		var/datum/status_effect/fire_handler/fire_stacks/fire_effect = L.has_status_effect(/datum/status_effect/fire_handler/fire_stacks)
+		if(fire_effect)
+			fire_effect.extinguish()
+			fire_effect.adjust_stacks(-L.fire_stacks)
+			L.visible_message(span_notice("[L]'s flames are extinguished by the water!"), span_notice("The water extinguishes the flames!"))
+			playsound(L, 'sound/blank.ogg', 50, TRUE)
+
 /datum/chemical_reaction/grosswaterify
 	name = "grosswater"
 	id = /datum/reagent/water/gross

@@ -54,7 +54,7 @@
 			visible_message(span_warning("The magic fades away around you [L] "))  //antimagic needs some testing
 			playsound(damage_turf, 'sound/magic/magic_nulled.ogg', 100)
 			return
-		L.adjustFireLoss(damage)
+		L.adjustFireLoss(damage, bclass = BCLASS_FROST)
 		L.apply_status_effect(/datum/status_effect/buff/witherd/)
 		return
 

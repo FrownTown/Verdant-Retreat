@@ -490,7 +490,7 @@
 	if(shock_damage < 1)
 		return FALSE
 	if(!(flags & SHOCK_ILLUSION))
-		adjustFireLoss(shock_damage)
+		adjustFireLoss(shock_damage, bclass = BCLASS_ELECTRICAL)
 	else
 		stamina_add(-shock_damage)
 	visible_message(

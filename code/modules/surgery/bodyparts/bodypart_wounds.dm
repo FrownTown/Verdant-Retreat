@@ -66,7 +66,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	return healed_any
 
 /// Adds a wound to this bodypart, applying any necessary effects
-/obj/item/bodypart/proc/add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE)
+/obj/item/bodypart/proc/add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE, damage)
 	if(!wound || !owner || (owner.status_flags & GODMODE))
 		return
 	if(ispath(wound, /datum/wound))
@@ -79,7 +79,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	else if(!wound.can_apply_to_bodypart(src))
 		qdel(wound)
 		return
-	if(!wound.apply_to_bodypart(src, silent, crit_message))
+	if(!wound.apply_to_bodypart(src, silent, crit_message, damage))
 		qdel(wound)
 		return
 	return wound
@@ -167,6 +167,8 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		// Attacks blunted by armor never result in a critical hit
 		if(was_blunted)
 			do_crit = FALSE
+		else if(bclass in GLOB.charring_bclasses)
+			do_crit = TRUE
 		else
 			var/probbonus = 0
 			var/mob/living/carbon/human/human_owner = owner
@@ -183,6 +185,13 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	testing("bodypart_attacked_by() dam [dam]")
 
 	var/datum/wound/dynwound = manage_dynamic_wound(bclass, dam, armor)
+
+	// Blunt dismemberment - now uses centralized formula
+	if(bclass in (GLOB.fracture_bclasses))
+		if(should_dismember(bclass, dam, user, zone_precise, armor_block, raw_damage, weapon))
+			owner.visible_message(span_danger("<B>[owner]'s [name] EXPLODES from the crushing impact!</B>"))
+			dismember(BRUTE, bclass, user, zone_precise)
+			return TRUE
 
 	if(do_crit)
 		var/datum/component/silverbless/psyblessed = weapon?.GetComponent(/datum/component/silverbless)
@@ -209,6 +218,8 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			woundtype = /datum/wound/dynamic/lashing
 		if(BCLASS_PUNISH)
 			woundtype = /datum/wound/dynamic/punish
+		if(BCLASS_BURN, BCLASS_FROST, BCLASS_ELECTRICAL, BCLASS_ACID)
+			woundtype = /datum/wound/dynamic/burn
 		else	//Wrong bclass type for wounds, skip adding this.
 			return
 	var/datum/wound/dynwound = has_wound(woundtype)
@@ -219,7 +230,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			if(!isnull(woundtype))
 				var/datum/wound/newwound = add_wound(woundtype)
 				dynwound = newwound
-				if(newwound && !isnull(newwound))	//don't even ask - Free
+				if(newwound && !isnull(newwound))
 					newwound.upgrade(dam, armor)
 	return dynwound
 
@@ -286,9 +297,21 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			used = round(damage_dividend * 20 + (dam / 2) - 10 * resistance, 1)
 			if(prob(used))
 				attempted_wounds += /datum/wound/sunder/head
+	if(bclass in GLOB.charring_bclasses)
+		used = round(damage_dividend * 25 + (dam / 2.5) - 12 * resistance, 1)
+		if(prob(used))
+			switch(bclass)
+				if(BCLASS_FROST)
+					attempted_wounds += /datum/wound/burn/frostbite
+				if(BCLASS_ELECTRICAL)
+					attempted_wounds += /datum/wound/burn/electrical
+				if(BCLASS_ACID)
+					attempted_wounds += /datum/wound/burn/acid
+				else
+					attempted_wounds += /datum/wound/burn/charred
 
 	for(var/wound_type in shuffle(attempted_wounds))
-		var/datum/wound/applied = add_wound(wound_type, silent, crit_message)
+		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam)
 		if(applied)
 			if(user?.client)
 				record_round_statistic(STATS_CRITS_MADE)
@@ -406,7 +429,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 				attempted_wounds += bone_frag_wound
 
 	for(var/wound_type in shuffle(attempted_wounds))
-		var/datum/wound/applied = add_wound(wound_type, silent, crit_message)
+		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam)
 		if(applied)
 			if(user?.client)
 				record_round_statistic(STATS_CRITS_MADE)
@@ -551,7 +574,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			attempted_wounds += bone_frag_wound
 
 	for(var/wound_type in shuffle(attempted_wounds))
-		var/datum/wound/applied = add_wound(wound_type, silent, crit_message)
+		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam)
 		if(applied)
 			if(user?.client)
 				record_round_statistic(STATS_CRITS_MADE)

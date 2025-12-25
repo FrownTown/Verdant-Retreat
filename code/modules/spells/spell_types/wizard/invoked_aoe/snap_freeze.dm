@@ -73,9 +73,9 @@
 				return 
 			play_cleave = TRUE
 			if(ishuman(L))
-				L.adjustFireLoss(damage)
+				L.adjustFireLoss(damage, bclass = BCLASS_FROST)
 			else
-				L.adjustFireLoss(damage + 30)
+				L.adjustFireLoss(damage + 30, bclass = BCLASS_FROST)
 			if(L.has_status_effect(/datum/status_effect/buff/frostbite))
 				return
 			else

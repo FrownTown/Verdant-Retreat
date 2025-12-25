@@ -153,7 +153,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	return TRUE
 
 /// Adds this wound to a given bodypart
-/datum/wound/proc/apply_to_bodypart(obj/item/bodypart/affected, silent = FALSE, crit_message = FALSE)
+/datum/wound/proc/apply_to_bodypart(obj/item/bodypart/affected, silent = FALSE, crit_message = FALSE, damage)
 	if(QDELETED(affected) || QDELETED(affected.owner))
 		return FALSE
 	if(bodypart_owner)
@@ -170,7 +170,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 		var/mob/living/carbon/C = owner
 		C.invalidate_bleed_cache()
 	on_bodypart_gain(affected)
-	INVOKE_ASYNC(src, PROC_REF(on_mob_gain), affected.owner) //this is literally a fucking lint error like new species cannot possible spawn with wounds until after its ass
+	INVOKE_ASYNC(src, PROC_REF(on_mob_gain), affected.owner, damage) //this is literally a fucking lint error like new species cannot possible spawn with wounds until after its ass
 	if(crit_message)
 		var/message = get_crit_message(affected.owner, affected)
 		if(message)
@@ -332,6 +332,10 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 
 /// Sews the wound up, changing its properties to the sewn ones
 /datum/wound/proc/sew_wound()
+	return standard_sewing_procedure()
+
+/// The standard logic for sewing a wound (stopping bleeding, changing overlay, but NOT healing it instantly)
+/datum/wound/proc/standard_sewing_procedure()
 	if(!can_sew)
 		return FALSE
 	var/old_overlay = mob_overlay
@@ -428,7 +432,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 				is_maxed = TRUE
 			clotting_rate = CLOT_RATE_ARTERY
 			clotting_threshold = CLOT_THRESHOLD_ARTERY
-	if(!is_maxed)
+	if(!is_maxed && clotting_rate > 0)
 		clotting_rate = max(0.01, (clotting_rate - CLOT_DECREASE_PER_HIT))
 		clotting_threshold += CLOT_THRESHOLD_INCREASE_PER_HIT
 	..()

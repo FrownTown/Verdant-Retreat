@@ -1991,27 +1991,14 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	if(nodmg)
 		return FALSE //dont play a sound
 
-	//dismemberment
+	//dismemberment - centralized in bodypart_dismemberment.dm
 	var/bloody = 0
-	var/probability = I.get_dismemberment_chance(affecting, user, selzone)
-	if(I.wlength == WLENGTH_SHORT && user.STASTR < 16)
-		probability /= 4
-
-	// Armor significantly reduces dismemberment chance based on damage absorption ratio
-	if(armor_block > 0 && raw_damage > 0)
-		if(actual_damage < armor_block)
-			probability = 0	// If more damage is absorbed than dealt, no dismemberment can occur
-		else
-			var/absorption_ratio = armor_block / raw_damage  // 0.0 to 1.0
-			// Exponential reduction: even 50% absorption gives 75% reduction in dismemberment chance
-			var/dismember_multiplier = (1 - absorption_ratio) ** 2
-			probability *= dismember_multiplier
-
-	if(affecting.brute_dam && prob(probability) && affecting.dismember(I.damtype, user.used_intent?.blade_class, user, selzone, vorpal = I.vorpal))
-		bloody = 1
-		I.add_mob_blood(H)
-		user.update_inv_hands()
-		playsound(get_turf(H), I.get_dismember_sound(), 80, TRUE)
+	if(affecting.brute_dam && affecting.should_dismember(user.used_intent?.blade_class, actual_damage, user, selzone, armor_block, raw_damage, I))
+		if(affecting.dismember(I.damtype, user.used_intent?.blade_class, user, selzone, vorpal = I.vorpal))
+			bloody = 1
+			I.add_mob_blood(H)
+			user.update_inv_hands()
+			playsound(get_turf(H), I.get_dismember_sound(), 80, TRUE)
 
 	if(((I.damtype == BRUTE) && I.force && prob(25 + (I.force * 2))))
 		if(affecting.status == BODYPART_ORGANIC)
@@ -2073,7 +2060,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 			H.forcesay(GLOB.hit_appends)	//forcesay checks stat already.
 	return TRUE
 
-/datum/species/proc/apply_damage(damage, damagetype = BRUTE, def_zone = null, blocked, mob/living/carbon/human/H, forced = FALSE, spread_damage = FALSE)
+/datum/species/proc/apply_damage(damage, damagetype = BRUTE, def_zone = null, blocked, mob/living/carbon/human/H, forced = FALSE, spread_damage = FALSE, bclass = null)
 	SEND_SIGNAL(H, COMSIG_MOB_APPLY_DAMGE, damage, damagetype, def_zone)
 	var/hit_percent = 1
 	damage = max(damage-blocked+armor,0)
@@ -2148,7 +2135,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				if(BP.receive_damage(0, damage_amount))
 					H.update_damage_overlays()
 			else
-				H.adjustFireLoss(damage_amount)
+				H.adjustFireLoss(damage_amount, bclass)
 		if(TOX)
 			var/damage_amount = forced ? damage : damage * hit_percent * H.physiology.tox_mod
 			H.adjustToxLoss(damage_amount)
@@ -2236,7 +2223,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 		var/datum/status_effect/fire_handler/fire_stacks/pure_stacks = H.has_status_effect(/datum/status_effect/fire_handler/fire_stacks)
 		var/firemodifier = pure_stacks?.stacks / 50
 		if(pure_stacks?.on_fire)
-			burn_damage = 10 + pure_stacks?.stacks * 3 // Minimum of 10 damage if you are on fire. Applies 3 additional per stack.
+			burn_damage = 3 + pure_stacks?.stacks * 1
 		else
 			firemodifier = min(firemodifier, 0)
 			burn_damage = round(max(log(2-firemodifier,(H.bodytemperature-BODYTEMP_NORMAL))-5,0)) // this can go below 5 at log 2.5
@@ -2261,13 +2248,13 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 		switch(H.bodytemperature)
 			if(200 to BODYTEMP_COLD_DAMAGE_LIMIT)
 				H.throw_alert("temp", /atom/movable/screen/alert/cold, 1)
-				H.apply_damage(COLD_DAMAGE_LEVEL_1*coldmod*H.physiology.cold_mod, BURN)
+				H.apply_damage(COLD_DAMAGE_LEVEL_1*coldmod*H.physiology.cold_mod, BURN, bclass = BCLASS_FROST)
 			if(120 to 200)
 				H.throw_alert("temp", /atom/movable/screen/alert/cold, 2)
-				H.apply_damage(COLD_DAMAGE_LEVEL_2*coldmod*H.physiology.cold_mod, BURN)
+				H.apply_damage(COLD_DAMAGE_LEVEL_2*coldmod*H.physiology.cold_mod, BURN, bclass = BCLASS_FROST)
 			else
 				H.throw_alert("temp", /atom/movable/screen/alert/cold, 3)
-				H.apply_damage(COLD_DAMAGE_LEVEL_3*coldmod*H.physiology.cold_mod, BURN)
+				H.apply_damage(COLD_DAMAGE_LEVEL_3*coldmod*H.physiology.cold_mod, BURN, bclass = BCLASS_FROST)
 
 	else
 		H.clear_alert("temp")

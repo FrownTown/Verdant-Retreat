@@ -74,11 +74,11 @@
 		heal_overall_damage(abs(amount), 0, 0, required_status ? required_status : BODYPART_ORGANIC, updating_health)
 	return amount
 
-/mob/living/carbon/adjustFireLoss(amount, updating_health = TRUE, forced = FALSE, required_status)
+/mob/living/carbon/adjustFireLoss(amount, updating_health = TRUE, forced = FALSE, required_status, bclass = null)
 	if(!forced && (status_flags & GODMODE))
 		return FALSE
 	if(amount > 0)
-		take_overall_damage(0, amount, 0, updating_health, required_status)
+		take_overall_damage(0, amount, 0, updating_health, required_status, bclass)
 	else
 		if(has_status_effect(/datum/status_effect/buff/fortify))
 			amount *= 1.5
@@ -225,7 +225,7 @@
 		update_damage_overlays()
 
 // damage MANY bodyparts, in random order
-/mob/living/carbon/take_overall_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status)
+/mob/living/carbon/take_overall_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status, bclass = null)
 	if(status_flags & GODMODE)
 		return	//godmode
 
@@ -251,8 +251,7 @@
 			var/burn_was = picked.burn_dam
 			var/stamina_was = picked.stamina_dam
 
-
-			update |= picked.receive_damage(brute_per_part, burn_per_part, stamina_per_part, FALSE, required_status)
+			update |= picked.receive_damage(brute_per_part, burn_per_part, stamina_per_part, FALSE, required_status, bclass)
 
 			brute	= round(brute - (picked.brute_dam - brute_was), DAMAGE_PRECISION)
 			burn	= round(burn - (picked.burn_dam - burn_was), DAMAGE_PRECISION)

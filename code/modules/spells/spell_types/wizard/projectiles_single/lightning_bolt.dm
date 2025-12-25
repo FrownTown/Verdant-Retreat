@@ -38,6 +38,7 @@
 	nodamage = FALSE
 	speed = 0.3
 	flag = "magic"
+	woundclass = BCLASS_ELECTRICAL
 	light_color = "#ffffff"
 	light_outer_range = 7
 

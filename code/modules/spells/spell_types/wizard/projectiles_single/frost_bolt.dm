@@ -44,6 +44,7 @@
 	range = 10
 	speed = 1
 	nodamage = FALSE
+	woundclass = BCLASS_FROST
 	var/aoe_range = 0
 
 /obj/projectile/magic/frostbolt/on_hit(target)
@@ -66,5 +67,6 @@
 					L.apply_status_effect(/datum/status_effect/buff/frostbite)
 				else
 					L.apply_status_effect(/datum/status_effect/buff/frost)
+
 			new /obj/effect/temp_visual/snap_freeze(get_turf(L))
 	qdel(src)

@@ -153,7 +153,7 @@
 		qdel(src)
 		return TRUE
 
-	if(!on_fire)
+	if(!on_fire && owner.stat != DEAD)
 		return TRUE
 
 	adjust_stacks(owner.fire_stack_decay_rate * STACK_DECAY_MULTIPLIER * wait * 0.1)
@@ -162,7 +162,8 @@
 		qdel(src)
 		return TRUE
 
-	deal_damage(wait)
+	if(on_fire)
+		deal_damage(wait)
 
 /datum/status_effect/fire_handler/fire_stacks/proc/update_particles()
 	pass()
