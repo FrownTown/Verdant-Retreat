@@ -2,7 +2,7 @@
 	name = "infected wound"
 	check_name = span_infection("<B>INFECTED</B>")
 	severity = WOUND_SEVERITY_CRITICAL
-	crit_message = "%VICTIM's wound festers with infection!"
+	crit_message = ""
 	sound_effect = null
 	whp = 200  // Very high, doesn't heal naturally
 	woundpain = 0  // Stage 1 has no pain
@@ -123,8 +123,7 @@
 			owner.visible_message(span_danger("[owner]'s [bodypart_owner.name] turns to bare bone!"))
 
 			// Check if vital limb
-			var/static/list/vital_bodyzones = list(BODY_ZONE_HEAD, BODY_ZONE_CHEST)
-			var/is_vital = (bodypart_owner.body_zone in vital_bodyzones)
+			var/is_vital = (bodypart_owner.body_zone in GLOB.vital_body_zones)
 
 			// Use existing skeletonize proc
 			bodypart_owner.skeletonize(lethal = is_vital)
@@ -154,19 +153,27 @@
 
 	// Random temporary disabling
 	if(prob(3))  // 3% chance per life tick
-		bodypart_owner.set_disabled(BODYPART_DISABLED_WOUND)
+		bodypart_owner.set_disabled(BODYPART_DISABLED_ROT)
 		owner.visible_message(span_warning("[owner]'s [bodypart_owner.name] seizes up from the rot!"))
-		// TODO: Could add timer to re-enable, but bodypart system might handle this
+		// Re-enable after 5-15 seconds
+		addtimer(CALLBACK(src, PROC_REF(reenable_bodypart)), rand(5 SECONDS, 15 SECONDS))
 
 	// Spread to adjacent bodyparts
 	if(world.time >= next_spread_attempt)
 		attempt_spread()
-		next_spread_attempt = world.time + 1 MINUTES
+		next_spread_attempt = world.time + rand(1, 3) MINUTES
 
 	// Toxin damage for head/torso
-	if(bodypart_owner.body_zone in list(BODY_ZONE_HEAD, BODY_ZONE_CHEST))
+	if(bodypart_owner.body_zone in GLOB.vital_body_zones)
 		if(!HAS_TRAIT(owner, TRAIT_TOXIMMUNE))
 			owner.adjustToxLoss(2)  // 2 toxin damage per life tick
+
+/datum/wound/infection/proc/reenable_bodypart()
+	if(!bodypart_owner)
+		return
+	bodypart_owner.set_disabled(BODYPART_NOT_DISABLED)
+	if(owner)
+		owner.visible_message(span_notice("[owner]'s [bodypart_owner.name] relaxes slightly."))
 
 /datum/wound/infection/proc/apply_necrotic_overlay()
 	if(!bodypart_owner || necrotic_overlay_applied)

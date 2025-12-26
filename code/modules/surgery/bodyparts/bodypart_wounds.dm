@@ -116,6 +116,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(!istype(new_wound, /datum/wound/dynamic))
 		return
 
+	// Immunity checks
+	if(HAS_TRAIT(owner, TRAIT_NOMETABOLISM) || HAS_TRAIT(owner, TRAIT_DEADITE) || HAS_TRAIT(owner, TRAIT_ROTMAN))
+		return
+
 	// Calculate infection chance
 	var/infection_chance = calculate_infection_chance(user, weapon)
 
