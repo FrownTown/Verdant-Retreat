@@ -32,9 +32,8 @@
 /datum/wound/dynamic/burn/sew_wound()
 	return standard_sewing_procedure()
 
-/datum/wound/dynamic/burn/update_name(show_message = TRUE)
+/datum/wound/dynamic/burn/update_name(show_message = FALSE)
 	var/newname
-	var/oldname = name
 	if(length(severity_names))
 		for(var/sevname in severity_names)
 			if(severity_names[sevname] <= whp)
