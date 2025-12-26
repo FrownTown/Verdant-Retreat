@@ -357,6 +357,7 @@
 
 
 /// Applies burn wounds to a bodypart
+/// NOTE: Armor is already applied in receive_damage before this is called
 /obj/item/bodypart/proc/apply_burn_wound(damage, bclass = BCLASS_BURN)
 	if(!owner || (owner.status_flags & GODMODE) || damage <= 0)
 		return
@@ -385,6 +386,15 @@
 	stamina = round(max(stamina * dmg_mlt, 0),DAMAGE_PRECISION)
 	brute = max(0, brute - brute_reduction)
 	burn = max(0, burn - burn_reduction)
+
+	// Apply burn armor reduction if not already applied by caller (blocked == 0)
+	// This handles direct receive_damage() calls with bclass parameter
+	if(burn > 0 && bclass && blocked == 0 && ishuman(owner))
+		var/armor_type = bclass_to_armor_type(bclass)
+		var/mob/living/carbon/human/H = owner
+		var/armor_block = H.run_armor_check(body_zone, armor_type, damage = burn)
+		burn = H.get_actual_damage(burn, armor_block, body_zone, armor_type, null)
+
 	//No stamina scaling.. for now..
 
 	if(!brute && !burn && !stamina)

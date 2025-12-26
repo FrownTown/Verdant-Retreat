@@ -850,7 +850,9 @@
 	if(raw_damage < damage_threshold)
 		return 0
 
-	if(prob(damage_threshold))
+	// Damage threshold probability check only applies to physical damage (brute), not burn damage
+	var/is_burn = (damage_type in GLOB.charring_bclasses)
+	if(!is_burn && prob(damage_threshold))
 		return 0
 
 	return max(floor(raw_damage * (1 - (armor / 100))), 0)

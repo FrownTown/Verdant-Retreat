@@ -187,12 +187,25 @@
 //Damages ONE bodypart randomly selected from damagable ones.
 //It automatically updates damage overlays if necessary
 //It automatically updates health status
-/mob/living/carbon/take_bodypart_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status, check_armor = FALSE)
+/mob/living/carbon/take_bodypart_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status, check_armor = FALSE, bclass = null)
 	var/list/obj/item/bodypart/parts = get_damageable_bodyparts(required_status)
 	if(!parts.len)
 		return
 	var/obj/item/bodypart/picked = pick(parts)
-	if(picked.receive_damage(brute, burn, stamina,check_armor ? run_armor_check(picked, (brute ? "blunt" : burn ? "fire" : stamina ? "piercing" : null)) : FALSE))
+
+	// Determine armor type to check
+	var/armor_type = null
+	if(check_armor)
+		if(brute)
+			armor_type = "blunt"
+		else if(burn && bclass)
+			armor_type = bclass_to_armor_type(bclass)
+		else if(burn)
+			armor_type = "fire" // Default to fire if no bclass specified
+		else if(stamina)
+			armor_type = "piercing"
+
+	if(picked.receive_damage(brute, burn, stamina, check_armor ? run_armor_check(picked, armor_type) : FALSE, updating_health, required_status, bclass))
 		update_damage_overlays()
 
 //Heal MANY bodyparts, in random order

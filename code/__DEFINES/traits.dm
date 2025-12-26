@@ -656,6 +656,9 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_GRABWEAKNESS		"grab_weakness"
 #define TRAIT_SNOB				"snob"
 
+// Item/weapon traits
+#define TRAIT_FILTHY_WEAPON		"filthy_weapon"  // Ancient/decrepit weapons, bites, claws - high infection chance
+
 // common trait sources
 #define TRAIT_GENERIC "generic"
 #define TRAIT_STATUS_EFFECT	"status_effect"

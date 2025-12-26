@@ -1991,9 +1991,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	if(nodmg)
 		return FALSE //dont play a sound
 
-	//dismemberment - centralized in bodypart_dismemberment.dm
+	//dismemberment - centralized in bodypart_dismemberment.dm (handles sharp, blunt, and burn)
 	var/bloody = 0
-	if(affecting.brute_dam && affecting.should_dismember(user.used_intent?.blade_class, actual_damage, user, selzone, armor_block, raw_damage, I))
+	if(affecting.should_dismember(user.used_intent?.blade_class, actual_damage, user, selzone, armor_block, raw_damage, I))
 		if(affecting.dismember(I.damtype, user.used_intent?.blade_class, user, selzone, vorpal = I.vorpal))
 			bloody = 1
 			I.add_mob_blood(H)

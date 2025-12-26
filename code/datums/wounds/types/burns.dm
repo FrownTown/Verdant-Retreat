@@ -23,6 +23,12 @@
 #define BURN_UPG_PAINRATE 0.5
 #define BURN_UPG_HEALDECAY 0.01
 
+/datum/wound/dynamic/burn/can_stack_with(datum/wound/other)
+	// Don't stack with other dynamic burns - upgrade instead
+	if(istype(other, /datum/wound/dynamic/burn))
+		return FALSE
+	return TRUE
+
 /datum/wound/dynamic/burn/sew_wound()
 	return standard_sewing_procedure()
 
@@ -34,18 +40,8 @@
 			if(severity_names[sevname] <= whp)
 				newname = sevname
 
-	var/was_initial = (oldname == initial(name))
 	name = "[newname ? "[newname] " : ""][initial(name)]"
-	world.log << "DEBUG update_name: oldname='[oldname]', newname='[newname]', final name='[name]', initial='[initial(name)]', whp=[whp], show_message=[show_message], was_initial=[was_initial]"
-	if(!show_message)
-		return
-	// Only show "new burn appears" if the name is STILL at initial value after update (meaning whp was too low for any severity)
-	if(was_initial && name == initial(name) && length(severity_names))
-		world.log << "DEBUG: Showing 'new burn appears' message"
-		owner.visible_message(span_red("A new [initial(name)] appears on [owner]'s [lowertext(bodyzone2readablezone(bodypart_to_zone(bodypart_owner)))]!"))
-	else if(name != oldname)
-		world.log << "DEBUG: Showing 'gets worse' message"
-		owner.visible_message(span_red("The [oldname] on [owner]'s [lowertext(bodyzone2readablezone(bodypart_to_zone(bodypart_owner)))] gets worse!"))
+	// Burns appear and upgrade silently - no messages
 
 /datum/wound/dynamic/burn/upgrade(dam, armor)
 	whp += (dam * BURN_UPG_WHPRATE)
@@ -56,6 +52,9 @@
 	if(!is_sewn())
 		if(whp >= 70)
 			set_bleed_rate(0.4)
+			// Critical burns have extremely high infection risk
+			// This is handled by calculate_infection_chance() in bodypart_wounds.dm
+			bodypart_owner.check_wound_infection(src, null, null)
 		else
 			set_bleed_rate(0)
 
@@ -79,7 +78,7 @@
 
 /datum/wound/burn/frostbite
 	name = "severe frostbite"
-	check_name = span_userdanger("<B>FROSTBITE</B>")
+	check_name = span_frostbite("<B>FROSTBITE</B>")
 	severity = WOUND_SEVERITY_SEVERE
 	whp = 40
 	woundpain = 20
@@ -101,6 +100,11 @@
 	)
 	sound_effect = 'sound/combat/crit.ogg'
 
+	// Frostbite progression
+	var/time_until_falloff = 0  // World time when limb falls off
+	var/next_disable_check = 0  // World time for next random disable attempt
+	var/next_organ_damage = 0  // For head/chest: next organ damage tick
+
 
 
 /datum/wound/burn/frostbite/on_mob_gain(mob/living/affected, damage)
@@ -110,6 +114,67 @@
 		whp += damage * 0.8
 		woundpain += damage * 0.4
 
+	// Initialize frostbite timer (20-40 minutes)
+	time_until_falloff = world.time + rand(20 MINUTES, 40 MINUTES)
+	next_disable_check = world.time + rand(30 SECONDS, 2 MINUTES)
+	next_organ_damage = world.time + rand(5 MINUTES, 10 MINUTES)
+
+/datum/wound/burn/frostbite/on_life()
+	. = ..()
+	if(!owner || !bodypart_owner)
+		return
+
+	var/body_zone = bodypart_owner.body_zone
+	var/is_vital = (body_zone == BODY_ZONE_HEAD || body_zone == BODY_ZONE_CHEST)
+
+	// Random limb disable (non-vital parts only)
+	if(!is_vital && world.time >= next_disable_check)
+		next_disable_check = world.time + rand(30 SECONDS, 2 MINUTES)
+		if(prob(15))  // 15% chance per check (every 30sec-2min)
+			to_chat(owner, span_userdanger("My [bodypart_owner.name] seizes up from the cold!"))
+			bodypart_owner.set_disabled(TRUE)
+			addtimer(CALLBACK(src, PROC_REF(remove_disable)), rand(3 SECONDS, 10 SECONDS))
+
+	// Limb fall-off check (non-vital parts only)
+	if(!is_vital && world.time >= time_until_falloff)
+		owner.visible_message(span_danger("[owner]'s frostbitten [bodypart_owner.name] falls off!"), \
+							span_userdanger("My frostbitten [bodypart_owner.name] falls off!"))
+		bodypart_owner.dismember(BURN, BCLASS_FROST)
+		return
+
+	// Organ damage for vital parts (head/chest)
+	if(is_vital && world.time >= next_organ_damage)
+		next_organ_damage = world.time + rand(5 MINUTES, 10 MINUTES)
+		apply_organ_damage()
+
+/datum/wound/burn/frostbite/proc/remove_disable()
+	if(bodypart_owner)
+		bodypart_owner.set_disabled(FALSE)
+		to_chat(owner, span_notice("Feeling returns to my [bodypart_owner.name]."))
+
+/datum/wound/burn/frostbite/proc/apply_organ_damage()
+	if(!ishuman(owner))
+		return
+	var/mob/living/carbon/human/H = owner
+	var/body_zone = bodypart_owner.body_zone
+
+	// Deal damage to organs in the affected zone
+	if(body_zone == BODY_ZONE_HEAD)
+		// Damage brain
+		var/obj/item/organ/brain/B = H.getorganslot(ORGAN_SLOT_BRAIN)
+		if(B)
+			B.applyOrganDamage(5)
+			to_chat(H, span_userdanger("My head throbs with icy pain..."))
+	else if(body_zone == BODY_ZONE_CHEST)
+		// Damage heart and lungs
+		var/obj/item/organ/heart/heart = H.getorganslot(ORGAN_SLOT_HEART)
+		var/obj/item/organ/lungs/lungs = H.getorganslot(ORGAN_SLOT_LUNGS)
+		if(heart)
+			heart.applyOrganDamage(3)
+		if(lungs)
+			lungs.applyOrganDamage(3)
+		to_chat(H, span_userdanger("My chest feels frozen from the inside..."))
+
 /datum/wound/burn/frostbite/worsen_wound(amount)
 	owner.emote("paincrit", TRUE)
 	if(amount)
@@ -118,7 +183,7 @@
 
 /datum/wound/burn/electrical
 	name = "deep electrical burn"
-	check_name = span_userdanger("<B>ELECTRICAL BURN</B>")
+	check_name = span_electrical("<B>ELECTRICAL BURN</B>")
 	severity = WOUND_SEVERITY_SEVERE
 	whp = 45
 	woundpain = 25
@@ -156,7 +221,7 @@
 
 /datum/wound/burn/acid
 	name = "severe acid burn"
-	check_name = span_userdanger("<B>ACID BURN</B>")
+	check_name = span_acid("<B>ACID BURN</B>")
 	severity = WOUND_SEVERITY_SEVERE
 	whp = 50
 	woundpain = 30
@@ -207,7 +272,7 @@
 
 /datum/wound/burn/charred
 	name = "charred tissue"
-	check_name = span_userdanger("<B>CHARRED</B>")
+	check_name = span_charred("<B>CHARRED</B>")
 	severity = WOUND_SEVERITY_FATAL
 	crit_message = list(
 		"%VICTIM's %BODYPART is charred to the bone!",

@@ -527,7 +527,7 @@
 	armor = ARMOR_PADDED_BAD
 	integ_armor_mod = ARMOR_CLASS_LIGHT
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT)
-	armor = list("blunt" = 10, "slash" = 10, "stab" = 10, "piercing" = 10, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 10, "slash" = 10, "stab" = 10, "piercing" = 10, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	anvilrepair = /datum/skill/craft/carpentry
 
 /obj/item/clothing/mask/rogue/facemask/cheap_kitsune
@@ -539,7 +539,7 @@
 	armor = ARMOR_PADDED_BAD
 	integ_armor_mod = ARMOR_CLASS_LIGHT
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT)
-	armor = list("blunt" = 10, "slash" = 10, "stab" = 10, "piercing" = 10, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 10, "slash" = 10, "stab" = 10, "piercing" = 10, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	anvilrepair = /datum/skill/craft/carpentry
 
 /obj/item/clothing/mask/rogue/shepherd

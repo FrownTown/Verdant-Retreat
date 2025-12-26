@@ -14,6 +14,12 @@ GLOBAL_LIST_INIT(artery_bclasses, list(
 	BCLASS_PIERCE,
 ))
 
+GLOBAL_LIST_INIT(disembowel_bclasses, list(
+	BCLASS_CUT,
+	BCLASS_CHOP,
+	BCLASS_BITE
+))
+
 GLOBAL_LIST_INIT(dismember_bclasses, list(
 	BCLASS_CUT,
 	BCLASS_CHOP

@@ -248,10 +248,10 @@
 		send_item_attack_message(I, user, affecting.name, affecting)
 
 	if(statforce)
-		var/probability = I.get_dismemberment_chance(affecting, user, useder)
-		if(prob(probability) && affecting.dismember(I.damtype, user.used_intent?.blade_class, user, user.zone_selected, vorpal = I.vorpal))
-			I.add_mob_blood(src)
-			playsound(get_turf(src), I.get_dismember_sound(), 80, TRUE)
+		if(affecting.should_dismember(user.used_intent?.blade_class, statforce, user, useder, 0, statforce, I))
+			if(affecting.dismember(I.damtype, user.used_intent?.blade_class, user, user.zone_selected, vorpal = I.vorpal))
+				I.add_mob_blood(src)
+				playsound(get_turf(src), I.get_dismember_sound(), 80, TRUE)
 		return TRUE //successful attack
 
 //ATTACK HAND IGNORING PARENT RETURN VALUE

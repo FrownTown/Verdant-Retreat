@@ -1596,10 +1596,10 @@
 			user.change_stat("constitution", 2)
 			user.change_stat("endurance", 2)
 			user.change_stat("speed", 2)
-			armor = getArmor("blunt" = 100, "slash" = 100, "stab" = 100, "piercing" = 100, "fire" = 50, "acid" = 0)
+			armor = getArmor("blunt" = 100, "slash" = 100, "stab" = 100, "piercing" = 100, "fire" = 50, "acid" = 0, "frost" = 0, "electrical" = 0)
 		else
 			to_chat(user, span_notice("I feel an evil power about that necklace..."))
-			armor = getArmor("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0)
+			armor = getArmor("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 
 /obj/item/clothing/neck/roguetown/blkknight/dropped(mob/living/user)
 	..()
@@ -1616,7 +1616,7 @@
 		user.change_stat("speed", -2)
 	else
 		to_chat(user, span_notice("Strange, I don't feel that power anymore..."))
-		armor = getArmor("blunt" = 100, "slash" = 100, "stab" = 100, "piercing" = 100, "fire" = 50, "acid" = 0)
+		armor = getArmor("blunt" = 100, "slash" = 100, "stab" = 100, "piercing" = 100, "fire" = 50, "acid" = 0, "frost" = 0, "electrical" = 0)
 
 /obj/item/clothing/suit/roguetown/armor/plate/blkknight
 	slot_flags = ITEM_SLOT_ARMOR

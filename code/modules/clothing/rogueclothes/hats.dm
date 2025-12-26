@@ -137,7 +137,7 @@
 	alternate_worn_layer  = 8.9 //On top of helmet
 	body_parts_covered = HEAD|HAIR|EARS|NECK|MOUTH|NOSE
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK
-	armor = list("blunt" = 20, "slash" = 20, "stab" = 15, "piercing" = 1, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 20, "slash" = 20, "stab" = 15, "piercing" = 1, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	dynamic_hair_suffix = ""
 	edelay_type = 1
 	adjustable = CAN_CADJUST
@@ -226,7 +226,7 @@
 	mob_overlay_icon = 'icons/roguetown/clothing/onmob/head.dmi' //Overrides slot icon behavior
 	alternate_worn_layer  = 8.9 //On top of helmet
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_MOUTH|ITEM_SLOT_NECK
-	armor = list("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	dynamic_hair_suffix = ""
 	edelay_type = 1
 	blocksound = SOFTHIT
@@ -2296,7 +2296,7 @@
 	name = "woad elven helm"
 	desc = "An assembly of woven trunk, kept alive by ancient song, now twisted and warped for battle and scorn."
 	body_parts_covered = FULL_HEAD | NECK
-	armor = list("blunt" = 100, "slash" = 20, "stab" = 110, "piercing" = 40, "fire" = 0, "acid" = 0)//Resistant to blunt & stab, but very weak to slash.
+	armor = list("blunt" = 100, "slash" = 20, "stab" = 110, "piercing" = 40, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)//Resistant to blunt & stab, but very weak to slash.
 	prevent_crits = list(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST, BCLASS_PICK)
 	icon = 'icons/roguetown/clothing/special/race_armor.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/race_armor.dmi'
@@ -2429,7 +2429,7 @@
 	desc = "A reinforced bamboo hat."
 	icon_state = "easthat"
 	item_state = "easthat"
-	armor = list("blunt" = 70, "slash" = 80, "stab" = 65, "piercing" = 40, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 70, "slash" = 80, "stab" = 65, "piercing" = 40, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
 	max_integrity = 150
 	blocksound = SOFTHIT
@@ -2538,7 +2538,7 @@
 	body_parts_covered = HEAD|HAIR
 	icon_state = "carapacecap"
 	item_state = "carapacecap"
-	armor = list("blunt" = 60, "slash" = 50, "stab" = 40, "piercing" = 30, "fire" = 10, "acid" = 0) //Around Leather level
+	armor = list("blunt" = 60, "slash" = 50, "stab" = 40, "piercing" = 30, "fire" = 10, "acid" = 0, "frost" = 0, "electrical" = 0) //Around Leather level
 	prevent_crits = list(BCLASS_CUT, BCLASS_CHOP, BCLASS_BLUNT)
 	max_integrity = 150
 	anvilrepair = null
@@ -2557,7 +2557,7 @@
 	block2add = FOV_BEHIND
 	icon_state = "carapacehelm"
 	item_state = "carapacehelm"
-	armor = list("blunt" = 70, "slash" = 70, "stab" = 50, "piercing" = 40, "fire" = 15, "acid" = 0) //Around Hardened Leather level.
+	armor = list("blunt" = 70, "slash" = 70, "stab" = 50, "piercing" = 40, "fire" = 15, "acid" = 0, "frost" = 0, "electrical" = 0) //Around Hardened Leather level.
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST)
 	max_integrity = 200
 	anvilrepair = null
@@ -2695,7 +2695,7 @@
 	icon_state = "psylongest"
 	item_state = "psylongest"
 	emote_environment = 3
-	armor = list("blunt" = 200, "slash" = 200, "stab" = 200, "piercing" = 200, "fire" = 200, "acid" = 200) //ENDVRE, admin shitspawn item..
+	armor = list("blunt" = 200, "slash" = 200, "stab" = 200, "piercing" = 200, "fire" = 200, "acid" = 200, "frost" = 0, "electrical" = 0) //ENDVRE, admin shitspawn item..
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST)
 	max_integrity = 9999
 	body_parts_covered = FULL_HEAD

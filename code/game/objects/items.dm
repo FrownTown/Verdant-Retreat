@@ -1110,11 +1110,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 			max_sharp = max(max_sharp, IS_SHARP)
 	return max_sharp
 
-/obj/item/proc/get_dismemberment_chance(obj/item/bodypart/affecting, mob/user)
-	if(!affecting.can_dismember(src))
-		return 0
-	if((get_sharpness() || damtype == BURN) && (w_class >= WEIGHT_CLASS_NORMAL) && force >= 10)
-		return force * (affecting.get_damage() / affecting.max_damage)
+// get_dismemberment_chance removed - now uses bodypart.should_dismember() instead
 
 /obj/item/proc/get_dismember_sound()
 	if(damtype == BURN)

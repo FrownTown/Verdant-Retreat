@@ -105,7 +105,7 @@
 /obj/item/bodypart/head/goblin/get_limb_icon(dropped, hideaux = FALSE)
 	return
 
-/obj/item/bodypart/head/goblin/skeletonize()
+/obj/item/bodypart/head/goblin/skeletonize(lethal)
 	. = ..()
 	icon_state = "goblin_skel_head"
 	sellprice = 2

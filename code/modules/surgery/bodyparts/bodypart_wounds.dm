@@ -66,7 +66,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	return healed_any
 
 /// Adds a wound to this bodypart, applying any necessary effects
-/obj/item/bodypart/proc/add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE, damage)
+/obj/item/bodypart/proc/add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE, damage, mob/living/user, obj/item/weapon)
 	if(!wound || !owner || (owner.status_flags & GODMODE))
 		return
 	if(ispath(wound, /datum/wound))
@@ -82,6 +82,10 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(!wound.apply_to_bodypart(src, silent, crit_message, damage))
 		qdel(wound)
 		return
+
+	if(!istype(wound, /datum/wound/infection))
+		check_wound_infection(wound, user, weapon)
+
 	return wound
 
 /// Removes a wound from this bodypart, removing any associated effects
@@ -103,6 +107,83 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(NOBLOOD in owner?.dna?.species?.species_traits)
 		return FALSE
 	return TRUE
+
+/// Check if a newly applied wound should become infected
+/obj/item/bodypart/proc/check_wound_infection(datum/wound/new_wound, mob/living/user, obj/item/weapon)
+	if(!owner || !new_wound)
+		return
+
+	if(!istype(new_wound, /datum/wound/dynamic))
+		return
+
+	// Calculate infection chance
+	var/infection_chance = calculate_infection_chance(user, weapon)
+
+	if(prob(infection_chance))
+		add_wound(/datum/wound/infection, silent = TRUE)
+
+/// Calculate the chance of a wound becoming infected based on environmental factors
+/obj/item/bodypart/proc/calculate_infection_chance(mob/living/user, obj/item/weapon)
+	var/base_chance = 0  // 0% base - infections are rare without specific risk factors
+
+	// WEAPON-BASED FACTORS
+	if(weapon)
+		// Filthy weapon trait (ancient/decrepit weapons, bites, claws)
+		if(HAS_TRAIT(weapon, TRAIT_FILTHY_WEAPON))
+			base_chance += 15  // Major infection risk from dirty weapons
+
+		// Weapon bloodied (has blood on it)
+		var/blood_amt = weapon.blood_DNA_length()
+		if(blood_amt > 0)
+			base_chance += 3  // Small increase for bloodied weapon
+
+	// ATTACKER-BASED FACTORS
+	if(user)
+		// Attacker bloodied/dirty
+		var/user_blood = user.blood_DNA_length()
+		if(user_blood > 0)
+			base_chance += 2  // Small increase for bloodied attacker
+
+		// Deadite attackers carry disease
+		if(HAS_TRAIT(user, TRAIT_DEADITE))
+			base_chance += 10
+
+	// ENVIRONMENTAL FACTORS
+	var/turf/T = get_turf(owner)
+	if(T)
+		// Check for blood/dirt/filth on floor
+		for(var/obj/effect/decal/cleanable/C in T)
+			base_chance += 2  // Small increase for dirty floor
+			break
+		
+		if(istype(T, /turf/open/water/sewer) || istype(T, /turf/open/water/swamp) || istype(T, /turf/open/water/bloody))
+			base_chance += 10
+
+	// VICTIM-BASED FACTORS
+	if(ishuman(owner))
+		var/mob/living/carbon/human/H = owner
+
+		// CON stat provides resistance
+		var/con_modifier = (H.STACON - 10) * 1  // ±1% per point of CON above/below 10
+		base_chance -= con_modifier
+
+	// WOUND-BASED FACTORS - SEVERE BURNS
+	// Check all wounds on this bodypart for critical burns
+	for(var/datum/wound/dynamic/burn/B in wounds)
+		if(B.whp >= 70 && B.bleed_rate > 0)  // Critical burn that's bleeding
+			// Near-guaranteed infection (95% base)
+			base_chance += 95
+
+			// Very high CON can reduce this slightly
+			if(ishuman(owner))
+				var/mob/living/carbon/human/H = owner
+				if(H.STACON >= 15)
+					var/con_save = min((H.STACON - 15) * 5, 25)  // Max 25% reduction at CON 20
+					base_chance -= con_save
+			break  // Only apply once even if multiple critical burns
+
+	// Clamp to reasonable range (allow severe burns to push higher)
+	return clamp(base_chance, 0, 100)
 
 /// Returns the total bleed rate on this bodypart (simple version for backwards compatibility)
 /obj/item/bodypart/proc/get_bleed_rate()
@@ -162,6 +243,8 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			acheck_dflag = "slash"
 		if(BCLASS_PICK, BCLASS_STAB)
 			acheck_dflag = "stab"
+		if(BCLASS_BURN, BCLASS_FROST, BCLASS_ELECTRICAL, BCLASS_ACID)
+			acheck_dflag = bclass_to_armor_type(bclass)
 	armor = owner.run_armor_check(zone_precise, acheck_dflag, damage = 0)
 	if(ishuman(owner))
 		// Attacks blunted by armor never result in a critical hit
@@ -184,24 +267,17 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			//	do_crit = FALSE // We used to check if they are buckled or lying down but being grounded is a big enough advantage.
 	testing("bodypart_attacked_by() dam [dam]")
 
-	var/datum/wound/dynwound = manage_dynamic_wound(bclass, dam, armor)
-
-	// Blunt dismemberment - now uses centralized formula
-	if(bclass in (GLOB.fracture_bclasses))
-		if(should_dismember(bclass, dam, user, zone_precise, armor_block, raw_damage, weapon))
-			owner.visible_message(span_danger("<B>[owner]'s [name] EXPLODES from the crushing impact!</B>"))
-			dismember(BRUTE, bclass, user, zone_precise)
-			return TRUE
+	var/datum/wound/dynwound = manage_dynamic_wound(bclass, dam, armor, user, weapon)
 
 	if(do_crit)
 		var/datum/component/silverbless/psyblessed = weapon?.GetComponent(/datum/component/silverbless)
 		var/sundering = HAS_TRAIT(owner, TRAIT_SILVER_WEAK) && istype(weapon) && weapon?.is_silver && psyblessed?.is_blessed
-		var/crit_attempt = try_crit(sundering ? BCLASS_SUNDER : bclass, dam, user, zone_precise, silent, crit_message, raw_damage, armor_block)
+		var/crit_attempt = try_crit(sundering ? BCLASS_SUNDER : bclass, dam, user, zone_precise, silent, crit_message, raw_damage, armor_block, weapon)
 		if(crit_attempt)
 			return crit_attempt
 	return dynwound
 
-/obj/item/bodypart/proc/manage_dynamic_wound(bclass, dam, armor)
+/obj/item/bodypart/proc/manage_dynamic_wound(bclass, dam, armor, mob/living/user, obj/item/weapon)
 	var/woundtype
 	switch(bclass)
 		if(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_PUNCH, BCLASS_TWIST)
@@ -228,14 +304,14 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	else
 		if(ispath(woundtype) && woundtype)
 			if(!isnull(woundtype))
-				var/datum/wound/newwound = add_wound(woundtype)
+				var/datum/wound/newwound = add_wound(woundtype, FALSE, FALSE, dam, user, weapon)
 				dynwound = newwound
 				if(newwound && !isnull(newwound))
 					newwound.upgrade(dam, armor)
 	return dynwound
 
 /// Behemoth of a proc used to apply a wound after a bodypart is damaged in an attack
-/obj/item/bodypart/proc/try_crit(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0)
+/obj/item/bodypart/proc/try_crit(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, obj/item/weapon)
 	if(!bclass || !dam || (owner.status_flags & GODMODE))
 		return FALSE
 	var/list/attempted_wounds = list()
@@ -311,14 +387,14 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 					attempted_wounds += /datum/wound/burn/charred
 
 	for(var/wound_type in shuffle(attempted_wounds))
-		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam)
+		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam, user, weapon)
 		if(applied)
 			if(user?.client)
 				record_round_statistic(STATS_CRITS_MADE)
 			return applied
 	return FALSE
 
-/obj/item/bodypart/chest/try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0)
+/obj/item/bodypart/chest/try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, obj/item/weapon)
 	if(!bclass || !dam || (owner.status_flags & GODMODE))
 		return FALSE
 	var/list/attempted_wounds = list()
@@ -429,7 +505,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 				attempted_wounds += bone_frag_wound
 
 	for(var/wound_type in shuffle(attempted_wounds))
-		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam)
+		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam, user, weapon)
 		if(applied)
 			if(user?.client)
 				record_round_statistic(STATS_CRITS_MADE)
@@ -574,7 +650,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			attempted_wounds += bone_frag_wound
 
 	for(var/wound_type in shuffle(attempted_wounds))
-		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam)
+		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam, user)
 		if(applied)
 			if(user?.client)
 				record_round_statistic(STATS_CRITS_MADE)

@@ -76,11 +76,7 @@
 
 	else
 		var/mob/living/carbon/C = target
-		// Pick a random bodypart to apply acid damage to
-		var/list/possible_parts = C.bodyparts.Copy()
-		if(length(possible_parts))
-			var/obj/item/bodypart/BP = pick(possible_parts)
-			BP.receive_damage(0, 5, bclass = BCLASS_ACID)
+		C.take_bodypart_damage(0, 5, check_armor = TRUE, bclass = BCLASS_ACID)
 
 /atom/movable/screen/alert/status_effect/buff/acidsplash
 	name = "Acid Burn"

@@ -213,7 +213,7 @@
 	body_parts_covered = ARMS
 	icon_state = "carapace_bracers"
 	item_state = "carapace_bracers"
-	armor = list("blunt" = 70, "slash" = 70, "stab" = 60, "piercing" = 50, "fire" = 30, "acid" = 0)
+	armor = list("blunt" = 70, "slash" = 70, "stab" = 60, "piercing" = 50, "fire" = 30, "acid" = 0, "frost" = 0, "electrical" = 0)
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT, BCLASS_TWIST)
 	blocksound = PLATEHIT
 	drop_sound = 'sound/foley/dropsound/chain_drop.ogg'
