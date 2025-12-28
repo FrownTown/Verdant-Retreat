@@ -2,6 +2,19 @@
 	var/armorval = 0
 	var/organnum = 0
 
+	// Convert blade classes to armor damage types in case another proc passes in a bclass value
+	switch(type)
+		if(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST, BCLASS_PUNCH)
+			type = "blunt"
+		if(BCLASS_CHOP, BCLASS_CUT, BCLASS_LASHING, BCLASS_PUNISH)
+			type = "slash"
+		if(BCLASS_PICK, BCLASS_STAB, BCLASS_BITE)
+			type = "stab"
+		if(BCLASS_PIERCE)
+			type = "piercing"
+		if(BCLASS_BURN)
+			type = "fire"
+
 	if(def_zone)
 		return checkarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item, used_weapon, attacker)
 		//If a specific bodypart is targetted, check how that bodypart is protected and return the value.
