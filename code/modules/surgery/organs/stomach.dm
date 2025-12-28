@@ -109,6 +109,18 @@
 	..()
 	if(H && !QDELETED(H))
 		RegisterSignal(H, COMSIG_LIVING_LIFE, PROC_REF(missing_stomach_effects))
+		RegisterSignal(H, COMSIG_MOB_ORGAN_INSERTED, PROC_REF(cleanup_on_replacement))
+
+/obj/item/organ/stomach/proc/cleanup_on_replacement(mob/living/carbon/M, obj/item/organ/new_organ)
+	if(istype(new_organ, /obj/item/organ/stomach))
+		UnregisterSignal(M, COMSIG_LIVING_LIFE)
+		UnregisterSignal(M, COMSIG_MOB_ORGAN_INSERTED)
+
+/obj/item/organ/stomach/Destroy()
+	if(last_owner && !QDELETED(last_owner))
+		UnregisterSignal(last_owner, COMSIG_LIVING_LIFE)
+		UnregisterSignal(last_owner, COMSIG_MOB_ORGAN_INSERTED)
+	return ..()
 
 /obj/item/organ/stomach/fly
 	name = "insectoid stomach"

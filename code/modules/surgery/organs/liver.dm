@@ -31,6 +31,8 @@
 
 /obj/item/organ/liver/Insert(mob/living/carbon/M, special = 0)
 	var/mob/living/carbon/old_owner = owner
+	if(M && !QDELETED(M))
+		UnregisterSignal(M, COMSIG_LIVING_LIFE)
 	..()
 	if(old_owner && old_owner != owner && !QDELETED(old_owner))
 		UnregisterSignal(old_owner, COMSIG_LIVING_LIFE)
@@ -42,6 +44,18 @@
 	..()
 	if(old_owner && !QDELETED(old_owner))
 		RegisterSignal(old_owner, COMSIG_LIVING_LIFE, PROC_REF(missing_liver_effects))
+		RegisterSignal(old_owner, COMSIG_MOB_ORGAN_INSERTED, PROC_REF(cleanup_on_replacement))
+
+/obj/item/organ/liver/proc/cleanup_on_replacement(mob/living/carbon/M, obj/item/organ/new_organ)
+	if(istype(new_organ, /obj/item/organ/liver))
+		UnregisterSignal(M, COMSIG_LIVING_LIFE)
+		UnregisterSignal(M, COMSIG_MOB_ORGAN_INSERTED)
+
+/obj/item/organ/liver/Destroy()
+	if(last_owner && !QDELETED(last_owner))
+		UnregisterSignal(last_owner, COMSIG_LIVING_LIFE)
+		UnregisterSignal(last_owner, COMSIG_MOB_ORGAN_INSERTED)
+	return ..()
 
 /obj/item/organ/liver/on_life()
 	var/mob/living/carbon/C = owner

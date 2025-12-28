@@ -325,9 +325,9 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	if(whp <= 0)
 		if(!should_persist())
 			if(bodypart_owner)
-				remove_from_bodypart(src)
+				remove_from_bodypart()
 			else if(owner)
-				remove_from_mob(src)
+				remove_from_mob()
 			else
 				qdel(src)
 	return amount_healed

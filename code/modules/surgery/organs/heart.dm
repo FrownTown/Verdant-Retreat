@@ -38,7 +38,10 @@
 	H.adjustBruteLoss(2)
 
 /obj/item/organ/heart/Insert(mob/living/carbon/M, special = 0)
+	var/mob/living/carbon/old_owner = owner
 	..()
+	if(old_owner && old_owner != owner && !QDELETED(old_owner))
+		UnregisterSignal(old_owner, COMSIG_LIVING_LIFE)
 	if(owner)
 		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
 
@@ -76,9 +79,15 @@
 /obj/item/organ/heart/Remove(mob/living/carbon/M, special = 0)
 	if(owner && ishuman(owner))
 		RegisterSignal(owner, COMSIG_LIVING_LIFE, PROC_REF(missing_heart_effects))
+		RegisterSignal(owner, COMSIG_MOB_ORGAN_INSERTED, PROC_REF(cleanup_on_replacement))
 	..()
 	if(!special)
 		addtimer(CALLBACK(src, PROC_REF(stop_if_unowned)), 120)
+
+/obj/item/organ/heart/proc/cleanup_on_replacement(mob/living/carbon/M, obj/item/organ/new_organ)
+	if(istype(new_organ, /obj/item/organ/heart))
+		UnregisterSignal(M, COMSIG_LIVING_LIFE)
+		UnregisterSignal(M, COMSIG_MOB_ORGAN_INSERTED)
 
 /obj/item/organ/heart/proc/stop_if_unowned()
 	if(!owner)
