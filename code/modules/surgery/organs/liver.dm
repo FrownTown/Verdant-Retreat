@@ -30,14 +30,18 @@
 	C.adjustToxLoss(4, TRUE, TRUE)
 
 /obj/item/organ/liver/Insert(mob/living/carbon/M, special = 0)
+	var/mob/living/carbon/old_owner = owner
 	..()
+	if(old_owner && old_owner != owner && !QDELETED(old_owner))
+		UnregisterSignal(old_owner, COMSIG_LIVING_LIFE)
 	if(owner)
 		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
 
 /obj/item/organ/liver/Remove(mob/living/carbon/M, special = 0)
-	if(owner)
-		RegisterSignal(owner, COMSIG_LIVING_LIFE, PROC_REF(missing_liver_effects))
+	var/mob/living/carbon/old_owner = owner
 	..()
+	if(old_owner && !QDELETED(old_owner))
+		RegisterSignal(old_owner, COMSIG_LIVING_LIFE, PROC_REF(missing_liver_effects))
 
 /obj/item/organ/liver/on_life()
 	var/mob/living/carbon/C = owner

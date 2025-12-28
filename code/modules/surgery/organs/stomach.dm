@@ -94,7 +94,10 @@
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "disgust", /datum/mood_event/disgusted)
 
 /obj/item/organ/stomach/Insert(mob/living/carbon/M, special = 0)
+	var/mob/living/carbon/old_owner = owner
 	..()
+	if(old_owner && old_owner != owner && !QDELETED(old_owner))
+		UnregisterSignal(old_owner, COMSIG_LIVING_LIFE)
 	if(owner)
 		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
 
@@ -103,8 +106,9 @@
 	if(istype(H))
 		H.clear_alert("disgust")
 		SEND_SIGNAL(H, COMSIG_CLEAR_MOOD_EVENT, "disgust")
-		RegisterSignal(H, COMSIG_LIVING_LIFE, PROC_REF(missing_stomach_effects))
 	..()
+	if(H && !QDELETED(H))
+		RegisterSignal(H, COMSIG_LIVING_LIFE, PROC_REF(missing_stomach_effects))
 
 /obj/item/organ/stomach/fly
 	name = "insectoid stomach"

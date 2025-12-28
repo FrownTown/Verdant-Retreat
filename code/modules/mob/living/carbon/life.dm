@@ -182,11 +182,14 @@
 		if(has_adrenaline)
 			bodypart_pain *= 0.5
 		. += bodypart_pain
+	// Round to prevent floating point precision errors from causing persistent phantom pain
+	. = round(., 0.1)
 
 /mob/living/carbon/human/get_complex_pain()
 	. = ..()
 	if(physiology)
 		. *= physiology.pain_mod
+	. = round(., 0.1)
 
 ///////////////
 // BREATHING //
