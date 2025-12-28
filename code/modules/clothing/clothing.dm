@@ -390,6 +390,7 @@
 	update_overall_integrity()
 	broken_zones.len = 0
 	..()
+	armor = original_armor
 
 /obj/item/proc/get_detail_tag() //this is for extra layers on clothes
 	return detail_tag
@@ -652,10 +653,6 @@
 		if(armorlist[x] > 0)
 			armorlist[x] = 0
 	..()
-
-/obj/item/clothing/obj_fix()
-	..()
-	armor = original_armor
 
 /*
 SEE_SELF  // can see self, no matter what
