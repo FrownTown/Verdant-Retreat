@@ -1935,7 +1935,7 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 				if("gossip")
 					to_chat(user, "<span class='notice'>["<span class='bold'>Gossip is rumours spread around, and known only in Noble circles, only other well-born individuals are aware of it. Gossip, similarly to standard rumours does not need to be precise or true, but remember that it can provide hints and avenues for other Nobles to interact with, and judge your Character.</span>"]</span>")
-					var/new_gossip = tgui_input_text(user, "Input noble gossip about your character: (500 Character Limit)", "Noble Gossip", gossip, multiline = TRUE, encode = FALSE, bigmodal = TRUE)
+					var/new_gossip = tgui_input_text(user, "Input noble gossip about your character: (400 Character Limit)", "Noble Gossip", gossip, multiline = TRUE, encode = FALSE, bigmodal = TRUE)
 					if(new_gossip == null)
 						return
 					if(new_gossip == "")
