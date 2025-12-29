@@ -69,6 +69,8 @@
 				if(C.max_integrity)
 					if(zone_integrity <= 0)
 						continue
+				if(!C.armor || QDELETED(C)) // Happens if the clothing is being removed or deleted (e.g. from fire damage) sometimes
+					return
 				var/val = C.armor.getRating(d_type)
 
 				// Calculate armor effectiveness based on zone's durability
@@ -133,6 +135,10 @@
 				if(C.max_integrity)
 					if(zone_integrity <= 0)
 						continue
+
+				if(!C.armor || QDELETED(C)) // Happens if the clothing is being removed or deleted (e.g. from fire damage) sometimes
+					return
+					
 				var/val = C.armor.getRating(d_type)
 				if(val > 0)
 					// Calculate armor effectiveness based on zone-specific durability and armor class

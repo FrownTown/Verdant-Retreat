@@ -123,9 +123,9 @@
 /obj/item/clothing/proc/calculate_zone_integrity(zone)
 	var/integrity_mult = get_coverage_integrity_mult()
 	if(integrity_mult >= 3)
-		integrity_mult *= 0.5
-	else if(integrity_mult == 2)
 		integrity_mult *= 0.75
+	else if(integrity_mult == 2)
+		integrity_mult *= 0.85
 
 	var/amount = round(max_integrity * (1 / integrity_mult), 10)
 

@@ -481,28 +481,28 @@
 
 	switch(wep_type)
 		if(/datum/skill/combat/knives) // Low variance, but tend to roll high with a big curve
-			variance_range = 25
+			variance_range = 15
 			curve_depth = 4
 			if(variance_center > 0)
 				variance_center += 0.3
 		if(/datum/skill/combat/swords)
-			variance_range = 35
+			variance_range = 25
 			curve_depth = 2
 			if(variance_center > 0)
 				variance_center += 0.15
 		if(/datum/skill/combat/axes, /datum/skill/labor/lumberjacking)
-			variance_range = 70
+			variance_range = 40
 			curve_depth = 6
 		if(/datum/skill/combat/maces, /datum/skill/combat/shields, /datum/skill/craft/blacksmithing, /datum/skill/labor/mining)
-			variance_range = 15
+			variance_range = 20
 			curve_depth = 3
 		if(/datum/skill/combat/polearms, /datum/skill/labor/farming)
-			variance_range = 40
+			variance_range = 30
 			curve_depth = 2
 			if(variance_center > 0)
 				variance_center += 0.1
 		if(/datum/skill/combat/whipsflails)
-			variance_range = 70
+			variance_range = 40
 			curve_depth = 3
 		if(/datum/skill/combat/unarmed)
 			variance_range = 10
