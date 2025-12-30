@@ -377,7 +377,7 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define ARMOR_MAX_REDUCTION			100	//Maximum armor percentage reduction (100 armor = 100% reduction)
 
 #define UNARMED_DAMAGE_DEFAULT		12
-#define STR_PEN_FACTOR			3.5
+#define STR_PEN_FACTOR			2
 #define PER_PEN_FACTOR		2
 
 #define BLUNT_AP_MOD_LIGHT -7 // Effectively -2 STR
