@@ -7,7 +7,7 @@
 	regardless of value."
 	item_type = /obj
 	payout_price = 70
-	mint_item = FALSE
+	mint_item = TRUE
 	percent_bounty = TRUE
 
 /datum/roguestock/bounty/treasure/get_payout_price(obj/item/I)
