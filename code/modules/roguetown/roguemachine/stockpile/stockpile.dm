@@ -111,13 +111,13 @@
 			if(B.stacktype == R.item_type)
 				var/nopay = R.held_items[stockpile_index] >= R.stockpile_limit // Check whether it is overflowed BEFORE nopaying them
 				R.held_items[stockpile_index] += B.amount
-				if(!I.from_stockpile)
+				if(HAS_TRAIT(H, TRAIT_RESIDENT) && !I.from_stockpile)
 					if(R.farmers[H])
 						R.farmers[H] += B.amount
 					else
 						R.farmers[H] = B.amount
-				if(message == TRUE)
-					stock_announce("[H.name] increases their [R.name] sharecrop.")
+					if(message == TRUE)
+						stock_announce("[H.name] increases their [R.name] sharecrop.")
 				qdel(B)
 				if(sound == TRUE)
 					playsound(loc, 'sound/misc/hiss.ogg', 100, FALSE, -1)
@@ -140,14 +140,14 @@
 			var/nopay = !R.mint_item && R.held_items[stockpile_index] >= R.stockpile_limit // Check whether it is overflowed BEFORE nopaying them
 			if(!R.mint_item)
 				R.held_items[stockpile_index] += 1 //stacked logs need to check for multiple
-				qdel(I)
-				if(!I.from_stockpile)
+				if(HAS_TRAIT(H, TRAIT_RESIDENT) && !I.from_stockpile)
 					if(R.farmers[H])
 						R.farmers[H] += 1
 					else
 						R.farmers[H] = 1
-				if(message == TRUE)
-					stock_announce("[H.name] increases their [R.name] sharecrop.")
+					if(message == TRUE)
+						stock_announce("[H.name] increases their [R.name] sharecrop.")
+				qdel(I)
 				if(sound == TRUE)
 					playsound(loc, 'sound/misc/hiss.ogg', 100, FALSE, -1)
 			else
