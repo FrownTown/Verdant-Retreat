@@ -55,7 +55,7 @@
 /obj/item/clothing/neck/roguetown/gorget/controllable/equipped(mob/living/carbon/human/user, slot)
 	. = ..()
 	if(slot == SLOT_NECK)
-		to_chat(user, span_warning("The collar tightens its hold on you, red aura emenates from its gem. Reminding you of your lowly station."))
+		to_chat(user, span_warning("The collar around your neck tightens. Its gemstone flashes red, reminding you of your lowly station."))
 		collar_unlocked = FALSE
 		return
 
@@ -66,9 +66,9 @@
 
 	if(!collar_unlocked)
 		collar_unlocked = TRUE
-		to_chat(user, "The red gem's glow of the [src] weakens, it seems to be safe to unequip now!")
+		to_chat(user, "The gemstone glow in [src] is fading. Looks like it is safe to remove now!")
 	else
-		to_chat(user, "Collar is already unlocked!")
+		to_chat(user, "\The [src] is already unlocked!")
 
 /obj/item/clothing/neck/roguetown/gorget/controllable/proc/tries_to_unequip(force, atom/newloc, no_move, invdrop, silent)
 	SIGNAL_HANDLER
@@ -133,7 +133,7 @@
 /obj/item/collar_detonator
 	name = "collar detonator"
 	desc = "What seems to be an ordinary key at first is actually an enchanted contraption designed to \
-		detonate or unlock collar of servitude."
+		detonate or unlock collars of servitude."
 	icon_state = "skeleton_key"
 	icon = 'icons/roguetown/items/keys.dmi'
 	w_class = WEIGHT_CLASS_TINY
@@ -152,7 +152,7 @@
 	var/mob/living/carbon/to_bomb = target
 	var/obj/item/clothing/neck/roguetown/gorget/controllable/collar = to_bomb.get_item_by_slot(SLOT_NECK)
 	if(!istype(collar))
-		to_chat(user, span_notice("Target is not wearing a collar of servitude!"))
+		to_chat(user, span_notice("[target] is not wearing a collar of servitude!"))
 		return
 
 	var/list/choices = list()
