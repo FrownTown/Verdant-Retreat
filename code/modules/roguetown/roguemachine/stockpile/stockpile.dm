@@ -125,7 +125,7 @@
 					SStreasury.economic_output += R.export_price * B.amount // Still count
 					say("Stockpile is full, no payment.")
 				else
-					var/amt = R.payout_price * B.amount
+					var/amt = R.withdraw_price * B.amount
 					SStreasury.economic_output += R.export_price * B.amount
 					withdraw_tab.budget += amt
 					attack_hand(H, "withdraw")
@@ -136,7 +136,7 @@
 		else if(istype(I,R.item_type))
 			if(!R.check_item(I))
 				continue
-			var/amt = R.get_payout_price(I)
+			var/amt = R.withdraw_price
 			var/nopay = !R.mint_item && R.held_items[stockpile_index] >= R.stockpile_limit // Check whether it is overflowed BEFORE nopaying them
 			if(!R.mint_item)
 				R.held_items[stockpile_index] += 1 //stacked logs need to check for multiple
