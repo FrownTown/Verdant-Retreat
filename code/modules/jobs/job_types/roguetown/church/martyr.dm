@@ -259,11 +259,7 @@
 	if(current_holder)
 		var/mob/living/carbon/human/H = current_holder
 		switch(state)
-			if(STATE_SAFE) //Lowered damage due to BURN damage type and SAFE activation
-				var/obj/item/I = parent
-				I.force = 20
-				I.force_wielded = 25
-				return		
+			if(STATE_SAFE) //Formerly used to reduce safe mode damage -- use if you want to change something during safemode
 			if(STATE_MARTYR)
 				current_holder.STASTR += stat_bonus_martyr
 				//current_holder.STASPD += stat_bonus_martyr
@@ -566,8 +562,6 @@
 
 
 /obj/item/rogueweapon/sword/long/martyr
-	force = 30
-	force_wielded = 36
 	possible_item_intents = list(/datum/intent/sword/cut, /datum/intent/sword/thrust, /datum/intent/sword/strike, /datum/intent/sword/peel)
 	gripped_intents = list(/datum/intent/sword/cut, /datum/intent/sword/thrust, /datum/intent/sword/peel, /datum/intent/sword/chop)
 	icon_state = "martyrsword"
@@ -682,8 +676,6 @@
 			if("altgrip") return list("shrink" = 0.5,"sx" = 4,"sy" = 0,"nx" = -7,"ny" = 1,"wx" = -8,"wy" = 0,"ex" = 8,"ey" = -1,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -135,"sturn" = -35,"wturn" = 45,"eturn" = 145,"nflip" = 8,"sflip" = 8,"wflip" = 1,"eflip" = 0)
 
 /obj/item/rogueweapon/greataxe/steel/doublehead/martyr
-	force = 25
-	force_wielded = 45
 	possible_item_intents = list(/datum/intent/axe/cut, /datum/intent/axe/chop, /datum/intent/axe/bash)
 	gripped_intents = list(/datum/intent/axe/cut/battle/greataxe, /datum/intent/axe/chop/battle/greataxe, /datum/intent/axe/bash)
 	icon_state = "martyraxe"
@@ -784,8 +776,6 @@
 	return ..()
 
 /obj/item/rogueweapon/mace/goden/martyr
-	force = 35
-	force_wielded = 40
 	possible_item_intents = list(/datum/intent/mace/strike)
 	gripped_intents = list(/datum/intent/mace/strike, /datum/intent/mace/smash, /datum/intent/effect/daze, /datum/intent/effect/hobble)
 	icon_state = "martyrmace"
@@ -881,8 +871,6 @@
 	return ..()
 
 /obj/item/rogueweapon/spear/partizan/martyr
-	force = 20
-	force_wielded = 30
 	possible_item_intents = list(/datum/intent/spear/thrust, /datum/intent/spear/bash)
 	gripped_intents = list(/datum/intent/spear/thrust, /datum/intent/rend/reach/partizan, /datum/intent/partizan/peel, /datum/intent/spear/bash)
 	icon_state = "martyrtrident"
