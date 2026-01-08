@@ -60,7 +60,7 @@ SUBSYSTEM_DEF(soundloopers)
 		if(get_dist(get_turf(mob),parent_turf) > world.view + PS.extra_range) //Too far away. get_dist shouldn't be too awful for repeated calcs
 			continue
 
-		if(mob_turf.z - parent_turf.z > 2 || mob_turf.z - parent_turf.z < 2) //for some reason get_dist not checking this properly
+		if(abs(mob_turf.z - parent_turf.z) > 2) //for some reason get_dist not checking this properly
 			continue
 
 		//otherwise add it to the client loops and off we go from there
