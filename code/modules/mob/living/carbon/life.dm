@@ -227,13 +227,25 @@
 				continue
 
 			if(prob(embedded.embedding.embedded_pain_chance))
-				bodypart.receive_damage(embedded.w_class*embedded.embedding.embedded_pain_multiplier)
+				// Jiggling increases wound pain temporarily
+				var/datum/wound/dynamic/puncture/stab_wound = bodypart.has_wound(/datum/wound/dynamic/puncture)
+				if(!stab_wound)
+					// Object healed around - create wound through normal damage, then edit bleed rate to 0
+					bodypart.receive_damage(embedded.w_class * embedded.embedding.embedded_pain_multiplier)
+					stab_wound = bodypart.has_wound(/datum/wound/dynamic/puncture)
+					if(stab_wound)
+						stab_wound.set_bleed_rate(0)
+				else
+					var/jiggle_pain_add = embedded.w_class * 8
+					stab_wound.jiggle_pain += jiggle_pain_add
+					stab_wound.woundpain = stab_wound.base_woundpain + stab_wound.jiggle_pain
 				to_chat(src, span_danger("[embedded] in my [bodypart.name] hurts!"))
 
-			if(prob(embedded.embedding.embedded_fall_chance))
-				bodypart.receive_damage(embedded.w_class*embedded.embedding.embedded_fall_pain_multiplier)
-				bodypart.remove_embedded_object(embedded)
-				to_chat(src,span_danger("[embedded] falls out of my [bodypart.name]!"))
+			// Objects no longer fall out on their own - must be surgically removed or ripped out
+			//if(prob(embedded.embedding.embedded_fall_chance))
+			//	bodypart.receive_damage(embedded.w_class*embedded.embedding.embedded_fall_pain_multiplier)
+			//	bodypart.remove_embedded_object(embedded)
+			//	to_chat(src,span_danger("[embedded] falls out of my [bodypart.name]!"))
 
 /*
 Alcohol Poisoning Chart

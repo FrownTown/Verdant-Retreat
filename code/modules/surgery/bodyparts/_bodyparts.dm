@@ -104,6 +104,8 @@
 	
 	/// Cached variable that reflects how much bleeding our wounds are applying to the limb. Handled inside each individual wound.
 	var/bleeding = 0
+	/// Temp var: tracks how much the last attack increased puncture wound bleeding (for embed tracking)
+	var/last_bleed_increase = 0
 
 	/// Is the limb flagged for two-stage death handling? (aka, decaps will instantly kill first, THEN remove the head on second apply)
 	var/two_stage_death = FALSE

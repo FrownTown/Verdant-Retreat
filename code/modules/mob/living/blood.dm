@@ -245,12 +245,24 @@
 		var/bp_critical = 0
 		var/bp_max_bleed = 0
 
+		// Calculate total plug effect from embedded objects
+		var/total_plug_amount = 0
+		var/list/embeds = BP.embedded_objects
+		if(length(embeds))
+			for(var/obj/item/I as anything in embeds)
+				if(I.embed_bleed_contribution)
+					total_plug_amount += I.embed_bleed_contribution
+
 		// Process wounds - separate normal and critical, track max
 		var/list/wound_list = BP.wounds
 		if(length(wound_list))
 			for(var/datum/wound/W as anything in wound_list)
 				var/w_bleed = W.bleed_rate
 				if(w_bleed)
+					// Reduce puncture wound bleeding by the amount embedded objects are plugging
+					if(istype(W, /datum/wound/dynamic/puncture) && total_plug_amount)
+						w_bleed = max(w_bleed - total_plug_amount, 0)
+
 					if(w_bleed > bp_max_bleed)
 						bp_max_bleed = w_bleed
 					if(W.severity >= WOUND_SEVERITY_CRITICAL)
@@ -262,16 +274,6 @@
 		BP.bleeding = bp_normal_wounds + bp_critical
 
 		var/bp_normal = bp_normal_wounds
-
-		// Process embedded objects
-		var/list/embeds = BP.embedded_objects
-		if(length(embeds))
-			for(var/obj/item/I as anything in embeds)
-				var/embed_bleed = I.embedding?.embedded_bloodloss
-				if(embed_bleed)
-					bp_normal += embed_bleed
-					if(embed_bleed > bp_max_bleed)
-						bp_max_bleed = embed_bleed
 
 		// Check bandage effectiveness AFTER calculating max bleed
 		if(BP.is_bandaged())

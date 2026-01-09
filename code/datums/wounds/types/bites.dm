@@ -36,8 +36,7 @@
 	name = "bite"
 	bleed_rate = 0.5
 	sewn_bleed_rate = 0
-	clotting_threshold = null
-	sewn_clotting_threshold = null
+	clotting_rate = 0.12
 	whp = 30
 	woundpain = 10
 	sew_threshold = 50

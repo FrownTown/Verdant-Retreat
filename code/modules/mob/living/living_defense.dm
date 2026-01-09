@@ -110,7 +110,7 @@
 					if(P.poisonfeel)
 						M.show_message(span_danger("You feel an intense [P.poisonfeel] sensation spreading swiftly from the area!"))
 
-			if(P.embedchance && !check_projectile_embed(P, def_zone))
+			if(P.embedchance && !check_projectile_embed(P, def_zone, was_blunted, armor))
 				P.handle_drop()
 
 		else
@@ -140,7 +140,7 @@
 		damage = P.damage
 	return simple_woundcritroll(wound_class, damage, null, def_zone, crit_message = TRUE)
 
-/mob/living/proc/check_projectile_embed(obj/projectile/P, def_zone)
+/mob/living/proc/check_projectile_embed(obj/projectile/P, def_zone, was_blunted = FALSE)
 	// Disable embeds on simples, allowing it to override on complex.
 	return FALSE
 

@@ -467,7 +467,14 @@
 		var/obj/item/I = locate(sublimb_grabbed) in L.embedded_objects
 		if(QDELETED(I) || QDELETED(L) || !L.remove_embedded_object(I))
 			return FALSE
-		L.receive_damage(I.embedding.embedded_unsafe_removal_pain_multiplier*I.w_class) //It hurts to rip it out, get surgery you dingus.
+		L.receive_damage(I.embedding.embedded_unsafe_removal_pain_multiplier*I.w_class)
+		var/datum/wound/dynamic/puncture/stab_wound = L.has_wound(/datum/wound/dynamic/puncture)
+		if(stab_wound)
+			stab_wound.jiggle_pain = max(stab_wound.jiggle_pain - (I.w_class * 8), 0)
+			stab_wound.woundpain = stab_wound.base_woundpain + stab_wound.jiggle_pain
+			if(I.embed_bleed_contribution)
+				var/bleed_increase = I.embed_bleed_contribution + (I.w_class * 0.4)
+				stab_wound.set_bleed_rate(stab_wound.bleed_rate + bleed_increase)
 		user.dropItemToGround(src) // this will unset vars like limb_grabbed
 		user.put_in_hands(I)
 		C.emote("paincrit", TRUE)

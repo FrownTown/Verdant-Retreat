@@ -98,6 +98,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 
 	var/datum/embedding_behavior/embedding
 	var/is_embedded = FALSE
+	var/embed_bleed_contribution = 0 // How much bleed_rate this object added to the wound when it embedded
 
 	var/flags_cover = 0 //for flags such as GLASSESCOVERSEYES
 	var/heat = 0

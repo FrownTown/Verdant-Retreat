@@ -44,7 +44,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	/// Clotting rate when sewn
 	var/sewn_clotting_rate = 0.02
 	/// Clotting will not go below this amount of bleed_rate
-	var/clotting_threshold
+	var/clotting_threshold = 0
 	/// Clotting will not go below this amount of bleed_rate when sewn
 	var/sewn_clotting_threshold = 0
 	/// How much pain this wound causes while on a mob
@@ -276,8 +276,24 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 /datum/wound/proc/on_life()
 	if(!owner || !bodypart_owner)
 		return FALSE
-	if(!isnull(clotting_threshold) && clotting_rate && (bleed_rate > clotting_threshold))
-		set_bleed_rate(max(clotting_threshold, bleed_rate - clotting_rate))
+	if(!isnull(clotting_threshold) && clotting_rate && (bleed_rate > clotting_threshold) && bleed_rate < 12)
+		var/con_modifier = owner.STACON / 10
+		var/severity_modifier = 1.0
+		if(bleed_rate >= 3)
+			severity_modifier = 0.5
+
+		var/grab_modifier = 1.0
+		var/list/grabs = bodypart_owner.grabbedby
+		if(length(grabs))
+			var/bp_grab_suppress = 1.0
+			for(var/obj/item/grabbing/G in grabs)
+				bp_grab_suppress *= G.bleed_suppressing
+			if(bodypart_owner.bleeding * bp_grab_suppress <= 0)
+				grab_modifier = 2.0
+
+		var/effective_clot = clotting_rate * con_modifier * severity_modifier * grab_modifier
+		set_bleed_rate(max(clotting_threshold, bleed_rate - effective_clot))
+
 	if (HAS_TRAIT(owner, TRAIT_PSYDONITE) && !passive_healing)
 		heal_wound(0.6) // psydonites are supposed to apparently slightly heal wounds whether dead or alive
 	if(owner.stat != DEAD && passive_healing) // passive healing is only called if we're like, you know, alive
