@@ -518,7 +518,7 @@
 		if(cached_organ)
 			cached_organ.applyOrganDamage(organ_damage)
 
-	if(prob(80-affected.STACON*3))
+	if(prob(80-affected.STACON*2))
 		affected.Unconscious((rand(20,30)-affected.STACON) SECONDS)
 
 	to_chat(affected, span_userdanger("[pick(penetration_messages)]"))
@@ -725,7 +725,7 @@
 
 /datum/wound/lethal/stomach_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
-	
+
 	if(HAS_TRAIT(affected, TRAIT_DEADITE))
 		return
 
