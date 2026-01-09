@@ -482,10 +482,6 @@
 		cached_organ.setOrganDamage(0)
 	. = ..()
 
-/datum/wound/lethal/on_mob_gain(mob/living/affected)
-	. = ..()
-	if(HAS_TRAIT(affected, TRAIT_DEADITE) && !istype(src, /datum/wound/lethal/brain_penetration))
-		return // Deadites are immune to organ wounds except brain penetration
 
 /datum/wound/lethal/brain_penetration
 	name = "brain penetration"
@@ -544,6 +540,9 @@
 
 /datum/wound/lethal/heart_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+	if(HAS_TRAIT(affected, TRAIT_DEADITE))
+		return
+
 	var/is_construct = isgolemp(affected) || isdoll(affected)
 
 	// Constructs don't bleed
@@ -640,6 +639,9 @@
 
 /datum/wound/lethal/lung_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+	
+	if(HAS_TRAIT(affected, TRAIT_DEADITE))
+		return
 
 	var/static/list/penetration_messages = list(
 		"I CAN'T BREATHE!",
@@ -686,6 +688,10 @@
 
 /datum/wound/lethal/liver_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+	
+	if(HAS_TRAIT(affected, TRAIT_DEADITE))
+		return
+
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		carbon_affected.vomit(blood = TRUE)
@@ -719,6 +725,10 @@
 
 /datum/wound/lethal/stomach_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
+	
+	if(HAS_TRAIT(affected, TRAIT_DEADITE))
+		return
+
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		carbon_affected.vomit(blood = TRUE)
