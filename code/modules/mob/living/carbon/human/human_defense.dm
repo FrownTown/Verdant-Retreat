@@ -275,16 +275,19 @@
 	var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
 	var/blunt_modifier = 0
 
+	// Blunt AP bonus scales UP with damage (inverse of effectiveness)
+	var/damage_factor = (1 - effectiveness) * 2
+
 	switch(effective_class)
 		if(ARMOR_CLASS_LIGHT)
-			blunt_modifier = BLUNT_AP_MOD_LIGHT * effectiveness // Scale penalty towards 0 as armor degrades
+			blunt_modifier = BLUNT_AP_MOD_LIGHT // This is static since it's a penalty
 		if(ARMOR_CLASS_MEDIUM)
-			blunt_modifier = BLUNT_AP_MOD_MEDIUM * effectiveness // Scale penalty towards 0 as armor degrades
+			blunt_modifier = BLUNT_AP_MOD_MEDIUM * damage_factor
 		if(ARMOR_CLASS_HEAVY)
-			blunt_modifier = BLUNT_AP_MOD_HEAVY * effectiveness  // Scale bonus towards 0 as armor degrades
+			blunt_modifier = BLUNT_AP_MOD_HEAVY * damage_factor
 
 			if(istype(C, /obj/item/clothing/head/helmet))
-				blunt_modifier += BLUNT_AP_MOD_HEAVY_HELMET * effectiveness // Scale helmet bonus towards 0
+				blunt_modifier += BLUNT_AP_MOD_HEAVY_HELMET * damage_factor
 
 	return blunt_modifier
 
@@ -592,7 +595,7 @@
 		var/obj/item/bodypart/affecting = get_bodypart(ran_zone(dam_zone))
 		if(!affecting)
 			affecting = get_bodypart(BODY_ZONE_CHEST)
-		var/ap = (M.d_type == "blunt") ? BLUNT_DEFAULT_PENFACTOR : M.armor_penetration
+		var/ap = (M.d_type == "blunt") ? 0 : M.armor_penetration
 		var/armor = run_armor_check(affecting, M.d_type, armor_penetration = ap, damage = damage)
 		next_attack_msg.Cut()
 

@@ -10,7 +10,7 @@
 	clickcd = CLICK_CD_CHARGED
 	warnie = "mobwarning"
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
-	penfactor = 40
+	penfactor = 2
 	item_d_type = "stab"
 	effective_range = 2
 	effective_range_type = EFF_RANGE_EXACT
@@ -20,14 +20,14 @@
 	reach = 1
 	swingdelay = 14
 	damfactor = 1.6
-	penfactor = 50
+	penfactor = 2
 	clickcd = CLICK_CD_RESIST
 	effective_range = null
 	effective_range_type = EFF_RANGE_NONE
 	sharpness_penalty = 3
 
 /datum/intent/spear/thrust/militia
-	penfactor = 30
+	penfactor = 1.5
 
 /datum/intent/spear/bash
 	name = "bash"
@@ -35,7 +35,7 @@
 	penfactor = BLUNT_DEFAULT_PENFACTOR
 	icon_state = "inbash"
 	attack_verb = list("bashes", "strikes")
-	penfactor = 10
+	penfactor = 0.5
 	damfactor = 0.8
 	item_d_type = "blunt"
 
@@ -88,7 +88,7 @@
 /datum/intent/sword/cut/miaodao
 	reach = 2
 	swingdelay = 2
-	penfactor = 20
+	penfactor = 1
 
 /datum/intent/sword/cut/miaodao/fast
 	clickcd = 10
@@ -99,7 +99,7 @@
 
 /datum/intent/sword/thrust/estoc
 	name = "thrust"
-	penfactor = 57	//At 57 pen + 25 base (82 total), you will always pen 80 stab armor, but you can't do it at range unlike a spear.
+	penfactor = 2.85	//At 57 pen + 25 base (82 total), you will always pen 80 stab armor, but you can't do it at range unlike a spear.
 	swingdelay = 8
 
 /datum/intent/sword/lunge
@@ -110,7 +110,7 @@
 	blade_class = BCLASS_STAB
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
 	reach = 2
-	penfactor = 20
+	penfactor = 1.5
 	damfactor = 1.3	//Zwei will still deal ~7-10 more damage at the same range, depending on user's STR.
 	swingdelay = 10
 
@@ -903,11 +903,11 @@
 	sellprice = 40
 
 /datum/intent/spear/thrust/eaglebeak
-	penfactor = 50
+	penfactor = 2
 	damfactor = 1
 
 /datum/intent/spear/thrust/glaive
-	penfactor = 50
+	penfactor = 2
 	damfactor = 1.1
 	chargetime = 0
 

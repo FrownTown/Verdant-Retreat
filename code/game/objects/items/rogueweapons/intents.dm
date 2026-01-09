@@ -335,14 +335,14 @@
 /datum/intent/stab/militia
 	name = "militia stab"
 	damfactor = 1.1
-	penfactor = 50
+	penfactor = 2.5
 
 /datum/intent/pick //now like icepick intent, we really went in a circle huh
 	name = "pick"
 	icon_state = "inpick"
 	attack_verb = list("picks","impales")
 	hitsound = list('sound/combat/hits/pick/genpick (1).ogg', 'sound/combat/hits/pick/genpick (2).ogg')
-	penfactor = 80
+	penfactor = 4
 	animname = "strike"
 	item_d_type = "stab"
 	blade_class = BCLASS_PICK
@@ -354,7 +354,7 @@
 	icon_state = "inpick"
 	attack_verb = list("stabs", "impales")
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
-	penfactor = 60
+	penfactor = 3
 	damfactor = 1.1
 	clickcd = CLICK_CD_CHARGED
 	releasedrain = 4
@@ -367,7 +367,7 @@
 	icon_state = "inpick"
 	attack_verb = list("picks","impales")
 	hitsound = list('sound/combat/hits/pick/genpick (1).ogg', 'sound/combat/hits/pick/genpick (2).ogg')
-	penfactor = 80
+	penfactor = 4
 	animname = "strike"
 	item_d_type = "stab"
 	blade_class = BCLASS_PICK
@@ -480,7 +480,7 @@
 	misscost = 1
 	releasedrain = 1	//More than punch cus pen factor.
 	swingdelay = 0
-	penfactor = 10
+	penfactor = 0.5
 	clickcd = 10
 	rmb_ranged = TRUE
 	candodge = TRUE
@@ -587,7 +587,7 @@
 	blade_class = BCLASS_BLUNT
 	hitsound = "punch_hard"
 	chargetime = 0
-	penfactor = 10
+	penfactor = 0.5
 	swingdelay = 0
 	candodge = TRUE
 	canparry = TRUE

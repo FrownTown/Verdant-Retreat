@@ -544,7 +544,7 @@
 
 /obj/item/grabbing/proc/smashlimb(atom/A, mob/living/user) //implies limb_grabbed and sublimb are things
 	var/mob/living/carbon/C = grabbed
-	var/armor_block = C.run_armor_check(limb_grabbed, d_type, armor_penetration = BLUNT_DEFAULT_PENFACTOR)
+	var/armor_block = C.run_armor_check(limb_grabbed, d_type, armor_penetration = max(BLUNT_DEFAULT_PENFACTOR * (user.STASTR - 10), 0))
 	var/damage = user.get_punch_dmg()
 	var/unarmed_skill = user.get_skill_level(/datum/skill/combat/unarmed)
 	damage *= (1 + (unarmed_skill / 10))	//1.X multiplier where X is the unarmed skill.

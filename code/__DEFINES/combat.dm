@@ -371,7 +371,7 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define BULLET_ACT_MISS				"MISS"
 
 //Weapon values
-#define BLUNT_DEFAULT_PENFACTOR		0
+#define BLUNT_DEFAULT_PENFACTOR		1
 #define INTEG_PARRY_DECAY			1	//Default integrity decay on parry.
 #define INTEG_PARRY_DECAY_NOSHARP	5	//Integrity decay on parry for weapons with no sharpness OR for off-hand parries.
 #define SHARPNESS_ONHIT_DECAY		3	//Sharpness decay on parry.
@@ -388,10 +388,10 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define STR_PEN_FACTOR			2
 #define PER_PEN_FACTOR		2
 
-#define BLUNT_AP_MOD_LIGHT -7 // Effectively -2 STR
-#define BLUNT_AP_MOD_MEDIUM 3.5 // Effectively +1 STR
-#define BLUNT_AP_MOD_HEAVY 10.5 // Effectively +3 STR
-#define BLUNT_AP_MOD_HEAVY_HELMET 3.5 // Effectively +1 STR
+#define BLUNT_AP_MOD_LIGHT -10
+#define BLUNT_AP_MOD_MEDIUM -6
+#define BLUNT_AP_MOD_HEAVY 26
+#define BLUNT_AP_MOD_HEAVY_HELMET 12
 
 /// Damage multiplier of silver weapons against mobs with TRAIT_SIMPLE_WOUNDS
 #define SILVER_SIMPLEMOB_DAM_MULT 2

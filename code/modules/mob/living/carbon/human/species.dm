@@ -1552,9 +1552,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 			var/selzone = accuracy_check(user.zone_selected, user, target, /datum/skill/combat/unarmed, user.used_intent)
 			var/obj/item/bodypart/affecting = target.get_bodypart(check_zone(selzone))
 			var/damage = user.get_punch_dmg() * 1.4
-			var/stomp_pen = BLUNT_DEFAULT_PENFACTOR
+			var/stomp_pen = 0
 			if(HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN))
-				stomp_pen += (user.STASTR - 10) * STR_PEN_FACTOR
+				stomp_pen += max((user.STASTR - 10) * STR_PEN_FACTOR, 0)
 			var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = stomp_pen, blade_dulling = BCLASS_BLUNT, damage = damage)
 			target.next_attack_msg.Cut()
 			var/nodmg = FALSE
@@ -1710,9 +1710,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 		if(!affecting)
 			affecting = target.get_bodypart(BODY_ZONE_CHEST)
 		// Add strength-based armor penetration for kick: +2 AP per point of STR above 10
-		var/kick_pen = BLUNT_DEFAULT_PENFACTOR
+		var/kick_pen = 0
 		if(HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN))
-			kick_pen += (user.STASTR - 10) * STR_PEN_FACTOR
+			kick_pen += max((user.STASTR - 10) * STR_PEN_FACTOR, 0)
 		var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = kick_pen, blade_dulling = BCLASS_BLUNT)
 		var/damage = user.get_punch_dmg()
 		var/actual_damage = ishuman(target) ? target:get_actual_damage(damage, armor_block, selzone, "blunt", user) : max(damage - armor_block, 0)
@@ -1800,17 +1800,19 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	var/def_zone = affecting.body_zone
 
 	var/pen = I.armor_penetration
-	if(user.used_intent?.penfactor)
-		pen = I.armor_penetration + user.used_intent.penfactor
 	if(I.d_type == "blunt")
 		pen = BLUNT_DEFAULT_PENFACTOR
+
+	var/stat_ap_multiplier = 1.0
+	if(user.used_intent?.penfactor)
+		stat_ap_multiplier = user.used_intent.penfactor
 	switch(I.wbalance)
 		if(WBALANCE_HEAVY)
-			pen += (user.STASTR - 10) * STR_PEN_FACTOR
+			pen += (user.STASTR - 10) * STR_PEN_FACTOR * stat_ap_multiplier
 		if(WBALANCE_NORMAL)
-			pen += (((user.STASTR - 10)+(user.STAPER - 10))/2) * floor((STR_PEN_FACTOR+PER_PEN_FACTOR)/2)
+			pen += (((user.STASTR - 10)+(user.STAPER - 10))/2) * floor((STR_PEN_FACTOR+PER_PEN_FACTOR)/2) * stat_ap_multiplier
 		if(WBALANCE_SWIFT)
-			pen += (user.STAPER - 10) * PER_PEN_FACTOR
+			pen += (user.STAPER - 10) * PER_PEN_FACTOR * stat_ap_multiplier
 
 //	var/armor_block = H.run_armor_check(affecting, "I.d_type", span_notice("My armor has protected my [hit_area]!"), span_warning("My armor has softened a hit to my [hit_area]!"),pen)
 

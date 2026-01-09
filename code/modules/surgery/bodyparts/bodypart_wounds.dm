@@ -666,9 +666,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 
 /// Returns the overkill critical hit threshold for a body part
 /obj/item/bodypart/proc/get_overkill_threshold(difficulty, damage_dividend, damage, resistance)
-	var/multiplier = resistance ? 0.5 : 1
-
-	var/overkill_threshold = (damage >= (difficulty + owner.STACON) * (1 - damage_dividend * multiplier))
+	var/overkill_threshold = (damage >= (difficulty + owner.STACON))
 	return overkill_threshold
 
 /// Embeds an object in this bodypart

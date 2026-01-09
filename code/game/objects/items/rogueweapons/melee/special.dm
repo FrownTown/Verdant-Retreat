@@ -20,7 +20,7 @@
 	animname = "stab"
 	blade_class = BCLASS_STAB
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
-	penfactor = 25
+	penfactor = 1.25
 	chargetime = 0
 	clickcd = CLICK_CD_FAST
 	item_d_type = "stab"
@@ -842,19 +842,19 @@
 	damfactor = 1.2
 	swingdelay = 8
 	clickcd = CLICK_CD_MELEE
-	penfactor = 35
+	penfactor = 1.75
 
 /datum/intent/claw/lunge/steel
 	damfactor = 1.2
 	swingdelay = 12
 	clickcd = CLICK_CD_HEAVY
-	penfactor = 35
+	penfactor = 1.75
 
 /datum/intent/claw/lunge/gronn
 	damfactor = 1.1
 	swingdelay = 5
 	clickcd = 10
-	penfactor = 45
+	penfactor = 2.25
 
 /datum/intent/claw/cut
 	name = "cut"
@@ -866,19 +866,19 @@
 	item_d_type = "slash"
 
 /datum/intent/claw/cut/iron
-	penfactor = 20
+	penfactor = 1
 	swingdelay = 8
 	damfactor = 1.4
 	clickcd = CLICK_CD_HEAVY
 
 /datum/intent/claw/cut/steel
-	penfactor = 10
+	penfactor = 0.5
 	swingdelay = 4
 	damfactor = 1.3
 	clickcd = CLICK_CD_HEAVY
 
 /datum/intent/claw/cut/gronn
-	penfactor = 30
+	penfactor = 1.5
 	swingdelay = 0
 	damfactor = 1.1
 	clickcd = CLICK_CD_MELEE

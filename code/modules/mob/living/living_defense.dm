@@ -63,10 +63,10 @@
 	if(SEND_SIGNAL(src, COMSIG_ATOM_BULLET_ACT, P, def_zone) & COMPONENT_ATOM_BLOCK_BULLET)
 		return
 	def_zone = bullet_hit_accuracy_check(P.accuracy + P.bonus_accuracy, def_zone)
-	var/ap = (P.flag == "blunt") ? BLUNT_DEFAULT_PENFACTOR : P.armor_penetration
+	var/ap = (P.flag == "blunt") ? 0 : P.armor_penetration
 	if(ishuman(P.firer))
 		var/mob/living/carbon/human/shooter = P.firer
-		ap += max((shooter.STAPER - 10) * PER_PEN_FACTOR, (shooter.STASTR - 10) * STR_PEN_FACTOR)
+		ap += max((shooter.STAPER - 10) * PER_PEN_FACTOR, (shooter.STASTR - 10) * STR_PEN_FACTOR, 0)
 
 	var/armor = run_armor_check(def_zone, P.flag, "", "",armor_penetration = ap, damage = P.damage, used_weapon = P)
 
@@ -160,7 +160,7 @@
 		if(SEND_SIGNAL(src, COMSIG_LIVING_IMPACT_ZONE, I, zone) & COMPONENT_CANCEL_THROW)
 			return FALSE
 		if(!blocked)
-			var/ap = (damage_flag == "blunt") ? BLUNT_DEFAULT_PENFACTOR : I.armor_penetration
+			var/ap = (damage_flag == "blunt") ? 0 : I.armor_penetration
 			var/armor = run_armor_check(zone, damage_flag, "", "", armor_penetration = ap, damage = I.throwforce, used_weapon = I)
 			next_attack_msg.Cut()
 			var/nodmg = FALSE

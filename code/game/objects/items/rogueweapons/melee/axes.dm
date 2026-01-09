@@ -7,7 +7,7 @@
 	attack_verb = list("cuts", "slashes")
 	hitsound = list('sound/combat/hits/bladed/genchop (1).ogg', 'sound/combat/hits/bladed/genchop (2).ogg', 'sound/combat/hits/bladed/genchop (3).ogg')
 	animname = "cut"
-	penfactor = 20
+	penfactor = 1
 	chargetime = 0
 	item_d_type = "slash"
 
@@ -18,7 +18,7 @@
 	attack_verb = list("chops", "hacks")
 	animname = "chop"
 	hitsound = list('sound/combat/hits/bladed/wpn_impact_blunt2hand_flesh_01.ogg', 'sound/combat/hits/bladed/wpn_impact_blunt2hand_flesh_02.ogg', 'sound/combat/hits/bladed/wpn_impact_blunt2hand_flesh_03.ogg')
-	penfactor = 35
+	penfactor = 1.75
 	swingdelay = 10
 	clickcd = 14
 	item_d_type = "slash"
@@ -27,19 +27,19 @@
 	reach = 2
 
 /datum/intent/axe/chop/stone
-	penfactor = 5
+	penfactor = 0.25
 
 /datum/intent/axe/chop/battle
 	damfactor = 1.2 //36 on battleaxe
-	penfactor = 40
+	penfactor = 2
 
 /datum/intent/axe/chop/battle/halberd
 	damfactor = 1.3
 	swingdelay = 12
-	penfactor = 20
+	penfactor = 1
 
 /datum/intent/axe/cut/battle
-	penfactor = 25
+	penfactor = 1.25
 
 /datum/intent/axe/bash
 	name = "bash"

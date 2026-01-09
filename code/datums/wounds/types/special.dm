@@ -33,7 +33,6 @@
 
 /datum/wound/facial/ears/on_mob_gain(mob/living/affected)
 	. = ..()
-	affected.Stun(10)
 	var/obj/item/organ/ears/ears = affected.getorganslot(ORGAN_SLOT_EARS)
 	if(ears)
 		ears.Remove(affected)
@@ -156,7 +155,6 @@
 
 /datum/wound/facial/tongue/on_mob_gain(mob/living/affected)
 	. = ..()
-	affected.Stun(10)
 	var/obj/item/organ/tongue/tongue_up_my_asshole = affected.getorganslot(ORGAN_SLOT_TONGUE)
 	if(tongue_up_my_asshole)
 		tongue_up_my_asshole.Remove(affected)
@@ -427,13 +425,14 @@
 	woundpain = 100
 	critical = TRUE
 	sleep_healing = 0
-	sewn_whp = 25
+	sewn_whp = 75
 	bleed_rate = 25
 	can_sew = TRUE
 	sewn_bleed_rate = 0 // Stops external bleeding when sewn
 	var/organ_damage = 0
 	var/attack_damage = 0
 	var/total_hits = 1 // Track how many hits contributed to this wound
+	var/obj/item/organ/cached_organ
 
 /datum/wound/lethal/New(damage = 0)
 	. = ..()
@@ -471,24 +470,16 @@
 		organ_damage = min(100, organ_damage + (new_organ_damage * damage_multiplier * 0.5))
 
 		if(iscarbon(owner))
-			var/mob/living/carbon/C = owner
-			var/list/organs = C.getorganszone(bodypart_owner.body_zone)
-			if(length(organs))
-				for(var/obj/item/organ/O in organs)
-					if(O && O.damage > 0 && !QDELETED(O))
-						O.applyOrganDamage(new_organ_damage * damage_multiplier * 0.3)
+			if(cached_organ && cached_organ.damage > 0 && !QDELETED(cached_organ))
+				cached_organ.applyOrganDamage(new_organ_damage * damage_multiplier * 0.3)
 
 
 /datum/wound/lethal/heal_wound(heal_amount)
-	if(iscarbon(owner) && organ_damage > 0)
-		var/mob/living/carbon/C = owner
-		var/obj/item/bodypart/BP = bodypart_owner
-		if(BP)
-			var/list/organs = C.getorganszone(BP.body_zone)
-			if(length(organs))
-				for(var/obj/item/organ/O in organs)
-					if(O && O.damage > 0)
-						O.setOrganDamage(0)
+	if(!bodypart_owner || !owner)
+		return
+
+	if(cached_organ && !QDELETED(cached_organ))
+		cached_organ.setOrganDamage(0)
 	. = ..()
 
 /datum/wound/lethal/on_mob_gain(mob/living/affected)
@@ -507,7 +498,6 @@
 		"The edge pierces through the cranium into the brain!"
 	)
 	mortal = TRUE
-	var/obj/item/organ/brain/cached_brain
 	var/from_fracture = FALSE
 
 /datum/wound/lethal/brain_penetration/on_mob_gain(mob/living/affected)
@@ -528,14 +518,12 @@
 
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
-		cached_brain = carbon_affected.getorganslot(ORGAN_SLOT_BRAIN)
-		if(cached_brain)
-			cached_brain.applyOrganDamage(organ_damage)
+		cached_organ = carbon_affected.getorganslot(ORGAN_SLOT_BRAIN)
+		if(cached_organ)
+			cached_organ.applyOrganDamage(organ_damage)
 
 	if(prob(80-affected.STACON*3))
 		affected.Unconscious((rand(20,30)-affected.STACON) SECONDS)
-	else
-		affected.Stun(30)
 
 	to_chat(affected, span_userdanger("[pick(penetration_messages)]"))
 
@@ -552,7 +540,6 @@
 	woundpain = 250
 	mortal = TRUE
 	bleed_rate = 35
-	var/obj/item/organ/heart/cached_heart
 	var/from_fracture = FALSE
 
 /datum/wound/lethal/heart_penetration/on_mob_gain(mob/living/affected)
@@ -595,12 +582,11 @@
 		var/mob/living/carbon/carbon_affected = affected
 		if(!is_construct)
 			carbon_affected.vomit(blood = TRUE)
-		cached_heart = carbon_affected.getorganslot(ORGAN_SLOT_HEART)
-		if(cached_heart)
-			cached_heart.applyOrganDamage(organ_damage)
+		cached_organ = carbon_affected.getorganslot(ORGAN_SLOT_HEART)
+		if(cached_organ)
+			cached_organ.applyOrganDamage(organ_damage)
 			if(organ_damage >= 80)
 				addtimer(CALLBACK(carbon_affected, TYPE_PROC_REF(/mob/living/carbon, set_heartattack), TRUE), 3 SECONDS)
-	affected.Stun(30)
 	shake_camera(affected, 4, 4)
 	if(!is_construct)
 		affected.emote("painscream")
@@ -618,10 +604,10 @@
 		var/energy_drain = floor(organ_damage / 10)
 		carbon_owner.energy_add(-energy_drain)
 
-		if(cached_heart && !QDELETED(cached_heart))
+		if(cached_organ && !QDELETED(cached_organ))
 			// Causes damage over time to the lux core as mana leaks
-			if(cached_heart.damage < cached_heart.maxHealth)
-				cached_heart.applyOrganDamage(0.5)
+			if(cached_organ.damage < cached_organ.maxHealth)
+				cached_organ.applyOrganDamage(0.5)
 			if(prob(3))
 				to_chat(carbon_owner, span_warning("My lux core flickers and dims..."))
 	else
@@ -632,8 +618,8 @@
 			var/oxydamage = organ_damage < 100 ? organ_damage / 10 : organ_damage
 			carbon_owner.adjustOxyLoss(oxydamage)
 
-		if(cached_heart && !QDELETED(cached_heart) && cached_heart.damage > round(cached_heart.maxHealth/2))
-			cached_heart.applyOrganDamage(1)
+		if(cached_organ && !QDELETED(cached_organ) && cached_organ.damage > round(cached_organ.maxHealth/2))
+			cached_organ.applyOrganDamage(1)
 			if(prob(5))
 				to_chat(carbon_owner, span_warning("MY HEART HURTS!"))
 
@@ -650,7 +636,6 @@
 	bleed_rate = 15
 	woundpain = 100
 	mortal = TRUE
-	var/obj/item/organ/lungs/cached_lungs
 	var/from_fracture = FALSE
 
 /datum/wound/lethal/lung_penetration/on_mob_gain(mob/living/affected)
@@ -669,14 +654,13 @@
 			"The shattered ribcage crushes into the lung!"
 		)
 
-	affected.Stun(20)
 	if(!HAS_TRAIT(affected, TRAIT_NOBREATH))
 		to_chat(affected, span_userdanger("[pick(penetration_messages)]"))
 		if(iscarbon(affected))
 			var/mob/living/carbon/carbon_affected = affected
-			cached_lungs = carbon_affected.getorganslot(ORGAN_SLOT_LUNGS)
-			if(cached_lungs)
-				cached_lungs.applyOrganDamage(organ_damage)
+			cached_organ = carbon_affected.getorganslot(ORGAN_SLOT_LUNGS)
+			if(cached_organ)
+				cached_organ.applyOrganDamage(organ_damage)
 
 /datum/wound/lethal/lung_penetration/on_life()
 	. = ..()
@@ -699,17 +683,15 @@
 	bleed_rate = 25
 	woundpain = 120
 	mortal = TRUE
-	var/obj/item/organ/liver/cached_liver
 
 /datum/wound/lethal/liver_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		carbon_affected.vomit(blood = TRUE)
-		cached_liver = carbon_affected.getorganslot(ORGAN_SLOT_LIVER)
-		if(cached_liver)
-			cached_liver.applyOrganDamage(organ_damage)
-	affected.Stun(15)
+		cached_organ = carbon_affected.getorganslot(ORGAN_SLOT_LIVER)
+		if(cached_organ)
+			cached_organ.applyOrganDamage(organ_damage)
 	to_chat(affected, span_userdanger("MY GUTS!"))
 
 /datum/wound/lethal/liver_penetration/on_life()
@@ -734,17 +716,15 @@
 	bleed_rate = 20
 	woundpain = 110
 	mortal = TRUE
-	var/obj/item/organ/stomach/cached_stomach
 
 /datum/wound/lethal/stomach_penetration/on_mob_gain(mob/living/affected)
 	. = ..()
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		carbon_affected.vomit(blood = TRUE)
-		cached_stomach = carbon_affected.getorganslot(ORGAN_SLOT_STOMACH)
-		if(cached_stomach)
-			cached_stomach.applyOrganDamage(organ_damage)
-	affected.Stun(15)
+		cached_organ = carbon_affected.getorganslot(ORGAN_SLOT_STOMACH)
+		if(cached_organ)
+			cached_organ.applyOrganDamage(organ_damage)
 	to_chat(affected, span_userdanger("MY GUTS!"))
 
 /datum/wound/lethal/stomach_penetration/on_life()

@@ -9,17 +9,17 @@
 	chargetime = 0
 	hitsound = list('sound/combat/hits/bladed/genslash (1).ogg', 'sound/combat/hits/bladed/genslash (2).ogg', 'sound/combat/hits/bladed/genslash (3).ogg')
 	swingdelay = 0
-	penfactor = 10
+	penfactor = 0.5
 	damfactor = 1.1
 	item_d_type = "slash"
 
 /datum/intent/sword/cut/militia
-	penfactor = 30
+	penfactor = 1.5
 	damfactor = 1.2
 	chargetime = 0.2
 
 /datum/intent/sword/chop/militia
-	penfactor = 50
+	penfactor = 2.5
 	chargetime = 0.5
 	swingdelay = 0
 	damfactor = 1.0
@@ -31,7 +31,7 @@
 	animname = "stab"
 	blade_class = BCLASS_STAB
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
-	penfactor = 35
+	penfactor = 1.75
 	chargetime = 0
 	swingdelay = 0
 	item_d_type = "stab"
@@ -58,7 +58,7 @@
 	animname = "chop"
 	blade_class = BCLASS_CHOP
 	hitsound = list('sound/combat/hits/bladed/genchop (1).ogg', 'sound/combat/hits/bladed/genchop (2).ogg', 'sound/combat/hits/bladed/genchop (3).ogg')
-	penfactor = 30
+	penfactor = 1.5
 	swingdelay = 8
 	damfactor = 1.0
 	item_d_type = "slash"
@@ -67,10 +67,10 @@
 	damfactor = 0.9
 
 /datum/intent/sword/cut/falx
-	penfactor = 20
+	penfactor = 1
 
 /datum/intent/sword/chop/falx
-	penfactor = 40
+	penfactor = 2
 
 /datum/intent/sword/cut/krieg
 	clickcd = 10
@@ -762,7 +762,7 @@
 
 /datum/intent/sword/thrust/exe
 	swingdelay = 4	//Slight delay to stab; big and heavy.
-	penfactor = BLUNT_DEFAULT_PENFACTOR //Flat tip? I don't know, man. This intent is won't penetrate anything but it damages armor more.
+	penfactor = 0 //Flat tip? I don't know, man. This intent is won't penetrate anything but it damages armor more.
 	intent_intdamage_factor = 1.3 //This is basically like getting hit by a mace.
 
 /obj/item/rogueweapon/sword/long/exe/astrata
@@ -908,7 +908,7 @@
 /datum/intent/sword/thrust/short
 	clickcd = 8
 	damfactor = 1.1
-	penfactor = 30
+	penfactor = 1.5
 
 /obj/item/rogueweapon/sword/iron/messer
 	name = "hunting sword"
@@ -972,7 +972,7 @@
 /datum/intent/sword/cut/sabre
 	clickcd = 8			//Faster than sword by 4
 	damfactor = 1.25	//Better than rapier (Base is 1.1 for swords)
-	penfactor = 10		//Very slight buff to pen on cut mode. Still weaker than sword-chop mode.
+	penfactor = 0.5		//Very slight buff to pen on cut mode. Still weaker than sword-chop mode.
 
 /datum/intent/sword/thrust/sabre
 	clickcd = 9			//Fast but just shy of being as good as a rapier by 1.
@@ -1162,7 +1162,7 @@
 /datum/intent/sword/thrust/rapier
 	clickcd = 8
 	damfactor = 1.1
-	penfactor = 30
+	penfactor = 1.5
 
 /obj/item/rogueweapon/sword/rapier/dec
 	name = "decorated rapier"
