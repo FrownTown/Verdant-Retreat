@@ -90,9 +90,9 @@
 	reqs = list(/obj/item/natural/hide/cured = 2,
 				/obj/item/natural/fibers = 2)
 
-/datum/crafting_recipe/roguetown/leather/container/belt/suspenders
+/datum/crafting_recipe/roguetown/leather/container/belt/suspenders/butler
 	name = "suspenders"
-	result = /obj/item/storage/belt/leather/suspenders
+	result = /obj/item/storage/belt/leather/suspenders/butler
 	reqs = list(
 		/obj/item/natural/hide/cured = 1,
 		/obj/item/natural/cloth = 2,

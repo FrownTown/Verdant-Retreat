@@ -137,10 +137,10 @@
 	icon_state = "clothsash"
 	item_state = "clothsash"
 
-/obj/item/storage/belt/leather/suspenders
+/obj/item/storage/belt/leather/suspenders/butler
 	name = "suspenders"
 	desc = "A pair of suspenders which go over the shoulders. Used for keeping one's pants in place in an admittably fashionable style."
-	icon_state = "suspenders"
+	icon_state = "butlersuspenders"
 
 /obj/item/storage/belt/rogue/pouch
 	name = "pouch"
