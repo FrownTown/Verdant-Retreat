@@ -340,7 +340,7 @@
 	var/mob/living/carbon/C = grabbed
 	var/armor_block = C.run_armor_check(limb_grabbed, "twist")
 	var/damage = user.get_punch_dmg()
-	playsound(C.loc, "genblunt", 100, FALSE, -1)
+	playsound(C, "genblunt", 100, FALSE, -1)
 	C.next_attack_msg.Cut()
 
 	var/actual_damage = ishuman(C) ? C:get_actual_damage(damage, armor_block, limb_grabbed, "twist", user) : max(damage - armor_block, 0)
@@ -432,7 +432,7 @@
 	var/armor_block_user = H.run_armor_check(Hhead, "blunt")
 	var/damage = H.get_punch_dmg()
 	C.next_attack_msg.Cut()
-	playsound(C.loc, "genblunt", 100, FALSE, -1)
+	playsound(C, "genblunt", 100, FALSE, -1)
 	C.apply_damage(damage*1.5, , Chead, armor_block)
 	Chead.bodypart_attacked_by(BCLASS_SMASH, damage*1.5, H, crit_message=TRUE)
 	H.apply_damage(damage, BRUTE, Hhead, armor_block_user)
@@ -451,7 +451,7 @@
 	var/mob/living/M = grabbed
 	var/damage = rand(5,10)
 	var/obj/item/I = sublimb_grabbed
-	playsound(M.loc, "genblunt", 100, FALSE, -1)
+	playsound(M, "genblunt", 100, FALSE, -1)
 	M.apply_damage(damage, BRUTE, limb_grabbed)
 	M.visible_message(span_danger("[user] twists [I] in [M]'s wound!"), \
 					span_userdanger("[user] twists [I] in my wound!"), span_hear("I hear a sickening sound of pugilism!"), COMBAT_MESSAGE_RANGE)
@@ -460,7 +460,7 @@
 /obj/item/grabbing/proc/removeembeddeditem(mob/living/user) //implies limb_grabbed and sublimb are things
 	var/mob/living/M = grabbed
 	var/obj/item/bodypart/L = limb_grabbed
-	playsound(M.loc, "genblunt", 100, FALSE, -1)
+	playsound(M, "genblunt", 100, FALSE, -1)
 	log_combat(user, M, "itemremovedgrab [sublimb_grabbed] ")
 	if(iscarbon(M))
 		var/mob/living/carbon/C = M
@@ -519,7 +519,7 @@
 							return FALSE
 						if(C.mobility_flags & MOBILITY_STAND)
 							return
-						playsound(C.loc, T.attacked_sound, 100, FALSE, -1)
+						playsound(C, T.attacked_sound, 100, FALSE, -1)
 						smashlimb(T, user)
 				else if(isclosedturf(T))
 					if(iscarbon(grabbed))
@@ -528,7 +528,7 @@
 							return FALSE
 						if(!(C.mobility_flags & MOBILITY_STAND))
 							return
-						playsound(C.loc, T.attacked_sound, 100, FALSE, -1)
+						playsound(C, T.attacked_sound, 100, FALSE, -1)
 						smashlimb(T, user)
 
 /obj/item/grabbing/attack_obj(obj/O, mob/living/user)
@@ -545,7 +545,7 @@
 					var/mob/living/carbon/C = grabbed
 					if(!C.Adjacent(O))
 						return FALSE
-					playsound(C.loc, O.attacked_sound, 100, FALSE, -1)
+					playsound(C, O.attacked_sound, 100, FALSE, -1)
 					smashlimb(O, user)
 
 
@@ -558,7 +558,7 @@
 	C.next_attack_msg.Cut()
 	if(C.apply_damage(damage, BRUTE, limb_grabbed, armor_block))
 		limb_grabbed.bodypart_attacked_by(BCLASS_BLUNT, damage, user, sublimb_grabbed, crit_message = TRUE)
-		playsound(C.loc, "smashlimb", 100, FALSE, -1)
+		playsound(C, "smashlimb", 100, FALSE, -1)
 	else
 		C.next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"
 	C.visible_message(span_danger("[user] smashes [C]'s [limb_grabbed] into [A]![C.next_attack_msg.Join()]"), \
