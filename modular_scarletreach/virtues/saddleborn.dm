@@ -272,6 +272,7 @@ GLOBAL_LIST_INIT(virtue_mount_choices_noble, (list(
 	user.visible_message(span_danger("[user] places their fingers into their mouth and blows a sharp, shrill whistle!"), span_info("I whistle for my trusty steed, and await their return!"))
 	var/honse_base_loc = honse.loc
 	var/area/rogue/honse_place = get_area(honse.loc)
+	honse.unbuckle_all_mobs(TRUE)
 	if (!back_from_the_void && honse_place.outdoors)
 		honse.visible_message(span_notice("[honse] perks its ears up in response to a distant whistle, and darts off..."))
 		playsound(honse, 'sound/magic/saddleborn-call.ogg', 50, FALSE) // distant spooky whistle OooOOOo
