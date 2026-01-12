@@ -399,7 +399,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(bclass in GLOB.artery_bclasses)
 		var/artery_bonus = ((bclass in GLOB.artery_strong_bclasses) && strong_bonus) ? strong_bonus : aimed_bonus
 		var/artery_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, dam_divisor = 10, bonus = artery_bonus)
-		if((zone_precise == BODY_ZONE_PRECISE_STOMACH) && !resistance)
+		if((zone_precise == BODY_ZONE_PRECISE_STOMACH) && !resistance && (bclass in GLOB.disembowel_bclasses))
 			var/wound_applied = try_add_crit_wound(
 				/datum/wound/slash/disembowel,
 				damage_dividend, dam, resistance,

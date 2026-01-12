@@ -868,23 +868,8 @@
 		I?.acid_act(acidpwr, acid_volume)
 	return 1
 
-/mob/living/carbon/human/proc/get_dt_divisor(obj/item/clothing/armor_piece)
-	if(!armor_piece)
-		return ARMOR_DT_DIVISOR_LIGHT
-	. = armor_piece.armor_class == ARMOR_CLASS_NONE ? armor_piece.integ_armor_mod : armor_piece.armor_class
-	switch(.)
-		if(ARMOR_CLASS_MEDIUM)
-			. = ARMOR_DT_DIVISOR_MEDIUM
-		if(ARMOR_CLASS_HEAVY)
-			. = ARMOR_DT_DIVISOR_HEAVY
-		else
-			. = ARMOR_DT_DIVISOR_LIGHT
-
 /mob/living/carbon/human/proc/get_actual_damage(raw_damage, armor, def_zone, damage_type, mob/living/attacker)
-	var/armor_piece = get_best_armor(def_zone, damage_type, attacker)
-	var/dt_divisor = get_dt_divisor(armor_piece)
-
-	var/damage_threshold = armor / dt_divisor
+	var/damage_threshold = armor / 2 // blocks damage entirely up to 1/2 the armor value
 
 	if(raw_damage < damage_threshold)
 		return 0

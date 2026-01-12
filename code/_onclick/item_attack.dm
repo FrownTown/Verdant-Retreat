@@ -478,6 +478,7 @@
 	var/variance_range = 0
 	var/variance_roll = 0
 	var/curve_depth = 3
+	var/isprojectile = FALSE
 
 	switch(wep_type)
 		if(/datum/skill/combat/knives) // Low variance, but tend to roll high with a big curve
@@ -510,6 +511,7 @@
 		if(/datum/skill/combat/bows, /datum/skill/combat/crossbows, /datum/skill/combat/slings)
 			variance_range = 20
 			curve_depth = 4
+			isprojectile = TRUE
 
 	for(var/i = 0, i < curve_depth, i++)
 		variance_roll += rand(-variance_range, variance_range)
@@ -522,7 +524,7 @@
 	var/clamped_roll = clamp(variance_roll, -variance_range, variance_range)
 
 	// Store variance percentile in the user for attack message display
-	if(ishuman(user) && variance_range > 0)
+	if(ishuman(user) && variance_range > 0 && !isprojectile)
 		var/mob/living/carbon/human/H = user
 		H.last_variance_percentile = ((clamped_roll + variance_range) / (variance_range * 2)) * 100
 
