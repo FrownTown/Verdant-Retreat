@@ -2008,6 +2008,9 @@
 	name = "briar thorns"
 	desc = "The pain of wearing it might distract you from the whispers of a mad God overpowering your sanity..."
 	icon_state = "briarthorns"
+	max_integrity = 150
+	body_parts_covered = HEAD|HAIR|EARS 
+	armor = ARMOR_HEAD_BAD //durability and some padded defense for briars
 
 /obj/item/clothing/head/roguetown/padded/briarthorns/pickup(mob/living/user)
 	. = ..()

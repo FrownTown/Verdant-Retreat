@@ -158,6 +158,10 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	name = "Dendor Tabard"
 	path = /obj/item/clothing/cloak/tabard/crusader/dendor
 
+/datum/loadout_item/tabard/dendortemplar
+	name = "Dendor Templar Tabard"
+	path = /obj/item/clothing/cloak/templar/dendor
+
 /datum/loadout_item/tabard/malum
 	name = "Malum Tabard"
 	path = /obj/item/clothing/cloak/templar/malumite
