@@ -422,17 +422,25 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			if(prob(sunder_chance))
 				attempted_wounds += /datum/wound/sunder/head
 	if(bclass in GLOB.charring_bclasses)
-		used = round(damage_dividend * 25 + (dam / 2.5) - 12 * resistance, 1)
-		if(prob(used))
-			switch(bclass)
-				if(BCLASS_FROST)
-					attempted_wounds += /datum/wound/burn/frostbite
-				if(BCLASS_ELECTRICAL)
-					attempted_wounds += /datum/wound/burn/electrical
-				if(BCLASS_ACID)
-					attempted_wounds += /datum/wound/burn/acid
-				else
-					attempted_wounds += /datum/wound/burn/charred
+		var/burn_chance = calculate_crit_chance(damage_dividend, dam, resistance, base_multiplier = 25, dam_divisor = 2.5, resistance_penalty = 12, armor_resistance = armor_resistance)
+		var/wound_type
+		switch(bclass)
+			if(BCLASS_FROST)
+				wound_type = /datum/wound/burn/frostbite
+			if(BCLASS_ELECTRICAL)
+				wound_type = /datum/wound/burn/electrical
+			if(BCLASS_ACID)
+				wound_type = /datum/wound/burn/acid
+			else
+				wound_type = /datum/wound/burn/charred
+		var/wound_applied = try_add_crit_wound(
+			wound_type,
+			damage_dividend, dam, resistance,
+			burn_chance, CRIT_BURN_DIVISOR, CRIT_BURN_THRESHOLD,
+			silent, crit_message
+		)
+		if(wound_applied)
+			attempted_wounds += wound_applied
 
 	for(var/wound_type in shuffle(attempted_wounds))
 		var/datum/wound/applied = add_wound(wound_type, silent, crit_message, dam, user, weapon)

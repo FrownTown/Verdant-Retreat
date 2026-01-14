@@ -21,6 +21,7 @@
 	movement_interrupt = TRUE
 	chargedloop = /datum/looping_sound/invokefire
 	cost = 9
+	is_offensive = TRUE
 	xp_gain = TRUE
 
 /obj/projectile/magic/aoe/fireball/rogue/great

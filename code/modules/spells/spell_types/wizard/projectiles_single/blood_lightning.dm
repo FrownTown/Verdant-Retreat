@@ -22,6 +22,7 @@
 	charging_slowdown = 3
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/blood
+	is_offensive = TRUE
 	cost = 3
 
 /obj/projectile/magic/bloodlightning

@@ -63,11 +63,11 @@
 		. += BP.burn_dam
 
 
-/mob/living/carbon/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE, required_status)
+/mob/living/carbon/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE, required_status, bclass = BCLASS_BLUNT)
 	if(!forced && (status_flags & GODMODE))
 		return FALSE
 	if(amount > 0)
-		take_overall_damage(amount, 0, 0, updating_health, required_status)
+		take_overall_damage(amount, 0, 0, updating_health, required_status, bclass)
 	else
 		if(has_status_effect(/datum/status_effect/buff/fortify))
 			amount *= 1.5

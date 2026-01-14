@@ -8,6 +8,11 @@
 #define CHARGE_REDUCTION_PER_SKILL 0.05 // The amount of charge reduction per skill level.
 #define FATIGUE_REDUCTION_PER_SKILL 0.05 // The amount of fatigue reduction per skill level.
 
+// Spell damage variance defines
+#define SPELL_VARIANCE_LOW 15 // Low variance for high-damage spells (±15%)
+#define SPELL_VARIANCE_MID 25 // Mid variance for medium-damage spells (±25%)
+#define SPELL_VARIANCE_HIGH 40 // High variance for low-damage spells (±40%)
+
 /obj/effect/proc_holder
 	var/panel = "Debug"//What panel the proc holder needs to go on.
 	var/active = FALSE //Used by toggle based abilities.
@@ -195,6 +200,14 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 	var/devotion_cost = 0
 	var/ignore_cockblock = FALSE //whether or not to ignore TRAIT_SPELLCOCKBLOCK
 
+	// Fast cast system variables (only for offensive mage spells)
+	var/is_offensive = FALSE // Set to TRUE for damage-dealing spells
+	var/max_fast_casts = 0 // Maximum number of fast casts (calculated based on cost, INT, and arcane skill)
+	var/fast_casts_remaining = 0 // Current number of fast casts remaining
+
+	// Spell damage variance
+	var/damage_variance = 0 // Set to SPELL_VARIANCE_LOW/MID/HIGH for damage spells
+
 	action_icon_state = "spell0"
 	action_icon = 'icons/mob/actions/roguespells.dmi'
 	action_background_icon_state = ""
@@ -203,6 +216,11 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 /obj/effect/proc_holder/spell/get_chargetime()
 	if(ranged_ability_user && chargetime)
 		var/newtime = chargetime
+
+		// Fast cast system: Apply 3x multiplier if out of fast casts
+		if(is_offensive && !miracle && associated_skill == /datum/skill/magic/arcane && fast_casts_remaining <= 0 && max_fast_casts > 0)
+			newtime = newtime * 3
+
 		//skill block
 		newtime = newtime - (chargetime * (ranged_ability_user.get_skill_level(associated_skill) * CHARGE_REDUCTION_PER_SKILL))
 		//spellbook cast time reduction
@@ -390,6 +408,91 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 	still_recharging_msg = span_warning("[name] is still recharging!")
 	charge_counter = recharge_time
 
+/// Calculates the number of fast casts based on spell cost, INT, and arcane skill
+/// Only applies to offensive mage spells (is_offensive = TRUE, miracle = FALSE, associated_skill = arcane)
+/obj/effect/proc_holder/spell/proc/calculate_fast_casts(mob/living/user)
+	// Only offensive non-miracle mage spells get fast casts
+	if(!is_offensive || miracle || associated_skill != /datum/skill/magic/arcane)
+		max_fast_casts = 0
+		fast_casts_remaining = 0
+		return 0
+
+	if(!ishuman(user))
+		max_fast_casts = 0
+		fast_casts_remaining = 0
+		return 0
+
+	var/mob/living/carbon/human/H = user
+	var/base_casts = 0
+
+	// Base fast casts based on spell cost (treat cost > 6 as 6)
+	var/effective_cost = min(cost, 6)
+	switch(effective_cost)
+		if(6)
+			base_casts = 5
+		if(5)
+			base_casts = 10
+		if(4)
+			base_casts = 15
+		if(3)
+			base_casts = 20
+		if(2)
+			base_casts = 30
+		else
+			base_casts = 0
+
+	// Add bonus: half of INT over 10 + arcane_skill, minimum of 0
+	var/skill_level = H.get_skill_level(associated_skill)
+	var/int_bonus = ceil((H.STAINT - 10) * 0.5)
+	var/bonus = max(int_bonus + skill_level, 0)
+
+	var/total = base_casts + bonus
+	max_fast_casts = total
+	fast_casts_remaining = total
+	return total
+
+/// Calculates spell damage variance based on INT and skill (arcane or holy)
+/// Returns a percentage modifier to apply to spell damage
+/obj/effect/proc_holder/spell/proc/get_spell_damage_variance(mob/living/user)
+	if(!damage_variance || damage_variance == 0)
+		return 0
+
+	if(!ishuman(user))
+		return 0
+
+	var/mob/living/carbon/human/H = user
+
+	// Build variance_center based on INT and skill
+	var/variance_center = 0
+	variance_center += (H.STAINT - 10) * 0.0125 // Same formula as LUC for weapons
+
+	var/skill_level = H.get_skill_level(associated_skill)
+	variance_center += skill_level * 0.025 // Same formula as weapon skills
+
+	// Clamp variance_center
+	variance_center = clamp(variance_center, -1, 1)
+
+	// Calculate variance roll using curve
+	var/variance_range = damage_variance
+	var/curve_depth = 3 // Standard curve depth
+	var/variance_roll = 0
+
+	for(var/i = 0, i < curve_depth, i++)
+		variance_roll += rand(-variance_range, variance_range)
+
+	variance_roll = (variance_roll / curve_depth) + (variance_center * variance_range)
+
+	return clamp(variance_roll, -variance_range, variance_range)
+
+/// Helper proc to get damage adjusted by variance
+/// Returns the base damage modified by variance roll
+/obj/effect/proc_holder/spell/proc/get_varied_damage(base_damage, mob/living/user)
+	if(!damage_variance || damage_variance == 0)
+		return base_damage
+
+	var/variance_roll = get_spell_damage_variance(user)
+	return round(base_damage * (1 + (variance_roll / 100)), 1)
+
 /obj/effect/proc_holder/spell/Destroy()
 	STOP_PROCESSING(SSfastprocess, src)
 	qdel(action)
@@ -408,13 +511,21 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 
 /obj/effect/proc_holder/spell/proc/start_recharge()
 	if(ranged_ability_user && !is_cdr_exempt)
+		var/base_recharge = initial(recharge_time)
+
+		// Fast cast system: Apply 3x multiplier if out of fast casts
+		if(is_offensive && !miracle && associated_skill == /datum/skill/magic/arcane && fast_casts_remaining <= 0 && max_fast_casts > 0)
+			base_recharge = base_recharge * 3
+
 		if(ranged_ability_user.STAINT > SPELL_SCALING_THRESHOLD)
 			var/diff = min(ranged_ability_user.STAINT, SPELL_POSITIVE_SCALING_THRESHOLD) - SPELL_SCALING_THRESHOLD
-			recharge_time = initial(recharge_time) - (initial(recharge_time) * diff * COOLDOWN_REDUCTION_PER_INT)
+			recharge_time = base_recharge - (base_recharge * diff * COOLDOWN_REDUCTION_PER_INT)
 		else if(ranged_ability_user.STAINT < SPELL_SCALING_THRESHOLD)
 			var/diff2 = SPELL_SCALING_THRESHOLD - ranged_ability_user.STAINT
-			recharge_time = initial(recharge_time) + (initial(recharge_time) * (diff2 * COOLDOWN_REDUCTION_PER_INT))
-			
+			recharge_time = base_recharge + (base_recharge * (diff2 * COOLDOWN_REDUCTION_PER_INT))
+		else
+			recharge_time = base_recharge
+
 	START_PROCESSING(SSfastprocess, src)
 
 /obj/effect/proc_holder/spell/process()
@@ -496,6 +607,14 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 	return TRUE
 
 /obj/effect/proc_holder/spell/proc/after_cast(list/targets, mob/user = usr)
+	// Fast cast system: Decrement fast casts after successful cast
+	if(is_offensive && !miracle && associated_skill == /datum/skill/magic/arcane && max_fast_casts > 0)
+		if(fast_casts_remaining > 0)
+			fast_casts_remaining--
+		// Update button to reflect new fast cast count
+		if(action)
+			action.UpdateButtonIcon()
+
 	for(var/atom/target in targets)
 		var/location
 		if(isliving(target))
@@ -526,7 +645,7 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 	//Add xp based on the fatigue used
 	if(xp_gain)
 		adjust_experience(usr, associated_skill, round(get_fatigue_drain() * MAGIC_XP_MULTIPLIER))
-	
+
 	START_PROCESSING(SSfastprocess, src) // ensure we always end up reprocessing after casting
 
 /obj/effect/proc_holder/spell/proc/view_or_range(distance = world.view, center=usr, type="view")

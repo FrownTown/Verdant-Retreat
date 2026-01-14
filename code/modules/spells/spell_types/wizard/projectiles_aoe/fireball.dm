@@ -22,6 +22,7 @@
 	chargedloop = /datum/looping_sound/invokefire
 	associated_skill = /datum/skill/magic/arcane
 	cost = 6
+	is_offensive = TRUE
 	xp_gain = TRUE
 
 /obj/projectile/magic/aoe/fireball/rogue

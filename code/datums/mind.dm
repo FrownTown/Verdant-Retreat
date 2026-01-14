@@ -736,6 +736,9 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 	// Automatically enable spell storage for transformation spells
 	if(istype(S, /obj/effect/proc_holder/spell/targeted/shapeshift) || istype(S, /obj/effect/proc_holder/spell/targeted/wildshape))
 		enable_spell_storage()
+	// Initialize fast cast system for offensive mage spells
+	if(current)
+		S.calculate_fast_casts(current)
 	S.action.Grant(current)
 
 /datum/mind/proc/check_learnspell()

@@ -14,6 +14,7 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane
 	gesture_required = TRUE // Offensive spell
+	is_offensive = TRUE
 	spell_tier = 3 // AOE
 	invocation = "Arescentem!"
 	invocation_type = "shout"
@@ -43,10 +44,10 @@
 			continue
 		var/tile_delay = strike_delay * (i - 1) + delay
 		new /obj/effect/temp_visual/trap/wither(affected_turf, tile_delay)
-		addtimer(CALLBACK(src, PROC_REF(strike), affected_turf), wait = tile_delay)
+		addtimer(CALLBACK(src, PROC_REF(strike), affected_turf, user), wait = tile_delay)
 	return TRUE
 
-/obj/effect/proc_holder/spell/invoked/wither/proc/strike(var/turf/damage_turf)
+/obj/effect/proc_holder/spell/invoked/wither/proc/strike(var/turf/damage_turf, mob/user)
 	new /obj/effect/temp_visual/wither_actual(damage_turf)
 	playsound(damage_turf, 'sound/magic/shadowstep_destination.ogg', 50)
 	for(var/mob/living/L in damage_turf.contents)
@@ -54,7 +55,8 @@
 			visible_message(span_warning("The magic fades away around you [L] "))  //antimagic needs some testing
 			playsound(damage_turf, 'sound/magic/magic_nulled.ogg', 100)
 			return
-		L.adjustFireLoss(damage, bclass = BCLASS_FROST)
+		var/adjusted_damage = get_varied_damage(damage, user)
+		L.adjustFireLoss(adjusted_damage, bclass = BCLASS_FROST)
 		L.apply_status_effect(/datum/status_effect/buff/witherd/)
 		return
 

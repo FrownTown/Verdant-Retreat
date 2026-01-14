@@ -73,6 +73,21 @@
 		user.add_stress(/datum/stressevent/meditation)
 		to_chat(user, span_green("My meditations were rewarding."))
 
+		// Restore fast casts for offensive mage spells
+		if(ishuman(user))
+			var/mob/living/carbon/human/H = user
+			if(H.mind)
+				var/restored_spells = FALSE
+				for(var/obj/effect/proc_holder/spell/S in H.mind.spell_list)
+					if(S.is_offensive && !S.miracle && S.associated_skill == /datum/skill/magic/arcane && S.max_fast_casts > 0)
+						S.fast_casts_remaining = S.max_fast_casts
+						restored_spells = TRUE
+						// Update button to reflect restored fast casts
+						if(S.action)
+							S.action.UpdateButtonIcon()
+				if(restored_spells)
+					to_chat(user, span_blue("I feel my arcyne energies replenished."))
+
 /datum/emote/living/bow
 	key = "bow"
 	key_third_person = "bows"

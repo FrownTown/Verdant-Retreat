@@ -363,6 +363,23 @@
 		inspec += "\n[desc]"
 	to_chat(user, "[inspec.Join()]")
 
+/datum/action/spell_action/spell/UpdateButtonIcon(status_only = FALSE, force = FALSE)
+	. = ..()
+	if(button && target)
+		var/obj/effect/proc_holder/spell/S = target
+		// Add maptext for fast cast counter
+		if(S.is_offensive && !S.miracle && S.associated_skill == /datum/skill/magic/arcane && S.max_fast_casts > 0)
+			// Create maptext holder if it doesn't exist (same as vampire abilities)
+			if(!istype(button.maptext_holder))
+				button.maptext_holder = new /atom/movable/screen/maptext_holder(button)
+				button.vis_contents.Add(button.maptext_holder)
+
+			var/text_color = S.fast_casts_remaining > 0 ? "#FFFFFF" : "#FF0000"
+			button.maptext_holder.maptext = MAPTEXT_PIXELLARI("<span style='color: [text_color];'>[S.fast_casts_remaining]</span>")
+		else
+			if(button.maptext_holder)
+				button.maptext_holder.maptext = null
+
 
 //Preset for general and toggled actions
 /datum/action/innate

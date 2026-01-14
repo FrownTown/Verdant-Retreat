@@ -7,7 +7,7 @@
 		updatehealth()
 	return amount
 
-/mob/living/simple_animal/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE)
+/mob/living/simple_animal/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE, bclass)
 	if(forced)
 		. = adjustHealth(amount * CONFIG_GET(number/damage_multiplier), updating_health, forced)
 	else if(damage_coeff[BRUTE])
