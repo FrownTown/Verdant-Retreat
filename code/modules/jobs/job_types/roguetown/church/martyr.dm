@@ -794,7 +794,7 @@
 
 /obj/item/rogueweapon/spear/partizan/martyr
 	possible_item_intents = list(/datum/intent/spear/thrust, /datum/intent/spear/bash)
-	gripped_intents = list(/datum/intent/spear/thrust, /datum/intent/rend/reach/partizan, /datum/intent/partizan/peel, /datum/intent/spear/bash)
+	gripped_intents = list(/datum/intent/spear/thrust, /datum/intent/rend/reach/partizan, /datum/intent/spear/bash)
 	icon_state = "martyrtrident"
 	icon = 'icons/roguetown/weapons/64.dmi'
 	item_state = "martyrtrident"
