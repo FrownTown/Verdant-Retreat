@@ -3,10 +3,11 @@
 	tutorial = "Even within Fjall, few bear witness to the Horned Visages of the Járnklæddur; Ironclad warriors who stand against the undead armies that rise out of the 'Red Blizzard'. Those who do not have the blessing of the Iskarn Shamans within the Northern Empty oft-seek the protection of the Járnklæddur, despite their steep costs."
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
-	maximum_possible_slots = 1 //Hopefully this works.
+	maximum_possible_slots = 3 //Hopefully this works.
 	outfit = /datum/outfit/job/roguetown/mercenary/gronnheavy
 	class_select_category = CLASS_CAT_GRONN
 	category_tags = list(CTAG_MERCENARY)
+	allowed_patrons = ALL_INHUMEN_PATRONS
 	traits_applied = list(TRAIT_HEAVYARMOR)
 	cmode_music = 'sound/music/combat_vagarian.ogg'
 	subclass_languages = list(/datum/language/gronnic)
@@ -34,9 +35,6 @@
 		/datum/skill/misc/athletics = SKILL_LEVEL_EXPERT,
 	)
 
-/datum/outfit/job/roguetown/mercenary/gronnheavy
-	allowed_patrons = ALL_INHUMEN_PATRONS
-
 /datum/outfit/job/roguetown/mercenary/gronnheavy/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.dna.species.soundpack_m = new /datum/voicepack/male/evil() //It's fucking cool okay
@@ -47,7 +45,7 @@
 	cloak = /obj/item/clothing/cloak/volfmantle			//Aura farming.
 	wrists = /obj/item/clothing/wrists/roguetown/bracers/iron //Weakspot.
 	pants = /obj/item/clothing/under/roguetown/platelegs/iron/gronn
-	r_hand = /obj/item/rogueweapon/mace //this is literally the only weapon type they'll get to use. No alternatives.
+	r_hand = /obj/item/rogueweapon/mace/maul //this is literally the only weapon type they'll get to use. No alternatives.
 	neck = /obj/item/clothing/neck/roguetown/gorget //Their weakspot. Go replace it if you're a chud I guess
 	backl = /obj/item/storage/backpack/rogue/satchel/black
 	belt = /obj/item/storage/belt/rogue/leather

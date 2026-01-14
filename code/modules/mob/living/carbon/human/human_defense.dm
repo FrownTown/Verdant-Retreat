@@ -2,6 +2,19 @@
 	var/armorval = 0
 	var/organnum = 0
 
+	// Convert blade classes to armor damage types in case another proc passes in a bclass value
+	switch(type)
+		if(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST, BCLASS_PUNCH)
+			type = "blunt"
+		if(BCLASS_CHOP, BCLASS_CUT, BCLASS_LASHING, BCLASS_PUNISH)
+			type = "slash"
+		if(BCLASS_PICK, BCLASS_STAB, BCLASS_BITE)
+			type = "stab"
+		if(BCLASS_PIERCE)
+			type = "piercing"
+		if(BCLASS_BURN)
+			type = "fire"
+
 	if(def_zone)
 		return checkarmor(def_zone, type, damage, armor_penetration, blade_dulling, intdamfactor, bypass_item, used_weapon, attacker)
 		//If a specific bodypart is targetted, check how that bodypart is protected and return the value.
@@ -23,6 +36,19 @@
 		var/obj/item/bodypart/CBP = def_zone
 		def_zone = CBP.body_zone
 
+	// Convert blade classes to armor damage types in case another proc passes in a bclass value
+	switch(d_type)
+		if(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST, BCLASS_PUNCH)
+			d_type = "blunt"
+		if(BCLASS_CHOP, BCLASS_CUT, BCLASS_LASHING, BCLASS_PUNISH)
+			d_type = "slash"
+		if(BCLASS_PICK, BCLASS_STAB, BCLASS_BITE)
+			d_type = "stab"
+		if(BCLASS_PIERCE)
+			d_type = "piercing"
+		if(BCLASS_BURN)
+			d_type = "fire"
+
 	if(!blade_dulling && armor_penetration == 0 && best_armor_cache)
 		var/cache_key = "[def_zone]|[d_type]"
 		if(cache_key in best_armor_cache)
@@ -43,6 +69,8 @@
 				if(C.max_integrity)
 					if(zone_integrity <= 0)
 						continue
+				if(!C.armor || QDELETED(C)) // Happens if the clothing is being removed or deleted (e.g. from fire damage) sometimes
+					return
 				var/val = C.armor.getRating(d_type)
 
 				// Calculate armor effectiveness based on zone's durability
@@ -107,6 +135,10 @@
 				if(C.max_integrity)
 					if(zone_integrity <= 0)
 						continue
+
+				if(!C.armor || QDELETED(C)) // Happens if the clothing is being removed or deleted (e.g. from fire damage) sometimes
+					return
+					
 				var/val = C.armor.getRating(d_type)
 				if(val > 0)
 					// Calculate armor effectiveness based on zone-specific durability and armor class
@@ -243,16 +275,19 @@
 	var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
 	var/blunt_modifier = 0
 
+	// Blunt AP bonus scales UP with damage (inverse of effectiveness)
+	var/damage_factor = (1 - effectiveness) * 2
+
 	switch(effective_class)
 		if(ARMOR_CLASS_LIGHT)
-			blunt_modifier = BLUNT_AP_MOD_LIGHT * effectiveness // Scale penalty towards 0 as armor degrades
+			blunt_modifier = BLUNT_AP_MOD_LIGHT // This is static since it's a penalty
 		if(ARMOR_CLASS_MEDIUM)
-			blunt_modifier = BLUNT_AP_MOD_MEDIUM * effectiveness // Scale penalty towards 0 as armor degrades
+			blunt_modifier = BLUNT_AP_MOD_MEDIUM * damage_factor
 		if(ARMOR_CLASS_HEAVY)
-			blunt_modifier = BLUNT_AP_MOD_HEAVY * effectiveness  // Scale bonus towards 0 as armor degrades
+			blunt_modifier = BLUNT_AP_MOD_HEAVY * damage_factor
 
 			if(istype(C, /obj/item/clothing/head/helmet))
-				blunt_modifier += BLUNT_AP_MOD_HEAVY_HELMET * effectiveness // Scale helmet bonus towards 0
+				blunt_modifier += BLUNT_AP_MOD_HEAVY_HELMET * damage_factor
 
 	return blunt_modifier
 
@@ -323,6 +358,10 @@
 				return martial_art_result
 
 	if(!(P.original == src && P.firer == src)) //can't block or reflect when shooting yourself
+		// Point-blank bow/crossbow weapon parry check
+		if(try_parry_pointblank_ranged(P))
+			return BULLET_ACT_MISS
+
 		retaliate(P.firer)
 		if(P.reflectable & REFLECT_NORMAL)
 			if(check_reflect(def_zone)) // Checks if you've passed a reflection% check
@@ -556,7 +595,7 @@
 		var/obj/item/bodypart/affecting = get_bodypart(ran_zone(dam_zone))
 		if(!affecting)
 			affecting = get_bodypart(BODY_ZONE_CHEST)
-		var/ap = (M.d_type == "blunt") ? BLUNT_DEFAULT_PENFACTOR : M.armor_penetration
+		var/ap = (M.d_type == "blunt") ? 0 : M.armor_penetration
 		var/armor = run_armor_check(affecting, M.d_type, armor_penetration = ap, damage = damage)
 		next_attack_msg.Cut()
 
@@ -829,23 +868,8 @@
 		I?.acid_act(acidpwr, acid_volume)
 	return 1
 
-/mob/living/carbon/human/proc/get_dt_divisor(obj/item/clothing/armor_piece)
-	if(!armor_piece)
-		return ARMOR_DT_DIVISOR_LIGHT
-	. = armor_piece.armor_class == ARMOR_CLASS_NONE ? armor_piece.integ_armor_mod : armor_piece.armor_class
-	switch(.)
-		if(ARMOR_CLASS_MEDIUM)
-			. = ARMOR_DT_DIVISOR_MEDIUM
-		if(ARMOR_CLASS_HEAVY)
-			. = ARMOR_DT_DIVISOR_HEAVY
-		else
-			. = ARMOR_DT_DIVISOR_LIGHT
-
 /mob/living/carbon/human/proc/get_actual_damage(raw_damage, armor, def_zone, damage_type, mob/living/attacker)
-	var/armor_piece = get_best_armor(def_zone, damage_type, attacker)
-	var/dt_divisor = get_dt_divisor(armor_piece)
-
-	var/damage_threshold = armor / dt_divisor
+	var/damage_threshold = armor / 2 // blocks damage entirely up to 1/2 the armor value
 
 	if(raw_damage < damage_threshold)
 		return 0
@@ -1125,3 +1149,99 @@
 	for(var/X in burning_items)
 		var/obj/item/I = X
 		I.fire_act(stacks * 25 * seconds_per_tick) //damage taken is reduced to 2% of this value by fire_act()
+
+// Point-blank ranged weapon parry - bat away the bow/crossbow before it fires
+/mob/living/carbon/human/proc/try_parry_pointblank_ranged(obj/projectile/P)
+	if(!isliving(P.firer) || !P.fired_from)
+		return FALSE
+
+	var/mob/living/shooter = P.firer
+	var/distance = get_dist(src, shooter)
+
+	if(distance > 1)
+		return FALSE
+
+	// Check if the projectile is an arrow or bolt (works for both player weapons and archer mobs)
+	var/is_arrow_or_bolt = istype(P, /obj/projectile/bullet/reusable/arrow) || istype(P, /obj/projectile/bullet/reusable/bolt)
+	if(!is_arrow_or_bolt)
+		return FALSE
+
+	if(!cmode)
+		return FALSE
+
+	if(pulledby || pulling)
+		return FALSE
+
+	if(grabbedby == shooter && shooter.grab_state >= GRAB_AGGRESSIVE)
+		return FALSE
+
+	var/obj/item/parry_weapon = get_active_held_item()
+	var/can_weapon_parry = (parry_weapon && parry_weapon.can_parry)
+
+	if(!can_weapon_parry)
+		parry_weapon = get_inactive_held_item()
+		can_weapon_parry = (parry_weapon && parry_weapon.can_parry)
+
+	var/prob2defend = 0
+	var/is_parry_attempt = FALSE
+	var/is_dodge_attempt = FALSE
+
+	if(d_intent == INTENT_PARRY && can_weapon_parry)
+		is_parry_attempt = TRUE
+		if(parry_weapon.associated_skill)
+			prob2defend = get_skill_level(parry_weapon.associated_skill) * 20
+		else
+			prob2defend = HAS_TRAIT(src, TRAIT_CIVILIZEDBARBARIAN) ? get_skill_level(/datum/skill/combat/unarmed) * 20 : get_skill_level(/datum/skill/combat/unarmed) * 10
+
+		prob2defend = CLAMP(prob2defend, 5, 95)
+
+	else if(d_intent == INTENT_DODGE && (mobility_flags & MOBILITY_STAND))
+		is_dodge_attempt = TRUE
+		prob2defend = STASPD * 5
+		prob2defend = CLAMP(prob2defend, 5, 95)
+
+	// If no valid defense, fail
+	if(!is_parry_attempt && !is_dodge_attempt)
+		return FALSE
+
+	// Roll for success
+	if(!prob(prob2defend))
+		if(client?.prefs.showrolls)
+			to_chat(src, span_warning("Failed to [is_parry_attempt ? "parry" : "dodge"] point-blank shot! [prob2defend]%"))
+		return FALSE
+
+	if(is_parry_attempt)
+		var/parry_drain = 3
+		if(do_parry(parry_weapon, parry_drain, shooter))
+			var/weapon_name = "weapon"
+			if(P.fired_from)
+				weapon_name = P.fired_from.name
+
+			visible_message(
+				span_boldwarning("<b>[src]</b> bats away [shooter]'s [weapon_name], spoiling the shot!"),
+				span_boldwarning("I knock away [shooter]'s [weapon_name]!")
+			)
+
+			var/new_angle = rand(0, 359)
+			P.setAngle(new_angle)
+			return TRUE
+		else
+			return FALSE
+
+	else if(is_dodge_attempt)
+		// Find dodge destination
+		var/list/turfs = get_dodge_destinations(shooter, P.fired_from)
+		if(!length(turfs))
+			return FALSE
+
+		var/turf/turfy = pick(turfs)
+		if(do_dodge(shooter, turfy))
+			visible_message(
+				span_boldwarning("<b>[src]</b> dodges out of the way of [shooter]'s point-blank shot!"),
+				span_boldwarning("I dodge [shooter]'s point-blank shot!")
+			)
+			return TRUE
+		else
+			return FALSE
+
+	return FALSE

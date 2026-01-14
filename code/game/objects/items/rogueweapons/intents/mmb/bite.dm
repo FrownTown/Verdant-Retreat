@@ -29,8 +29,9 @@
 	if(user.incapacitated())
 		return
 	if(!get_location_accessible(user, BODY_ZONE_PRECISE_MOUTH, grabs="other"))
-		to_chat(user, span_warning("My mouth is blocked."))
-		return
+		if(!HAS_TRAIT(user, TRAIT_BITERHELM))
+			to_chat(user, span_warning("My mouth is blocked."))
+			return
 	if(HAS_TRAIT(user, TRAIT_NO_BITE))
 		to_chat(user, span_warning("I can't bite."))
 		return
@@ -236,14 +237,14 @@
 
 	user.changeNext_move(CLICK_CD_GRABBING)
 	var/mob/living/carbon/C = grabbed
-	var/armor_block = C.run_armor_check(sublimb_grabbed, d_type, armor_penetration = BLUNT_DEFAULT_PENFACTOR)
+	var/armor_block = C.run_armor_check(sublimb_grabbed, d_type, armor_penetration = max(BLUNT_DEFAULT_PENFACTOR * (user.STASTR - 10), 0))
 	var/damage = user.get_punch_dmg()
 	if(HAS_TRAIT(user, TRAIT_STRONGBITE))
 		damage = damage*2
 	C.next_attack_msg.Cut()
 	user.do_attack_animation(C, "bite")
 	if(C.apply_damage(damage, BRUTE, limb_grabbed, armor_block))
-		playsound(C.loc, "smallslash", 100, FALSE, -1)
+		playsound(C, "smallslash", 100, FALSE, -1)
 		var/datum/wound/caused_wound = limb_grabbed.bodypart_attacked_by(BCLASS_BITE, damage, user, sublimb_grabbed, crit_message = TRUE)
 		if(user.mind && istype(caused_wound))
 			/*
@@ -281,7 +282,7 @@
 							to_chat(user, "<span class='boldnotice'>Braaaaaains!</span>")
 							if(!user.mob_timers["zombie_tri"])
 								user.mob_timers["zombie_tri"] = world.time
-							playsound(C.loc, 'sound/combat/fracture/headcrush (2).ogg', 100, FALSE, -1)
+							playsound(C, 'sound/combat/fracture/headcrush (2).ogg', 100, FALSE, -1)
 							return*/
 	else
 		C.next_attack_msg += " <span class='warning'>Armor stops the damage.</span>"

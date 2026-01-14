@@ -20,7 +20,7 @@
 	animname = "stab"
 	blade_class = BCLASS_STAB
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
-	penfactor = 25
+	penfactor = 1.25
 	chargetime = 0
 	clickcd = CLICK_CD_FAST
 	item_d_type = "stab"
@@ -310,8 +310,8 @@
 
 /obj/item/rogueweapon/katar/punchdagger
 	name = "punch dagger"
-	desc = "A weapon that combines the ergonomics of the Ranesheni katar with the capabilities of the Western Psydonian \"knight-killers\". It can be tied around the wrist."
-	slot_flags = ITEM_SLOT_WRISTS
+	desc = "A weapon that combines the ergonomics of the Ranesheni katar with the capabilities of the Western Psydonian \"knight-killers\"."
+	slot_flags = ITEM_SLOT_HIP
 	max_integrity = 120		//Steel dagger -30
 	force = 15		//Steel dagger -5
 	throwforce = 8
@@ -324,7 +324,7 @@
 	name = "vývrtka"
 	desc = "A type of punch dagger of Aavnic make initially designed to level the playing field with an orc in fisticuffs, its serrated edges and longer, thinner point are designed to maximize pain for the recipient. It's aptly given the name of \"corkscrew\", and this specific one has the colours of Szöréndnížina. Can be worn on your ring slot."
 	icon_state = "freiplug"
-	slot_flags = ITEM_SLOT_RING
+	slot_flags = ITEM_SLOT_HIP | ITEM_SLOT_RING
 
 /obj/item/rogueweapon/katar/psydon
 	name = "psydonian katar"
@@ -452,7 +452,7 @@
 	force = 20
 	force_wielded = 30
 	item_flags = PEASANT_WEAPON
-	possible_item_intents = list(SPEAR_BASH, /datum/intent/spear/cut)
+	possible_item_intents = list(SPEAR_THRUST_1H, SPEAR_CUT_1H)
 	gripped_intents = list(/datum/intent/pick/ranged, /datum/intent/spear/thrust, SPEAR_BASH)
 	name = "militia goedendag"
 	desc = "Clubs - and their spiked descendants - are older than most languages and civilizations. Tyme hasn't made them any less deadly, however. "
@@ -584,7 +584,7 @@
 /datum/component/ignitable/proc/light_off()
 	var/obj/I = parent
 	I.set_light_on(FALSE)
-	playsound(get_turf(I), 'sound/items/firesnuff.ogg', 100)
+	playsound(I, 'sound/items/firesnuff.ogg', 100)
 
 /datum/component/ignitable/proc/update_icon()
 	var/obj/item/I = parent
@@ -842,19 +842,19 @@
 	damfactor = 1.2
 	swingdelay = 8
 	clickcd = CLICK_CD_MELEE
-	penfactor = 35
+	penfactor = 1.75
 
 /datum/intent/claw/lunge/steel
 	damfactor = 1.2
 	swingdelay = 12
 	clickcd = CLICK_CD_HEAVY
-	penfactor = 35
+	penfactor = 1.75
 
 /datum/intent/claw/lunge/gronn
 	damfactor = 1.1
 	swingdelay = 5
 	clickcd = 10
-	penfactor = 45
+	penfactor = 2.25
 
 /datum/intent/claw/cut
 	name = "cut"
@@ -866,19 +866,19 @@
 	item_d_type = "slash"
 
 /datum/intent/claw/cut/iron
-	penfactor = 20
+	penfactor = 1
 	swingdelay = 8
 	damfactor = 1.4
 	clickcd = CLICK_CD_HEAVY
 
 /datum/intent/claw/cut/steel
-	penfactor = 10
+	penfactor = 0.5
 	swingdelay = 4
 	damfactor = 1.3
 	clickcd = CLICK_CD_HEAVY
 
 /datum/intent/claw/cut/gronn
-	penfactor = 30
+	penfactor = 1.5
 	swingdelay = 0
 	damfactor = 1.1
 	clickcd = CLICK_CD_MELEE

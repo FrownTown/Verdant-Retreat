@@ -26,14 +26,29 @@
 		to_chat(C, span_warning("I gasp for air, but nothing comes!"))
 
 /obj/item/organ/lungs/Insert(mob/living/carbon/M, special = 0)
+	var/mob/living/carbon/old_owner = owner
 	..()
+	if(old_owner && old_owner != owner && !QDELETED(old_owner))
+		UnregisterSignal(old_owner, COMSIG_LIVING_LIFE)
 	if(owner)
 		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
 
 /obj/item/organ/lungs/Remove(mob/living/carbon/M, special = 0)
 	if(owner)
 		RegisterSignal(owner, COMSIG_LIVING_LIFE, PROC_REF(missing_lungs_effects))
+		RegisterSignal(owner, COMSIG_MOB_ORGAN_INSERTED, PROC_REF(cleanup_on_replacement))
 	..()
+
+/obj/item/organ/lungs/proc/cleanup_on_replacement(mob/living/carbon/M, obj/item/organ/new_organ)
+	if(istype(new_organ, /obj/item/organ/lungs))
+		UnregisterSignal(M, COMSIG_LIVING_LIFE)
+		UnregisterSignal(M, COMSIG_MOB_ORGAN_INSERTED)
+
+/obj/item/organ/lungs/Destroy()
+	if(last_owner && !QDELETED(last_owner))
+		UnregisterSignal(last_owner, COMSIG_LIVING_LIFE)
+		UnregisterSignal(last_owner, COMSIG_MOB_ORGAN_INSERTED)
+	return ..()
 
 /obj/item/organ/lungs/on_life()
 	..()
@@ -88,3 +103,98 @@
 	name = "golem aersource"
 	desc = "A complex hollow crystal, which courses with air through unknowable means. Steam wisps around it in a vortex."
 	icon_state = "lungs-con"
+
+/obj/item/organ/lungs/t1
+	name = "completed lungs"
+	icon_state = "lungs"
+	desc = "The perfect art, it feels... Completed."
+	sellprice = 100
+
+/obj/item/organ/lungs/t2
+	name = "blessed lungs"
+	icon_state = "lungs"
+	desc = "They accepted this heresy to defeat a greater heresy. They call it a blessing, but we all know it’s not…"
+	sellprice = 200
+
+/obj/item/organ/lungs/t3
+	name = "corrupted lungs"
+	icon_state = "lungs"
+	desc = "A cursed, perverted artifact. It can serve you well—what sacrifice are you willing to offer to survive?"
+	maxHealth = 2 * STANDARD_ORGAN_THRESHOLD
+	sellprice = 300
+
+/datum/status_effect/buff/t1lungs
+	id = "t1lungs"
+	alert_type = /atom/movable/screen/alert/status_effect/buff/t1lungs
+
+/atom/movable/screen/alert/status_effect/buff/t1lungs
+	name = "Completed lungs"
+	desc = "I have better version of lungs now "
+
+/obj/item/organ/lungs/t1/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		M.apply_status_effect(/datum/status_effect/buff/t1lungs)
+		ADD_TRAIT(M, TRAIT_WATERBREATHING, ORGAN_TRAIT)
+
+/obj/item/organ/lungs/t1/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M.has_status_effect(/datum/status_effect/buff/t1lungs))
+		M.remove_status_effect(/datum/status_effect/buff/t1lungs)
+		REMOVE_TRAIT(M, TRAIT_WATERBREATHING , ORGAN_TRAIT)
+
+/datum/status_effect/buff/t2lungs
+	id = "t2lungs"
+	alert_type = /atom/movable/screen/alert/status_effect/buff/t2lungs
+
+/atom/movable/screen/alert/status_effect/buff/t2lungs //your helper against mages but not black king bar
+	name = "Blessed lungs"
+	desc = "A blessed lungs... Maybe"
+
+/obj/item/organ/lungs/t2/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		M.apply_status_effect(/datum/status_effect/buff/t2lungs)
+		ADD_TRAIT(M, TRAIT_BREADY, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_ZJUMP, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_WATERBREATHING, ORGAN_TRAIT)
+
+
+/obj/item/organ/lungs/t2/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M.has_status_effect(/datum/status_effect/buff/t2lungs))
+		M.remove_status_effect(/datum/status_effect/buff/t2lungs)
+		REMOVE_TRAIT(M, TRAIT_BREADY , ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_ZJUMP , ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_WATERBREATHING , ORGAN_TRAIT)
+
+
+/datum/status_effect/buff/t3lungs
+    id = "t3lungs"
+    alert_type = /atom/movable/screen/alert/status_effect/buff/t3lungs
+
+/atom/movable/screen/alert/status_effect/buff/t3lungs
+	name = "Corrupted lungs"
+	desc = "The cursed thing is inside me now."
+
+
+/obj/item/organ/lungs/t3/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		M.apply_status_effect(/datum/status_effect/buff/t3lungs)
+		ADD_TRAIT(M, TRAIT_BREADY, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_LEAPER, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_ZJUMP, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_NOBREATH, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_LONGSTRIDER, ORGAN_TRAIT)
+
+
+/obj/item/organ/lungs/t3/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M.has_status_effect(/datum/status_effect/buff/t3lungs))
+		M.remove_status_effect(/datum/status_effect/buff/t3lungs)
+		REMOVE_TRAIT(M, TRAIT_BREADY, ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_LEAPER, ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_ZJUMP, ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_NOBREATH, ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_LONGSTRIDER, ORGAN_TRAIT)	

@@ -78,61 +78,61 @@
 #define ARMOR_BLACKBAG list("blunt" = 100, "slash" = 100, "stab" = 100, "piercing" = 100, "fire" = 75, "acid" = 100, "frost" = 0, "electrical" = 0)
 
 // Light AC | Chest
-#define ARMOR_CLOTHING list("blunt" = 5, "slash" = 10, "stab" = 15, "piercing" = 5, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PADDED_GOOD list("blunt" = 75, "slash" = 50, "stab" = 59, "piercing" = 50, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PADDED list("blunt" = 67, "slash" = 40, "stab" = 48, "piercing" = 45, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PADDED_BAD list("blunt" = 63, "slash" = 35, "stab" = 42, "piercing" = 38, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_LIGHTCUIRASS list("blunt" = 63, "slash" = 75, "stab" = 68, "piercing" = 75, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_CLOTHING list("blunt" = 5, "slash" = 10, "stab" = 15, "piercing" = 5, "fire" = 0, "acid" = 0)
+#define ARMOR_PADDED_GOOD list("blunt" = 85, "slash" = 50, "stab" = 70, "piercing" = 79, "fire" = 0, "acid" = 0)
+#define ARMOR_PADDED list("blunt" = 67, "slash" = 40, "stab" = 60, "piercing" = 68, "fire" = 0, "acid" = 0)
+#define ARMOR_PADDED_BAD list("blunt" = 63, "slash" = 35, "stab" = 52, "piercing" = 60, "fire" = 0, "acid" = 0)
+#define ARMOR_LIGHTCUIRASS list("blunt" = 63, "slash" = 75, "stab" = 78, "piercing" = 75, "fire" = 0, "acid" = 0)
 
-#define ARMOR_LEATHER list("blunt" = 56, "slash" = 50, "stab" = 55, "piercing" = 52, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_LEATHER_GOOD list("blunt" = 67, "slash" = 60, "stab" = 75, "piercing" = 55, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_LEATHER_STUDDED list("blunt" = 80, "slash" = 65, "stab" = 68, "piercing" = 63, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_LEATHER list("blunt" = 56, "slash" = 50, "stab" = 68, "piercing" = 65, "fire" = 0, "acid" = 0)
+#define ARMOR_LEATHER_GOOD list("blunt" = 67, "slash" = 60, "stab" = 85, "piercing" = 72, "fire" = 0, "acid" = 0)
+#define ARMOR_LEATHER_STUDDED list("blunt" = 80, "slash" = 65, "stab" = 80, "piercing" = 75, "fire" = 0, "acid" = 0)
 
 // Medium AC | Chest
-#define ARMOR_CUIRASS list("blunt" = 59, "slash" = 100, "stab" = 82, "piercing" = 81, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_MAILLE list("blunt" = 67, "slash" = 85, "stab" = 63, "piercing" = 36, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_CUIRASS list("blunt" = 59, "slash" = 100, "stab" = 92, "piercing" = 90, "fire" = 0, "acid" = 0)
+#define ARMOR_MAILLE list("blunt" = 67, "slash" = 85, "stab" = 75, "piercing" = 50, "fire" = 0, "acid" = 0)
 
 // Heavy AC | Chest
-#define ARMOR_PLATE list("blunt" = 61, "slash" = 100, "stab" = 89, "piercing" = 57, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PLATE_GOOD list("blunt" = 63, "slash" = 100, "stab" = 92, "piercing" = 70, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PLATE_BSTEEL list("blunt" = 66, "slash" = 100, "stab" = 96, "piercing" = 74, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0) // It's EVIL. OH GOD.
+#define ARMOR_PLATE list("blunt" = 61, "slash" = 100, "stab" = 89, "piercing" = 75, "fire" = 0, "acid" = 0)
+#define ARMOR_PLATE_GOOD list("blunt" = 63, "slash" = 100, "stab" = 92, "piercing" = 78, "fire" = 0, "acid" = 0)
+#define ARMOR_PLATE_BSTEEL list("blunt" = 66, "slash" = 100, "stab" = 96, "piercing" = 82, "fire" = 0, "acid" = 0) // It's EVIL. OH GOD.
 
 // Boot Armor
-#define ARMOR_BOOTS_PLATED list("blunt" = 63, "slash" = 100, "stab" = 92, "piercing" = 70, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_BOOTS_PLATED_IRON list("blunt" = 61, "slash" = 100, "stab" = 89, "piercing" = 57, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_BOOTS_BAD list("blunt" = 36, "slash" = 10, "stab" = 39, "piercing" = 35, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_BOOTS list("blunt" = 41, "slash" = 40, "stab" = 61, "piercing" = 49, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_BOOTS_PLATED list("blunt" = 63, "slash" = 100, "stab" = 92, "piercing" = 88, "fire" = 0, "acid" = 0)
+#define ARMOR_BOOTS_PLATED_IRON list("blunt" = 61, "slash" = 100, "stab" = 88, "piercing" = 75, "fire" = 0, "acid" = 0)
+#define ARMOR_BOOTS_BAD list("blunt" = 36, "slash" = 10, "stab" = 50, "piercing" = 48, "fire" = 0, "acid" = 0)
+#define ARMOR_BOOTS list("blunt" = 41, "slash" = 40, "stab" = 62, "piercing" = 48, "fire" = 0, "acid" = 0)
 
 // Glove Armor
-#define ARMOR_GLOVES_LEATHER list("blunt" = 38, "slash" = 10, "stab" = 47, "piercing" = 51, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_GLOVES_LEATHER_GOOD list("blunt" = 40, "slash" = 25, "stab" = 54, "piercing" = 56, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_GLOVES_CHAIN list("blunt" = 36, "slash" = 100, "stab" = 75, "piercing" = 73, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_GLOVES_PLATE list("blunt" = 50, "slash" = 100, "stab" = 88, "piercing" = 86, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_GLOVES_PLATE_GOOD list("blunt" = 52, "slash" = 100, "stab" = 91, "piercing" = 89, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_GLOVES_LEATHER list("blunt" = 38, "slash" = 10, "stab" = 48, "piercing" = 65, "fire" = 0, "acid" = 0)
+#define ARMOR_GLOVES_LEATHER_GOOD list("blunt" = 40, "slash" = 25, "stab" = 54, "piercing" = 72, "fire" = 0, "acid" = 0)
+#define ARMOR_GLOVES_CHAIN list("blunt" = 36, "slash" = 100, "stab" = 75, "piercing" = 85, "fire" = 0, "acid" = 0)
+#define ARMOR_GLOVES_PLATE list("blunt" = 50, "slash" = 100, "stab" = 88, "piercing" = 95, "fire" = 0, "acid" = 0)
+#define ARMOR_GLOVES_PLATE_GOOD list("blunt" = 52, "slash" = 100, "stab" = 91, "piercing" = 98, "fire" = 0, "acid" = 0)
 
 //  Head Armor
-#define ARMOR_HEAD_CLOTHING list("blunt" = 10, "slash" = 20, "stab" = 37, "piercing" = 44, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_HEAD_BAD list("blunt" = 44, "slash" = 20, "stab" = 49, "piercing" = 53, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_HEAD_HELMET_BAD list("blunt" = 61, "slash" = 50, "stab" = 67, "piercing" = 66, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_HEAD_HELMET list("blunt" = 66, "slash" = 100, "stab" = 89, "piercing" = 77, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_HEAD_HELMET_VISOR list("blunt" = 67, "slash" = 100, "stab" = 90, "piercing" = 88, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_HEAD_PSYDON list("blunt" = 62, "slash" = 70, "stab" = 71, "piercing" = 59, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)	//Yeah they just have their own thing going on.
-#define ARMOR_HEAD_LEATHER list("blunt" = 67, "slash" = 60, "stab" = 72, "piercing" = 55, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_HEAD_CLOTHING list("blunt" = 10, "slash" = 20, "stab" = 37, "piercing" = 44, "fire" = 0, "acid" = 0)
+#define ARMOR_HEAD_BAD list("blunt" = 44, "slash" = 20, "stab" = 49, "piercing" = 66, "fire" = 0, "acid" = 0)
+#define ARMOR_HEAD_HELMET_BAD list("blunt" = 61, "slash" = 50, "stab" = 67, "piercing" = 78, "fire" = 0, "acid" = 0)
+#define ARMOR_HEAD_HELMET list("blunt" = 66, "slash" = 100, "stab" = 89, "piercing" = 92, "fire" = 0, "acid" = 0)
+#define ARMOR_HEAD_HELMET_VISOR list("blunt" = 67, "slash" = 100, "stab" = 90, "piercing" = 95, "fire" = 0, "acid" = 0)
+#define ARMOR_HEAD_PSYDON list("blunt" = 62, "slash" = 70, "stab" = 71, "piercing" = 72, "fire" = 0, "acid" = 0)	//Yeah they just have their own thing going on.
+#define ARMOR_HEAD_LEATHER list("blunt" = 67, "slash" = 60, "stab" = 72, "piercing" = 70, "fire" = 0, "acid" = 0)
 
 // Mask Armor
-#define ARMOR_MASK_EYEPATCH list("blunt" = 10, "slash" = 10, "stab" = 5, "piercing" = 2, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_MASK_METAL_BAD list("blunt" = 52, "slash" = 50, "stab" = 59, "piercing" = 38, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_MASK_METAL list("blunt" = 69, "slash" = 100, "stab" = 79, "piercing" = 77, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_MASK_EYEPATCH list("blunt" = 10, "slash" = 10, "stab" = 5, "piercing" = 2, "fire" = 0, "acid" = 0)
+#define ARMOR_MASK_METAL_BAD list("blunt" = 52, "slash" = 50, "stab" = 72, "piercing" = 55, "fire" = 0, "acid" = 0)
+#define ARMOR_MASK_METAL list("blunt" = 69, "slash" = 100, "stab" = 92, "piercing" = 88, "fire" = 0, "acid" = 0)
 
 // Neck Armor
-#define ARMOR_BEVOR list("blunt" = 57, "slash" = 100, "stab" = 77, "piercing" = 54, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_GORGET list("blunt" = 70, "slash" = 100, "stab" = 86, "piercing" = 64, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_NECK_BAD list("blunt" = 40, "slash" = 50, "stab" = 57, "piercing" = 35, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_BEVOR list("blunt" = 57, "slash" = 100, "stab" = 77, "piercing" = 72, "fire" = 0, "acid" = 0)
+#define ARMOR_GORGET list("blunt" = 70, "slash" = 100, "stab" = 86, "piercing" = 80, "fire" = 0, "acid" = 0)
+#define ARMOR_NECK_BAD list("blunt" = 40, "slash" = 50, "stab" = 57, "piercing" = 52, "fire" = 0, "acid" = 0)
 
 //Pants Armor
-#define ARMOR_PANTS_LEATHER list("blunt" = 44, "slash" = 35, "stab" = 66, "piercing" = 43, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PANTS_CHAIN list("blunt" = 38, "slash" = 100, "stab" = 79, "piercing" = 27, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
-#define ARMOR_PANTS_BRIGANDINE list("blunt" = 46, "slash" = 70, "stab" = 72, "piercing" = 52, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
+#define ARMOR_PANTS_LEATHER list("blunt" = 54, "slash" = 35, "stab" = 66, "piercing" = 58, "fire" = 0, "acid" = 0)
+#define ARMOR_PANTS_CHAIN list("blunt" = 48, "slash" = 100, "stab" = 72, "piercing" = 45, "fire" = 0, "acid" = 0)
+#define ARMOR_PANTS_BRIGANDINE list("blunt" = 56, "slash" = 70, "stab" = 79, "piercing" = 68, "fire" = 0, "acid" = 0)
 
 //Antag / Special / Unique armor defines
 #define ARMOR_VAMP list("blunt" = 100, "slash" = 100, "stab" = 90, "piercing" = 80, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
@@ -419,11 +419,11 @@ Balloon Alert / Floating Text defines
 
 #define ALL_ACOLYTE_PATRONS list(/datum/patron/divine/astrata, /datum/patron/divine/noc, /datum/patron/divine/dendor, /datum/patron/divine/pestra, /datum/patron/divine/ravox, /datum/patron/divine/eora, /datum/patron/divine/xylix, /datum/patron/divine/necra, /datum/patron/divine/abyssor, /datum/patron/divine/malum) // Currently unused.
 
-#define ALL_DIVINE_PATRONS list(/datum/patron/divine/astrata, /datum/patron/divine/noc, /datum/patron/divine/dendor, /datum/patron/divine/abyssor, /datum/patron/divine/ravox, /datum/patron/divine/necra, /datum/patron/divine/xylix, /datum/patron/divine/pestra, /datum/patron/divine/malum, /datum/patron/divine/eora)
+#define ALL_DIVINE_PATRONS list(/datum/patron/divine/astrata, /datum/patron/divine)
 
-#define ALL_INHUMEN_PATRONS list(/datum/patron/inhumen/zizo, /datum/patron/inhumen/graggar, /datum/patron/inhumen/matthios, /datum/patron/inhumen/baotha)
+#define ALL_INHUMEN_PATRONS list(/datum/patron/inhumen/zizo, /datum/patron/inhumen)
 
-#define NON_PSYDON_PATRONS list(/datum/patron/divine/astrata, /datum/patron/divine/noc, /datum/patron/divine/dendor, /datum/patron/divine/abyssor, /datum/patron/divine/ravox, /datum/patron/divine/necra, /datum/patron/divine/xylix, /datum/patron/divine/pestra, /datum/patron/divine/malum, /datum/patron/divine/eora, /datum/patron/inhumen/zizo, /datum/patron/inhumen/graggar, /datum/patron/inhumen/matthios, /datum/patron/inhumen/baotha)	//For lord/heir usage
+#define NON_PSYDON_PATRONS list(/datum/patron/divine/astrata, /datum/patron/divine, /datum/patron/inhumen)
 
 #define ALL_PATRONS  list(/datum/patron/divine/astrata, /datum/patron/divine/noc, /datum/patron/divine/dendor, /datum/patron/divine/abyssor, /datum/patron/divine/ravox, /datum/patron/divine/necra, /datum/patron/divine/xylix, /datum/patron/divine/pestra, /datum/patron/divine/malum, /datum/patron/divine/eora, /datum/patron/old_god, /datum/patron/inhumen/zizo, /datum/patron/inhumen/graggar, /datum/patron/inhumen/matthios, /datum/patron/inhumen/baotha)
 
@@ -467,9 +467,6 @@ GLOBAL_LIST_EMPTY(confessors)
 
 
 GLOBAL_LIST_EMPTY(head_bounties)
-GLOBAL_LIST_EMPTY(board_viewers)
-GLOBAL_LIST_EMPTY(noticeboard_posts)
-GLOBAL_LIST_EMPTY(premium_noticeboardposts)
 GLOBAL_LIST_EMPTY(job_respawn_delays)
 GLOBAL_LIST_EMPTY(round_join_times)
 
@@ -539,7 +536,6 @@ GLOBAL_LIST_EMPTY(round_join_times)
 #define CTAG_MARSHAL		"CAT_MARSHAL"		// Marshal class
 #define CTAG_SENESCHAL		"CAT_SENESCHAL"		// Seneschal's aesthetic choices.
 #define CTAG_SERVANT		"CAT_SERVANT"		// Servant's aesthetic choices.
-#define CTAG_CAPTAIN		"CAT_CAPTAIN"		// Handles Captain class selector
 #define CTAG_WAPPRENTICE	"CTAG_WAPPRENTICE"	// Mage Apprentice Classes - Handles Mage Apprentices class selector
 #define CTAG_GUILDMASTER 	"CAT_GUILDMASTER"	// Guildmaster class - Handles Guildmaster class selector
 #define CTAG_GUILDSMEN 		"CAT_GUILDSMEN"		// Guildsmen class - Handles Guildsmen class selector

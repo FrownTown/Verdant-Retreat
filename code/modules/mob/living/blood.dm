@@ -241,9 +241,17 @@
 
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
 		// Calculate this bodypart's bleed inline (avoid function call overhead)
-		var/bp_normal = BP.bleeding  // Base bleeding from wounds
+		var/bp_normal_wounds = 0
 		var/bp_critical = 0
 		var/bp_max_bleed = 0
+
+		// Calculate total plug effect from embedded objects
+		var/total_plug_amount = 0
+		var/list/embeds = BP.embedded_objects
+		if(length(embeds))
+			for(var/obj/item/I as anything in embeds)
+				if(I.embed_bleed_contribution)
+					total_plug_amount += I.embed_bleed_contribution
 
 		// Process wounds - separate normal and critical, track max
 		var/list/wound_list = BP.wounds
@@ -251,21 +259,21 @@
 			for(var/datum/wound/W as anything in wound_list)
 				var/w_bleed = W.bleed_rate
 				if(w_bleed)
+					// Reduce puncture wound bleeding by the amount embedded objects are plugging
+					if(istype(W, /datum/wound/dynamic/puncture) && total_plug_amount)
+						w_bleed = max(w_bleed - total_plug_amount, 0)
+
 					if(w_bleed > bp_max_bleed)
 						bp_max_bleed = w_bleed
 					if(W.severity >= WOUND_SEVERITY_CRITICAL)
 						bp_critical += w_bleed
-						bp_normal -= w_bleed  // Move from normal to critical
+					else
+						bp_normal_wounds += w_bleed
 
-		// Process embedded objects
-		var/list/embeds = BP.embedded_objects
-		if(length(embeds))
-			for(var/obj/item/I as anything in embeds)
-				var/embed_bleed = I.embedding?.embedded_bloodloss
-				if(embed_bleed)
-					bp_normal += embed_bleed
-					if(embed_bleed > bp_max_bleed)
-						bp_max_bleed = embed_bleed
+		// Auto-correct BP.bleeding (handle desyncs)
+		BP.bleeding = bp_normal_wounds + bp_critical
+
+		var/bp_normal = bp_normal_wounds
 
 		// Check bandage effectiveness AFTER calculating max bleed
 		if(BP.is_bandaged())
@@ -285,7 +293,7 @@
 		var/bp_grab_suppress = 1.0
 		var/list/grabs = BP.grabbedby
 		if(length(grabs))
-			for(var/obj/item/grabbing/G as anything in grabs)
+			for(var/obj/item/grabbing/G in grabs)
 				bp_grab_suppress *= G.bleed_suppressing
 
 		// Apply surgery clamp if present
@@ -344,7 +352,7 @@
 	if(!(mobility_flags & MOBILITY_STAND))
 		vol2use = null
 	if(vol2use)
-		playsound(get_turf(src), vol2use, 100, FALSE)
+		playsound(src, vol2use, 100, FALSE)
 
 	return TRUE
 

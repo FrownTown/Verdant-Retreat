@@ -7,7 +7,7 @@
 	attack_verb = list("cuts", "slashes")
 	hitsound = list('sound/combat/hits/bladed/genchop (1).ogg', 'sound/combat/hits/bladed/genchop (2).ogg', 'sound/combat/hits/bladed/genchop (3).ogg')
 	animname = "cut"
-	penfactor = 20
+	penfactor = 1
 	chargetime = 0
 	item_d_type = "slash"
 
@@ -18,7 +18,7 @@
 	attack_verb = list("chops", "hacks")
 	animname = "chop"
 	hitsound = list('sound/combat/hits/bladed/wpn_impact_blunt2hand_flesh_01.ogg', 'sound/combat/hits/bladed/wpn_impact_blunt2hand_flesh_02.ogg', 'sound/combat/hits/bladed/wpn_impact_blunt2hand_flesh_03.ogg')
-	penfactor = 35
+	penfactor = 1.75
 	swingdelay = 10
 	clickcd = 14
 	item_d_type = "slash"
@@ -27,14 +27,19 @@
 	reach = 2
 
 /datum/intent/axe/chop/stone
-	penfactor = 5
+	penfactor = 0.25
 
 /datum/intent/axe/chop/battle
 	damfactor = 1.2 //36 on battleaxe
-	penfactor = 40
+	penfactor = 2
+
+/datum/intent/axe/chop/battle/halberd
+	damfactor = 1.3
+	swingdelay = 12
+	penfactor = 1
 
 /datum/intent/axe/cut/battle
-	penfactor = 25
+	penfactor = 1.25
 
 /datum/intent/axe/bash
 	name = "bash"
@@ -544,6 +549,7 @@
 	force_wielded = 40
 	icon = 'icons/roguetown/weapons/64.dmi'
 	max_blade_int = 200
+	item_flags = GIANT_WEAPON
 
 /obj/item/rogueweapon/greataxe/steel/doublehead/graggar/ogre/pickup(mob/living/user)
 	if(!HAS_TRAIT(user, TRAIT_HORDE))
@@ -563,7 +569,8 @@
 	icon_state = "minotaurgreataxe"
 	force = 20							//Same as Graggar axe, only cus it's rare enough. Plus has the high strength req and crap starting-shaft.
 	force_wielded = 40
-	minstr = 15							//Boo-womp
+	minstr = 15						//Boo-womp
+	item_flags = GIANT_WEAPON
 	max_blade_int = 175
 
 /obj/item/rogueweapon/stoneaxe/woodcut/troll
@@ -575,7 +582,7 @@
 	max_integrity = 150					//50% less than normal axe
 	max_blade_int = 300
 	minstr = 13							//Heavy, but still good.
+	item_flags = GIANT_WEAPON
 	wdefense = 3						//Slightly better than norm, has 6 defense 2 handing it.
-	item_flags = NONE
 
 // end mob stuff

@@ -63,10 +63,10 @@
 	if(SEND_SIGNAL(src, COMSIG_ATOM_BULLET_ACT, P, def_zone) & COMPONENT_ATOM_BLOCK_BULLET)
 		return
 	def_zone = bullet_hit_accuracy_check(P.accuracy + P.bonus_accuracy, def_zone)
-	var/ap = (P.flag == "blunt") ? BLUNT_DEFAULT_PENFACTOR : P.armor_penetration
+	var/ap = (P.flag == "blunt") ? 0 : P.armor_penetration
 	if(ishuman(P.firer))
 		var/mob/living/carbon/human/shooter = P.firer
-		ap += max((shooter.STAPER - 10) * PER_PEN_FACTOR, (shooter.STASTR - 10) * STR_PEN_FACTOR)
+		ap += max((shooter.STAPER - 10) * PER_PEN_FACTOR, (shooter.STASTR - 10) * STR_PEN_FACTOR, 0)
 
 	var/armor = run_armor_check(def_zone, P.flag, "", "",armor_penetration = ap, damage = P.damage, used_weapon = P)
 
@@ -110,7 +110,7 @@
 					if(P.poisonfeel)
 						M.show_message(span_danger("You feel an intense [P.poisonfeel] sensation spreading swiftly from the area!"))
 
-			if(P.embedchance && !check_projectile_embed(P, def_zone))
+			if(P.embedchance && !check_projectile_embed(P, def_zone, was_blunted, armor))
 				P.handle_drop()
 
 		else
@@ -140,7 +140,7 @@
 		damage = P.damage
 	return simple_woundcritroll(wound_class, damage, null, def_zone, crit_message = TRUE)
 
-/mob/living/proc/check_projectile_embed(obj/projectile/P, def_zone)
+/mob/living/proc/check_projectile_embed(obj/projectile/P, def_zone, was_blunted = FALSE)
 	// Disable embeds on simples, allowing it to override on complex.
 	return FALSE
 
@@ -160,7 +160,7 @@
 		if(SEND_SIGNAL(src, COMSIG_LIVING_IMPACT_ZONE, I, zone) & COMPONENT_CANCEL_THROW)
 			return FALSE
 		if(!blocked)
-			var/ap = (damage_flag == "blunt") ? BLUNT_DEFAULT_PENFACTOR : I.armor_penetration
+			var/ap = (damage_flag == "blunt") ? 0 : I.armor_penetration
 			var/armor = run_armor_check(zone, damage_flag, "", "", armor_penetration = ap, damage = I.throwforce, used_weapon = I)
 			next_attack_msg.Cut()
 			var/nodmg = FALSE
@@ -289,7 +289,7 @@
 			to_chat(user, span_warning("I struggle with [src]! [probby]%"))
 		else
 			to_chat(user, span_warning("I struggle with [src]!"))
-		playsound(src.loc, 'sound/foley/struggle.ogg', 100, FALSE, -1)
+		playsound(src, 'sound/foley/struggle.ogg', 100, FALSE, -1)
 		user.Immobilize(2 SECONDS)
 		user.changeNext_move(2 SECONDS)
 		src.Immobilize(1 SECONDS)
@@ -298,7 +298,7 @@
 
 	if(!instant)
 		var/sound_to_play = 'sound/foley/grab.ogg'
-		playsound(src.loc, sound_to_play, 100, FALSE, -1)
+		playsound(src, sound_to_play, 100, FALSE, -1)
 
 	testing("eheh1")
 	user.setGrabState(GRAB_AGGRESSIVE)
@@ -387,7 +387,7 @@
 		return FALSE
 
 	M.do_attack_animation(src, visual_effect_icon = M.a_intent.animname)
-	playsound(get_turf(M), pick(M.attack_sound), 100, FALSE)
+	playsound(M, pick(M.attack_sound), 100, FALSE)
 
 	var/cached_intent = M.used_intent
 
@@ -498,7 +498,7 @@
 		span_danger("I feel a powerful shock coursing through my body!"), \
 		span_hear("I hear a heavy electrical crack.") \
 	)
-	playsound(get_turf(src), pick('sound/misc/elec (1).ogg', 'sound/misc/elec (2).ogg', 'sound/misc/elec (3).ogg'), 100, FALSE)
+	playsound(src, pick('sound/misc/elec (1).ogg', 'sound/misc/elec (2).ogg', 'sound/misc/elec (3).ogg'), 100, FALSE)
 	return shock_damage
 
 /mob/living/emp_act(severity)

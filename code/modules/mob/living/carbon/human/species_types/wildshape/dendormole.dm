@@ -29,7 +29,10 @@
 		src.STASPD = 13
 
 		AddSpell(new /obj/effect/proc_holder/spell/self/moleclaw)
-		real_name = "Moss Crawler ([stored_mob.real_name])" //Preserve original character name
+		if (src.client.prefs?.wildshape_name)
+			real_name = "moss crawler ([stored_mob.real_name])"
+		else
+			real_name = "moss crawler"
 
 
 // dendormole SPECIES DATUM //
@@ -75,7 +78,7 @@
 	)
 
 /datum/species/dendormole/send_voice(mob/living/carbon/human/H)
-	playsound(get_turf(H), pick('sound/vo/mobs/vw/idle (1).ogg','sound/vo/mobs/vw/idle (2).ogg','sound/vo/mobs/vw/bark (1).ogg','sound/vo/mobs/vw/bark (2).ogg','sound/vo/mobs/vw/idle (3).ogg'), 80, TRUE, -1)
+	playsound(H, pick('sound/vo/mobs/vw/idle (1).ogg','sound/vo/mobs/vw/idle (2).ogg','sound/vo/mobs/vw/bark (1).ogg','sound/vo/mobs/vw/bark (2).ogg','sound/vo/mobs/vw/idle (3).ogg'), 80, TRUE, -1)
 
 /datum/species/dendormole/regenerate_icons(mob/living/carbon/human/H)
 	H.icon = 'icons/roguetown/mob/monster/mosscrawler.dmi'

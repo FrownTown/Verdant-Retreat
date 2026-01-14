@@ -11,7 +11,7 @@
 	layer = BELOW_OBJ_LAYER
 	var/list/held_items = list()
 	var/locked = TRUE
-	var/budget = 0
+	
 	var/wgain = 0
 	var/keycontrol = "merchant"
 	var/next_hawk = 0
@@ -70,7 +70,9 @@
 /obj/structure/roguemachine/vendor/attackby(obj/item/P, mob/user, params)
 	if(istype(P, /obj/item/roguecoin/aalloy))
 		return
-	if(istype(P, /obj/item/roguecoin/inqcoin))	
+	if(istype(P, /obj/item/roguecoin/inqcoin))
+		return
+	if(istype(P, /obj/item/roguecoin/scrip))
 		return
 	if(istype(P, /obj/item/roguecoin))
 		budget += P.get_real_price()
@@ -386,14 +388,14 @@
 		held_items[P]["PRICE"] = 20
 
 	// Add fancy keys with a price of 100
-	for (var/Y in list(/obj/item/roguekey/fancyroomi, /obj/item/roguekey/fancyroomii, /obj/item/roguekey/fancyroomiii, /obj/item/roguekey/fancyroomiv, /obj/item/roguekey/fancyroomv))
+	for (var/Y in list(/obj/item/storage/keyring/innfancyi, /obj/item/storage/keyring/innfancyii, /obj/item/storage/keyring/innfancyiii, /obj/item/storage/keyring/innfancyiv, /obj/item/storage/keyring/innfancyv))
 		var/obj/Q = new Y(src)
 		held_items[Q] = list()
 		held_items[Q]["NAME"] = Q.name
 		held_items[Q]["PRICE"] = 100
 
 	// Add penthouse suite key
-	for (var/Z in list(/obj/item/roguekey/roomhunt))
+	for (var/Z in list(/obj/item/storage/keyring/innhunt))
 		var/obj/F = new Z(src)
 		held_items[F] = list()
 		held_items[F]["NAME"] = F.name

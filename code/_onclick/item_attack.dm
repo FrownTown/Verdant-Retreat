@@ -132,7 +132,7 @@
 	if(force)
 		if(user.used_intent)
 			if(!user.used_intent.noaa)
-				playsound(get_turf(src), pick(swingsound), 100, FALSE, -1)
+				playsound(src, pick(swingsound), 100, FALSE, -1)
 			if(user.used_intent.no_attack) //BYE!!!
 				return
 	else
@@ -169,6 +169,10 @@
 					user.do_attack_animation(M, user.used_intent.animname, used_item = src, used_intent = user.used_intent, simplified = TRUE)
 			return
 	user.stamina_add(get_stamina_cost(src, user))
+	// Strong attacks consume energy in addition to stamina
+	if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+		var/energy_cost = max(23 - (user.STAEND + user.get_skill_level(/datum/skill/misc/athletics)), 3)// Base 23, reduced by END/Athletics, minimum of 3
+		user.energy_add(-energy_cost)
 	if(user.mob_biotypes & MOB_UNDEAD)
 		if(M.has_status_effect(/datum/status_effect/buff/necras_vow))
 			if(isnull(user.mind))
@@ -341,15 +345,17 @@
 
 	if(I.minstr)
 		var/effective = I.minstr
+		// Check if weapon is for giants
+		if((I.item_flags & GIANT_WEAPON) && !HAS_TRAIT(user, TRAIT_GIANT_WEAPON_WIELDER) && !HAS_TRAIT(user, TRAIT_OGRE_STRENGTH))
+			effective = I.minstr * 2
 		if(I.wielded)
-			effective = max(I.minstr / 2, 1)
+			effective = max(effective / 2, 1)
 		if(effective > user.STASTR)
 			newforce = max(newforce*0.3, 1)
-			if(prob(33))
-				if(I.wielded)
-					to_chat(user, span_info("I am too weak to wield this weapon properly with both hands."))
-				else
-					to_chat(user, span_info("I am too weak to wield this weapon properly with one hand."))
+			if(I.wielded)
+				to_chat(user, span_warning("I struggle to control this massive weapon with both hands!"))
+			else
+				to_chat(user, span_warning("This weapon is far too heavy for me to wield properly!"))
 
 	switch(blade_dulling)
 		if(DULLING_CUT) //wooden that can't be attacked by clubs (trees, bushes, grass)
@@ -463,7 +469,7 @@
 	if(istype(user.rmb_intent, /datum/rmb_intent/weak))
 		variance_center = -1
 
-	var/variance_roll = get_damage_variance(I.associated_skill, variance_center)
+	var/variance_roll = get_damage_variance(I.associated_skill, variance_center, user)
 
 	newforce = newforce * (1 + (variance_roll / 100))
 	newforce = max(round(newforce, 1), 1)
@@ -472,35 +478,36 @@
 
 	return newforce
 
-/proc/get_damage_variance(wep_type, variance_center)
+/proc/get_damage_variance(wep_type, variance_center, mob/living/user)
 	var/variance_range = 0
 	var/variance_roll = 0
 	var/curve_depth = 3
+	var/isprojectile = FALSE
 
 	switch(wep_type)
 		if(/datum/skill/combat/knives) // Low variance, but tend to roll high with a big curve
-			variance_range = 25
+			variance_range = 15
 			curve_depth = 4
 			if(variance_center > 0)
 				variance_center += 0.3
 		if(/datum/skill/combat/swords)
-			variance_range = 35
+			variance_range = 25
 			curve_depth = 2
 			if(variance_center > 0)
 				variance_center += 0.15
 		if(/datum/skill/combat/axes, /datum/skill/labor/lumberjacking)
-			variance_range = 70
+			variance_range = 40
 			curve_depth = 6
 		if(/datum/skill/combat/maces, /datum/skill/combat/shields, /datum/skill/craft/blacksmithing, /datum/skill/labor/mining)
-			variance_range = 15
+			variance_range = 20
 			curve_depth = 3
 		if(/datum/skill/combat/polearms, /datum/skill/labor/farming)
-			variance_range = 40
+			variance_range = 30
 			curve_depth = 2
 			if(variance_center > 0)
 				variance_center += 0.1
 		if(/datum/skill/combat/whipsflails)
-			variance_range = 70
+			variance_range = 40
 			curve_depth = 3
 		if(/datum/skill/combat/unarmed)
 			variance_range = 10
@@ -508,6 +515,7 @@
 		if(/datum/skill/combat/bows, /datum/skill/combat/crossbows, /datum/skill/combat/slings)
 			variance_range = 20
 			curve_depth = 4
+			isprojectile = TRUE
 
 	for(var/i = 0, i < curve_depth, i++)
 		variance_roll += rand(-variance_range, variance_range)
@@ -517,7 +525,14 @@
 
 	variance_roll = (variance_roll / curve_depth) + (variance_center * variance_range)
 
-	return clamp(variance_roll, -variance_range, variance_range)
+	var/clamped_roll = clamp(variance_roll, -variance_range, variance_range)
+
+	// Store variance percentile in the user for attack message display
+	if(ishuman(user) && variance_range > 0 && !isprojectile)
+		var/mob/living/carbon/human/H = user
+		H.last_variance_percentile = ((clamped_roll + variance_range) / (variance_range * 2)) * 100
+
+	return clamped_roll
 
 /obj/attacked_by(obj/item/I, mob/living/user)
 	user.changeNext_move(CLICK_CD_INTENTCAP)
@@ -707,7 +722,7 @@
 			if(istype(user.rmb_intent, /datum/rmb_intent/swift))
 				adf = max(round(adf * CLICK_CD_MOD_SWIFT), CLICK_CD_INTENTCAP)
 			user.changeNext_move(adf)
-			playsound(get_turf(src), pick(swingsound), 100, FALSE, -1)
+			playsound(src, pick(swingsound), 100, FALSE, -1)
 			user.aftermiss()
 		if(!proximity_flag && ismob(target) && !user.used_intent?.noaa) //this block invokes miss cost clicking on seomone who isn't adjacent to you
 			var/adf = user.used_intent.clickcd
@@ -716,7 +731,7 @@
 			if(istype(user.rmb_intent, /datum/rmb_intent/swift))
 				adf = max(round(adf * CLICK_CD_MOD_SWIFT), CLICK_CD_INTENTCAP)
 			user.changeNext_move(adf)
-			playsound(get_turf(src), pick(swingsound), 100, FALSE, -1)
+			playsound(src, pick(swingsound), 100, FALSE, -1)
 			user.aftermiss()
 
 // Called if the target gets deleted by our attack

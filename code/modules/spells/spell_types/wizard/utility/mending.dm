@@ -30,24 +30,50 @@
 		// Check if this is clothing with zone tracking
 		if(istype(I, /obj/item/clothing))
 			var/obj/item/clothing/C = I
-			var/repair_percent = 0.25
-			var/needs_repair = FALSE
 
-			// Repair all zones simultaneously
-			var/static/list/zones = list(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
-			for(var/zone in zones)
-				if(C.has_zone_integrity(zone))
-					var/old_integrity = C.get_zone_integrity(zone)
-					var/zone_max = C.get_zone_max_integrity(zone)
-					if(old_integrity < zone_max)
-						needs_repair = TRUE
-						C.modify_zone_integrity(zone, zone_max * repair_percent)
+			// Check if this clothing uses zone integrity system
+			if(C.uses_zone_integrity())
+				var/repair_percent = 0.25
+				var/needs_repair = FALSE
 
-			if(needs_repair)
-				C.update_overall_integrity()
+				// Repair all zones simultaneously
+				var/static/list/zones = list(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+				for(var/zone in zones)
+					if(C.has_zone_integrity(zone))
+						var/old_integrity = C.get_zone_integrity(zone)
+						var/zone_max = C.get_zone_max_integrity(zone)
+						if(old_integrity < zone_max)
+							needs_repair = TRUE
+							var/new_integrity = C.modify_zone_integrity(zone, zone_max * repair_percent)
+							// Remove zone from broken list if it's been repaired above 0
+							if(new_integrity > 0 && (zone in C.broken_zones))
+								C.broken_zones -= zone
+
+				if(needs_repair || I.obj_broken)
+					C.update_overall_integrity()
+					user.visible_message(span_info("[I] glows in a faint mending light."))
+					playsound(I, 'sound/foley/sewflesh.ogg', 50, TRUE, -2)
+					// Check if all zones are at max integrity to determine if we should fix the broken state
+					var/all_zones_full = TRUE
+					for(var/zone in zones)
+						if(C.has_zone_integrity(zone))
+							if(C.get_zone_integrity(zone) < C.get_zone_max_integrity(zone))
+								all_zones_full = FALSE
+								break
+					if(I.obj_broken && all_zones_full)
+						I.obj_fix()
+				else
+					to_chat(user, span_info("[I] appears to be in perfect condition."))
+					revert_cast()
+			// Clothing without zone tracking - use standard repair
+			else if(I.obj_integrity < I.max_integrity)
+				var/repair_percent = 0.25
+				repair_percent *= I.max_integrity
+				I.obj_integrity = min(I.obj_integrity + repair_percent, I.max_integrity)
 				user.visible_message(span_info("[I] glows in a faint mending light."))
 				playsound(I, 'sound/foley/sewflesh.ogg', 50, TRUE, -2)
 				if(I.obj_broken && I.obj_integrity >= I.max_integrity)
+					I.obj_integrity = I.max_integrity
 					I.obj_fix()
 			else
 				to_chat(user, span_info("[I] appears to be in perfect condition."))

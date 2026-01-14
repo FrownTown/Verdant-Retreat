@@ -43,10 +43,7 @@
 	sewn_whp = 0
 	bleed_rate = 1
 	sewn_bleed_rate = 0.04
-	clotting_rate = 0.01
-	sewn_clotting_rate = 0.01
-	clotting_threshold = 0.2
-	sewn_clotting_threshold = 0.1
+	clotting_rate = 0.075
 	sew_threshold = 20
 	mob_overlay = "cut"
 	can_sew = TRUE
@@ -58,6 +55,16 @@
 		"vicious" = 12,
 		"lethal" = 20,
 	)
+	/// Base pain value without temporary modifiers (for decay back to this value)
+	var/base_woundpain = 0
+	/// Temporary pain from embedded object jiggling (decays over time)
+	var/jiggle_pain = 0
+
+/datum/wound/dynamic/puncture/on_life()
+	. = ..()
+	if(jiggle_pain > 0)
+		jiggle_pain = max(jiggle_pain - 2, 0)
+		woundpain = base_woundpain + jiggle_pain
 
 //Puncture (Stab -- not Pick) Omniwounds
 //Vaguely: Moderately painful, higher bleed cap, easier to sew / heal.
@@ -69,10 +76,13 @@
 #define PUNC_UPG_CLAMP 1.0
 
 /datum/wound/dynamic/puncture/upgrade(dam, armor)
+	var/bleed_increase = clamp((dam * PUNC_UPG_BLEEDRATE), 0.1, PUNC_UPG_CLAMP)
 	whp += (dam * PUNC_UPG_WHPRATE)
-	set_bleed_rate(bleed_rate + clamp((dam * PUNC_UPG_BLEEDRATE), 0.1, PUNC_UPG_CLAMP))
+	set_bleed_rate(bleed_rate + bleed_increase)
 	sew_threshold += (dam * PUNC_UPG_SEWRATE)
-	woundpain += (dam * PUNC_UPG_PAINRATE)
+	var/pain_increase = (dam * PUNC_UPG_PAINRATE)
+	base_woundpain += pain_increase // Track base pain (without jiggling)
+	woundpain = base_woundpain + jiggle_pain // Total pain = base + temporary jiggle pain
 	update_name()
 	..()
 
@@ -88,10 +98,7 @@
 	sewn_whp = 0
 	bleed_rate = 1
 	sewn_bleed_rate = 0.04
-	clotting_rate = 0.01
-	sewn_clotting_rate = 0.01
-	clotting_threshold = 0.2
-	sewn_clotting_threshold = 0.1
+	clotting_rate = 0.075
 	sew_threshold = 20
 	mob_overlay = "cut"
 	can_sew = TRUE

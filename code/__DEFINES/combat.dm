@@ -88,6 +88,12 @@
 #define ATTACK_ANIMATION_SWIPE "swipe"
 #define ATTACK_ANIMATION_THRUST "thrust"
 
+// Intent Effective Range presets
+#define EFF_RANGE_NONE 0
+#define EFF_RANGE_EXACT 1
+#define EFF_RANGE_ABOVE 2
+#define EFF_RANGE_BELOW 3
+
 //Grab levels
 #define GRAB_PASSIVE				0
 #define GRAB_AGGRESSIVE				1
@@ -162,8 +168,10 @@
 #define AXE_CHOP			/datum/intent/axe/chop
 
 #define SPEAR_THRUST		/datum/intent/spear/thrust
+#define SPEAR_THRUST_1H		/datum/intent/spear/thrust/oneh
 #define SPEAR_BASH			/datum/intent/spear/bash
 #define SPEAR_CUT			/datum/intent/spear/cut
+#define SPEAR_CUT_1H		/datum/intent/spear/cut/oneh
 #define SPEAR_CAST          /datum/intent/spear/cast
 #define PARTIZAN_REND		/datum/intent/rend/reach/partizan
 
@@ -366,27 +374,21 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define BULLET_ACT_MISS				"MISS"
 
 //Weapon values
-#define BLUNT_DEFAULT_PENFACTOR		0
+#define BLUNT_DEFAULT_PENFACTOR		1
 #define INTEG_PARRY_DECAY			1	//Default integrity decay on parry.
 #define INTEG_PARRY_DECAY_NOSHARP	5	//Integrity decay on parry for weapons with no sharpness OR for off-hand parries.
 #define SHARPNESS_ONHIT_DECAY		3	//Sharpness decay on parry.
 #define SHARPNESS_TIER1_THRESHOLD	0.8	//%-age threshold when damage starts to fall off -- mainly damfactor and STR factor. NOT base damage value.
 #define SHARPNESS_TIER2_THRESHOLD	0.25//%-age threshold when damage *really* falls off. Base damage value included.
 
-//Armor damage threshold system
-#define ARMOR_DT_DIVISOR_LIGHT		2	//Light armor: DT = armor/2
-#define ARMOR_DT_DIVISOR_MEDIUM		2	//Medium armor: DT = armor/2
-#define ARMOR_DT_DIVISOR_HEAVY		2	//Heavy armor: DT = armor/2
-#define ARMOR_MAX_REDUCTION			100	//Maximum armor percentage reduction (100 armor = 100% reduction)
-
 #define UNARMED_DAMAGE_DEFAULT		12
-#define STR_PEN_FACTOR			3.5
+#define STR_PEN_FACTOR			2
 #define PER_PEN_FACTOR		2
 
-#define BLUNT_AP_MOD_LIGHT -7 // Effectively -2 STR
-#define BLUNT_AP_MOD_MEDIUM 3.5 // Effectively +1 STR
-#define BLUNT_AP_MOD_HEAVY 10.5 // Effectively +3 STR
-#define BLUNT_AP_MOD_HEAVY_HELMET 3.5 // Effectively +1 STR
+#define BLUNT_AP_MOD_LIGHT -10
+#define BLUNT_AP_MOD_MEDIUM -6
+#define BLUNT_AP_MOD_HEAVY 26
+#define BLUNT_AP_MOD_HEAVY_HELMET 12
 
 /// Damage multiplier of silver weapons against mobs with TRAIT_SIMPLE_WOUNDS
 #define SILVER_SIMPLEMOB_DAM_MULT 2

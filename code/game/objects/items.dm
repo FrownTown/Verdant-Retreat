@@ -98,6 +98,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 
 	var/datum/embedding_behavior/embedding
 	var/is_embedded = FALSE
+	var/embed_bleed_contribution = 0 // How much bleed_rate this object added to the wound when it embedded
 
 	var/flags_cover = 0 //for flags such as GLASSESCOVERSEYES
 	var/heat = 0
@@ -167,6 +168,8 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	var/wdefense_dynamic = 0
 	/// Minimum STR required to use the weapon. Will reduce damage by 70% if not met. Wielding halves the requirement.
 	var/minstr = 0
+	///Wielding normally halves the requirement. If true, it does not.
+	var/minstr_req = FALSE
 	/// %-age of our raw damage that is dealt to armor or weapon on hit / parry / clip.
 	var/intdamage_factor = 1
 
@@ -180,6 +183,8 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	var/l_sleeve_zone = BODY_ZONE_L_ARM
 
 	var/twohands_required = FALSE
+
+	var/from_stockpile = FALSE
 
 	var/bloody_icon = 'icons/effects/blood.dmi'
 	var/bloody_icon_state = "itemblood"
@@ -450,7 +455,6 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 		var/list/inspec = list(span_notice("Properties of [src.name]"))
 		if(minstr)
 			inspec += "\n<b>MIN.STR:</b> [minstr]"
-
 		if(force)
 			inspec += "\n<b>FORCE:</b> [get_force_string(force)]"
 		if(gripped_intents && !wielded)
@@ -501,8 +505,7 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 		if(istype(src, /obj/item/rogueweapon))
 			var/obj/item/rogueweapon/W = src
 			if(W.special)
-				inspec +="\n<b>SPECIAL:</b> [W.special.name]"
-				inspec +="\n<i>[W.special.desc]</i>"
+				inspec += "[W.special.get_examine()]"
 		
 		if(intdamage_factor != 1 && force >= 5)
 			inspec += "\n<b>INTEGRITY DAMAGE:</b> [intdamage_factor * 100]%"
@@ -1323,6 +1326,10 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 		wdefense_dynamic = wdefense
 	if(altgripped)
 		altgripped = FALSE
+		wielded = FALSE
+		if(force_wielded)
+			update_force_dynamic()
+		wdefense_dynamic = wdefense
 	update_transform()
 	if(user.get_item_by_slot(SLOT_BACK) == src)
 		user.update_inv_back()
@@ -1338,12 +1345,26 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 /obj/item/proc/altgrip(mob/living/carbon/user)
 	if(altgripped)
 		return
+	if(user.get_inactive_held_item())
+		to_chat(user, span_warning("I need a free hand first."))
+		return
+	if(user.get_num_arms() < 2)
+		to_chat(user, span_warning("I don't have enough hands."))
+		return
+	if (obj_broken)
+		to_chat(user, span_warning("It's completely broken."))
+		return
 	altgripped = TRUE
 	update_transform()
 	to_chat(user, span_notice("I wield [src] with an alternate grip"))
 	if(user.get_active_held_item() == src)
 		if(alt_intents)
 			user.update_a_intents()
+			wielded = TRUE
+			if(force_wielded)
+				update_force_dynamic()
+			wdefense_dynamic = (wdefense + wdefense_wbonus)
+			user.update_inv_hands()
 
 /obj/item/proc/wield(mob/living/carbon/user, show_message = TRUE)
 	if(wielded)
@@ -1509,6 +1530,10 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 
 /obj/item/examine(mob/user)
 	. = ..()
+	if(item_flags & GIANT_WEAPON)
+		. += span_warning("This weapon is designed for giants. Those without giant strength will require double the normal strength to wield it effectively.")
+	if(can_do_precision_strikes())
+		. += span_info("This weapon can perform precision thrusts through the gaps in heavy armor.")
 	if(isliving(user))
 		var/mob/living/L = user
 		if(L.STAINT < 9)
@@ -1518,15 +1543,21 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	else
 		var/str = "This object can be repaired using "
 		if(anvilrepair)
-			var/datum/skill/S = anvilrepair		//Should only ever be a skill or null
+			var/datum/skill/S = anvilrepair
 			str += "<b>[initial(S.name)]</b> and a hammer."
 		if(sewrepair)
 			str += "<b>Sewing</b> and a needle."
 		str = span_info(str)
 		. += str
 
-/obj/item/proc/step_action() //this was made to rewrite clown shoes squeaking, moved here to avoid throwing runtimes with non-/clothing wearables
+/obj/item/proc/step_action()
 	SEND_SIGNAL(src, COMSIG_CLOTHING_STEP_ACTION)
 
 /obj/item/proc/update_force_dynamic()
 	force_dynamic = (wielded ? force_wielded : force)
+
+/obj/item/proc/can_do_precision_strikes()
+	for(var/datum/intent/I as anything in possible_item_intents)
+		if(I.blade_class in GLOB.stab_bclasses && (wbalance != WBALANCE_HEAVY || can_precision_strike))
+			return TRUE
+	return FALSE

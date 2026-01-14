@@ -30,6 +30,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	var/sub_name
 	var/psydonic = FALSE
 	var/origin = "Scarlet Reach"
+	var/region
 	var/origin_default = /datum/virtue/origin/racial/reach
 	var/max_age = 75
 	var/is_subrace = FALSE
@@ -1105,7 +1106,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 			H.remove_status_effect(/datum/status_effect/debuff/hungryt1)
 			H.remove_status_effect(/datum/status_effect/debuff/hungryt2)
 			if(prob(3))
-				playsound(get_turf(H), pick('sound/body/hungry1.ogg','sound/body/hungry2.ogg','sound/body/hungry3.ogg'), 100, TRUE, -1)
+				playsound(H, pick('sound/body/hungry1.ogg','sound/body/hungry2.ogg','sound/body/hungry3.ogg'), 100, TRUE, -1)
 
 	switch(H.hydration)
 //		if(HYDRATION_LEVEL_WATERLOGGED to INFINITY)
@@ -1275,7 +1276,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				miss_chance = min((user.dna.species.punchdamagehigh/user.dna.species.punchdamagelow) + user.getStaminaLoss() + (user.getBruteLoss()*0.5), 100) //old base chance for a miss + various damage. capped at 100 to prevent weirdness in prob()
 
 		if(!damage || !affecting || prob(miss_chance))//future-proofing for species that have 0 damage/weird cases where no zone is targeted
-			playsound(target.loc, user.dna.species.miss_sound, 25, TRUE, -1)
+			playsound(target, user.dna.species.miss_sound, 25, TRUE, -1)
 			target.visible_message(span_danger("[user]'s [atk_verb] misses [target]!"), \
 							span_danger("I avoid [user]'s [atk_verb]!"), span_hear("I hear a swoosh!"), COMBAT_MESSAGE_RANGE, user)
 			to_chat(user, span_warning("My [atk_verb] misses [target]!"))
@@ -1338,7 +1339,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				if(HAS_TRAIT(target, TRAIT_HARDDISMEMBER) && !easy_dismember)
 					probability = min(probability, 5)
 				if(prob(probability) && affecting.dismember())
-					playsound(get_turf(target), "desecration", 80, TRUE)
+					playsound(target, "desecration", 80, TRUE)
 
 /*		if(user == target)
 			target.visible_message(span_danger("[user] [atk_verb]ed themself![target.next_attack_msg.Join()]"), COMBAT_MESSAGE_RANGE, user)
@@ -1373,7 +1374,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 		if(!(target.mobility_flags & MOBILITY_STAND))
 			target.forcesay(GLOB.hit_appends)
 		if(!nodmg)
-			playsound(target.loc, user.used_intent.hitsound, 100, FALSE)
+			playsound(target, user.used_intent.hitsound, 100, FALSE)
 
 
 /datum/species/proc/spec_unarmedattacked(mob/living/carbon/human/user, mob/living/carbon/human/target, damage, armor_block, actual_damage, obj/item/bodypart/affecting)
@@ -1551,9 +1552,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 			var/selzone = accuracy_check(user.zone_selected, user, target, /datum/skill/combat/unarmed, user.used_intent)
 			var/obj/item/bodypart/affecting = target.get_bodypart(check_zone(selzone))
 			var/damage = user.get_punch_dmg() * 1.4
-			var/stomp_pen = BLUNT_DEFAULT_PENFACTOR
+			var/stomp_pen = 0
 			if(HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN))
-				stomp_pen += (user.STASTR - 10) * STR_PEN_FACTOR
+				stomp_pen += max((user.STASTR - 10) * STR_PEN_FACTOR, 0)
 			var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = stomp_pen, blade_dulling = BCLASS_BLUNT, damage = damage)
 			target.next_attack_msg.Cut()
 			var/nodmg = FALSE
@@ -1709,9 +1710,9 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 		if(!affecting)
 			affecting = target.get_bodypart(BODY_ZONE_CHEST)
 		// Add strength-based armor penetration for kick: +2 AP per point of STR above 10
-		var/kick_pen = BLUNT_DEFAULT_PENFACTOR
+		var/kick_pen = 0
 		if(HAS_TRAIT(user, TRAIT_CIVILIZEDBARBARIAN))
-			kick_pen += (user.STASTR - 10) * STR_PEN_FACTOR
+			kick_pen += max((user.STASTR - 10) * STR_PEN_FACTOR, 0)
 		var/armor_block = target.run_armor_check(selzone, "blunt", armor_penetration = kick_pen, blade_dulling = BCLASS_BLUNT)
 		var/damage = user.get_punch_dmg()
 		var/actual_damage = ishuman(target) ? target:get_actual_damage(damage, armor_block, selzone, "blunt", user) : max(damage - armor_block, 0)
@@ -1799,17 +1800,19 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	var/def_zone = affecting.body_zone
 
 	var/pen = I.armor_penetration
-	if(user.used_intent?.penfactor)
-		pen = I.armor_penetration + user.used_intent.penfactor
 	if(I.d_type == "blunt")
 		pen = BLUNT_DEFAULT_PENFACTOR
+
+	var/stat_ap_multiplier = 1.0
+	if(user.used_intent?.penfactor)
+		stat_ap_multiplier = user.used_intent.penfactor
 	switch(I.wbalance)
 		if(WBALANCE_HEAVY)
-			pen += (user.STASTR - 10) * STR_PEN_FACTOR
+			pen += (user.STASTR - 10) * STR_PEN_FACTOR * stat_ap_multiplier
 		if(WBALANCE_NORMAL)
-			pen += (((user.STASTR - 10)+(user.STAPER - 10))/2) * floor((STR_PEN_FACTOR+PER_PEN_FACTOR)/2)
+			pen += (((user.STASTR - 10)+(user.STAPER - 10))/2) * floor((STR_PEN_FACTOR+PER_PEN_FACTOR)/2) * stat_ap_multiplier
 		if(WBALANCE_SWIFT)
-			pen += (user.STAPER - 10) * PER_PEN_FACTOR
+			pen += (user.STAPER - 10) * PER_PEN_FACTOR * stat_ap_multiplier
 
 //	var/armor_block = H.run_armor_check(affecting, "I.d_type", span_notice("My armor has protected my [hit_area]!"), span_warning("My armor has softened a hit to my [hit_area]!"),pen)
 
@@ -1817,7 +1820,30 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	if(!user.used_intent?.allow_offhand)
 		if(user.get_num_arms(FALSE) < 2 || user.get_inactive_held_item())
 			Iforce = 0
-	var/bladec = user.used_intent.blade_class	
+	var/bladec = user.used_intent.blade_class
+
+	// Effective range check. Attacking a prone target doesn't apply a penalty at any range.
+	if(user.used_intent?.effective_range && H.mobility_flags & MOBILITY_STAND)
+		var/dist = get_dist(H, user)
+		var/range = user.used_intent?.effective_range
+		var/apply_penalty = FALSE
+		switch(user.used_intent?.effective_range_type)
+			if(EFF_RANGE_EXACT)
+				if(dist != range)
+					apply_penalty = TRUE
+			if(EFF_RANGE_BELOW)
+				if(dist <= range)
+					apply_penalty = TRUE
+			if(EFF_RANGE_ABOVE)
+				if(dist >= range)
+					apply_penalty = TRUE
+			else
+				CRASH("Invalid effective_range_type used by [user] with effective_range! Please set an effective_range_type on [user.used_intent?.type]")
+		if(apply_penalty)
+			pen = BLUNT_DEFAULT_PENFACTOR
+			Iforce *= 0.5
+
+
 	var/higher_intfactor = max(user.used_intent.masteritem?.intdamage_factor, user.used_intent.intent_intdamage_factor)
 	var/lowest_intfactor = min(user.used_intent.masteritem?.intdamage_factor, user.used_intent.intent_intdamage_factor)
 	var/used_intfactor = 1
@@ -1949,6 +1975,19 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				H.next_attack_msg += " <span class='warning'>Armor softens the blow.</span>"
 			if(was_blunted)
 				H.next_attack_msg += " <span class='warning'>The attack was blunted by armor.</span>"
+
+			// Add variance-based damage messages
+			if(ishuman(user))
+				var/mob/living/carbon/human/attacker = user
+				if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+					H.next_attack_msg += " <b style='color:pink'><i>A brutal blow!</i></b>"
+				else if(istype(user.rmb_intent, /datum/rmb_intent/weak))
+					H.next_attack_msg += " <span style='color:pink'><i>A restrained strike.</i></span>"
+				else if(attacker.last_variance_percentile)
+					if(attacker.last_variance_percentile <= 10)
+						H.next_attack_msg += " <span style='color:pink'><i>A glancing blow.</i></span>"
+					else if(attacker.last_variance_percentile >= 90)
+						H.next_attack_msg += " <b style='color:pink'><i>The strike lands squarely!</i></b>"
 
 			var/datum/wound/crit_wound = affecting.bodypart_attacked_by(wound_bclass, actual_damage, user, selzone, crit_message = TRUE, was_blunted = was_blunted, raw_damage = raw_damage, armor_block = armor_block, weapon = I)
 			if(should_embed_weapon(crit_wound, I))
@@ -2105,12 +2144,36 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				if(damage_amount > 10 && !HAS_TRAIT(H, TRAIT_NOPAINSTUN))
 					H.Slowdown(clamp(damage_amount/10, 1, 5))
 					shake_camera(H, 1, 1)
-				if(damage_amount < 10)
-					H.flash_fullscreen("redflash1")
-				else if(damage_amount < 20)
-					H.flash_fullscreen("redflash2")
-				else if(damage_amount >= 20)
-					H.flash_fullscreen("redflash3")
+
+			// Interrupt bow/crossbow drawing when taking damage
+			if(damage_amount > 0 && H.client?.charging)
+				var/obj/item/held_item = H.get_active_held_item()
+				if(held_item)
+					// Check if it's a bow - drop the arrow. I hope this shit works.
+					if(istype(held_item, /obj/item/gun/ballistic/revolver/grenadelauncher/bow))
+						var/obj/item/gun/ballistic/revolver/grenadelauncher/bow/bow = held_item
+						if(bow.chambered)
+							bow.chambered = null
+							var/num_unloaded = 0
+							for(var/obj/item/ammo_casing/CB in bow.get_ammo_list(FALSE, TRUE))
+								CB.forceMove(get_turf(H))
+								num_unloaded++
+							if(num_unloaded)
+								bow.update_icon()
+						H.visible_message(
+							span_warning("[H]'s draw is interrupted, dropping the arrow!"),
+							span_warning("I flinch from the hit, dropping my arrow!")
+						)
+						H.stop_attack()
+
+					// Check if it's a crossbow - keep the bolt but interrupt
+					else if(istype(held_item, /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow))
+						H.visible_message(
+							span_warning("[H]'s aim is disrupted!"),
+							span_warning("The hit disrupts my aim!")
+						)
+						H.stop_attack()
+
 			if(BP)
 				if(zone_sel)
 					zone_sel.flash_limb(BP.body_zone, "#FF0000") 

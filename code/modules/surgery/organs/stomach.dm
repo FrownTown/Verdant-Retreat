@@ -94,7 +94,10 @@
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "disgust", /datum/mood_event/disgusted)
 
 /obj/item/organ/stomach/Insert(mob/living/carbon/M, special = 0)
+	var/mob/living/carbon/old_owner = owner
 	..()
+	if(old_owner && old_owner != owner && !QDELETED(old_owner))
+		UnregisterSignal(old_owner, COMSIG_LIVING_LIFE)
 	if(owner)
 		UnregisterSignal(owner, COMSIG_LIVING_LIFE)
 
@@ -103,8 +106,21 @@
 	if(istype(H))
 		H.clear_alert("disgust")
 		SEND_SIGNAL(H, COMSIG_CLEAR_MOOD_EVENT, "disgust")
-		RegisterSignal(H, COMSIG_LIVING_LIFE, PROC_REF(missing_stomach_effects))
 	..()
+	if(H && !QDELETED(H))
+		RegisterSignal(H, COMSIG_LIVING_LIFE, PROC_REF(missing_stomach_effects))
+		RegisterSignal(H, COMSIG_MOB_ORGAN_INSERTED, PROC_REF(cleanup_on_replacement))
+
+/obj/item/organ/stomach/proc/cleanup_on_replacement(mob/living/carbon/M, obj/item/organ/new_organ)
+	if(istype(new_organ, /obj/item/organ/stomach))
+		UnregisterSignal(M, COMSIG_LIVING_LIFE)
+		UnregisterSignal(M, COMSIG_MOB_ORGAN_INSERTED)
+
+/obj/item/organ/stomach/Destroy()
+	if(last_owner && !QDELETED(last_owner))
+		UnregisterSignal(last_owner, COMSIG_LIVING_LIFE)
+		UnregisterSignal(last_owner, COMSIG_MOB_ORGAN_INSERTED)
+	return ..()
 
 /obj/item/organ/stomach/fly
 	name = "insectoid stomach"
@@ -152,3 +168,91 @@
 
 /obj/item/organ/stomach/ethereal/proc/adjust_charge(amount)
 	crystal_charge = CLAMP(crystal_charge + amount, ETHEREAL_CHARGE_NONE, ETHEREAL_CHARGE_FULL)
+
+/obj/item/organ/stomach/t1
+	name = "completed stomach"
+	icon_state = "stomach"
+	desc = "The perfect art, it feels... Completed."
+	sellprice = 100
+
+/obj/item/organ/stomach/t2
+	name = "blessed stomach"
+	icon_state = "stomach"
+	desc = "They accepted this heresy to defeat a greater heresy. They call it a blessing, but we all know it’s not…"
+	sellprice = 200
+
+/obj/item/organ/stomach/t3
+	name = "corrupted stomach"
+	icon_state = "stomach"
+	desc = "A cursed, perverted artifact. It can serve you well—what sacrifice are you willing to offer to survive?"
+	maxHealth = 2 * STANDARD_ORGAN_THRESHOLD
+	sellprice = 300
+
+/datum/status_effect/buff/t1stomach
+	id = "t1stomach"
+	alert_type = /atom/movable/screen/alert/status_effect/buff/t1stomach
+
+/atom/movable/screen/alert/status_effect/buff/t1stomach
+	name = "Completed stomach"
+	desc = "I have better version of stomach now "
+
+/obj/item/organ/stomach/t1/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		M.apply_status_effect(/datum/status_effect/buff/t1stomach)
+		ADD_TRAIT(M, TRAIT_ROT_EATER, ORGAN_TRAIT)
+
+/obj/item/organ/stomach/t1/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M.has_status_effect(/datum/status_effect/buff/t1stomach))
+		M.remove_status_effect(/datum/status_effect/buff/t1stomach)
+		REMOVE_TRAIT(M, TRAIT_ROT_EATER , ORGAN_TRAIT)
+
+/datum/status_effect/buff/t2stomach
+	id = "t2stomach"
+	alert_type = /atom/movable/screen/alert/status_effect/buff/t2stomach
+
+/atom/movable/screen/alert/status_effect/buff/t2stomach
+	name = "Blessed stomach"
+	desc = "A blessed stomach... Maybe"
+
+/obj/item/organ/stomach/t2/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		M.apply_status_effect(/datum/status_effect/buff/t2stomach)
+		ADD_TRAIT(M, TRAIT_ROT_EATER, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_WILD_EATER, ORGAN_TRAIT)
+
+
+/obj/item/organ/stomach/t2/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M.has_status_effect(/datum/status_effect/buff/t2stomach))
+		M.remove_status_effect(/datum/status_effect/buff/t2stomach)
+		REMOVE_TRAIT(M, TRAIT_ROT_EATER , ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_WILD_EATER , ORGAN_TRAIT)
+
+/datum/status_effect/buff/t3stomach
+    id = "t3stomach"
+    alert_type = /atom/movable/screen/alert/status_effect/buff/t3stomach
+
+/atom/movable/screen/alert/status_effect/buff/t3stomach
+	name = "Corrupted stomach"
+	desc = "Tte cursed thing is inside me now."
+
+//datum/status_effect/buff/t3stomach/tick() - my fellow g*amer you should care about perfomance. Like, you can do this but WHY
+    //owner.adjustToxLoss(-5)
+
+/obj/item/organ/stomach/t3/Insert(mob/living/carbon/M)
+	..()
+	if(M)
+		M.apply_status_effect(/datum/status_effect/buff/t3stomach)
+		ADD_TRAIT(M, TRAIT_NASTY_EATER, ORGAN_TRAIT)
+		ADD_TRAIT(M, TRAIT_ORGAN_EATER, ORGAN_TRAIT)
+
+
+/obj/item/organ/stomach/t3/Remove(mob/living/carbon/M, special = 0)
+	..()
+	if(M.has_status_effect(/datum/status_effect/buff/t3stomach))
+		M.remove_status_effect(/datum/status_effect/buff/t3stomach)
+		REMOVE_TRAIT(M, TRAIT_NASTY_EATER, ORGAN_TRAIT)
+		REMOVE_TRAIT(M, TRAIT_ORGAN_EATER, ORGAN_TRAIT)

@@ -52,7 +52,13 @@
 	var/mob_light = null // tracking mob_light
 	var/obj/effect/mob_charge_effect = null // The effect to be added (on top) of the mob while it is charging
 	var/custom_swingdelay = null	//Custom icon for its swingdelay.
-
+	/// Effective range for penfactor to apply fully.
+	var/effective_range = null
+	///	Effective range type. Can be Exact, Below or Above. Be sure to set this if you use effective_range!
+	/// Only use this with reach is >1 because otherwise like... why.
+	var/effective_range_type = EFF_RANGE_NONE
+	/// Extra sharpness drain per successful & parried hit.
+	var/sharpness_penalty = 0
 
 	var/list/static/bonk_animation_types = list(
 		BCLASS_BLUNT,
@@ -87,11 +93,43 @@
 	if(desc)
 		inspec += "\n[desc]"
 	if(reach != 1)
-		inspec += "\n<b>Reach:</b> [reach]"
+		inspec += "\n<b>Reach:</b> [reach] paces"
+	if(effective_range)
+		var/suffix
+		switch(effective_range_type)
+			if(EFF_RANGE_EXACT)
+				suffix = "exactly"
+			if(EFF_RANGE_ABOVE)
+				suffix = "at and beyond"
+			if(EFF_RANGE_BELOW)
+				suffix = "at and within"
+			else
+				CRASH("effective_range found without a valid effective_range_type on [src] intent by [user]")
+		inspec += "\n<b>Effective Range:</b> [suffix] [effective_range] paces"
 	if(damfactor != 1)
 		inspec += "\n<b>Damage:</b> [damfactor]"
 	if(penfactor)
-		inspec += "\n<b>Armor Penetration:</b> [penfactor < 0 ? "NONE" : penfactor]"
+		var/total_ap = penfactor
+		var/stat_name = ""
+		if(ishuman(user) && masteritem)
+			var/mob/living/carbon/human/H = user
+			switch(masteritem.wbalance)
+				if(WBALANCE_HEAVY)
+					total_ap = penfactor + (H.STASTR - 10) * STR_PEN_FACTOR * penfactor
+					stat_name = "STR"
+				if(WBALANCE_NORMAL)
+					total_ap = penfactor + (((H.STASTR - 10)+(H.STAPER - 10))/2) * floor((STR_PEN_FACTOR+PER_PEN_FACTOR)/2) * penfactor
+					stat_name = "STR/PER AVG"
+				if(WBALANCE_SWIFT)
+					total_ap = penfactor + (H.STAPER - 10) * PER_PEN_FACTOR * penfactor
+					stat_name = "PER"
+
+		if(total_ap <= 0)
+			inspec += "\n<b>Armor Penetration:</b> NONE"
+		else if(stat_name)
+			inspec += "\n<b>Armor Penetration:</b> [round(total_ap, 1)] ([stat_name])"
+		else
+			inspec += "\n<b>Armor Penetration:</b> [penfactor]"
 	if(get_chargetime())
 		inspec += "\n<b>Charge Time</b>"
 	if(movement_interrupt)
@@ -124,6 +162,8 @@
 	if(intent_intdamage_factor != 1)
 		var/percstr = abs(intent_intdamage_factor - 1) * 100
 		inspec += "\nThis intent deals [percstr]% [intent_intdamage_factor > 1 ? "more" : "less"] damage to integrity."
+	if(sharpness_penalty)
+		inspec += "\nThis intent will cost some sharpness for every attack made."
 	inspec += "<br>----------------------"
 
 	to_chat(user, "[inspec.Join()]")
@@ -208,27 +248,29 @@
 	if(mastermob.curplaying)
 		mastermob.curplaying.chargedloop.stop()
 		mastermob.curplaying = null
+
+	mastermob.curplaying = src
+	
 	if(chargedloop)
 		if(!istype(chargedloop, /datum/looping_sound))
 			chargedloop = new chargedloop(mastermob)
 		else
 			chargedloop.stop()
 		chargedloop.start(chargedloop.parent)
-		mastermob.curplaying = src
-	if(glow_color && glow_intensity)
+	if(glow_color && glow_intensity && !mob_light)
 		mob_light = mastermob.mob_light(glow_color, glow_intensity)
 	if(mob_charge_effect)
-		mastermob.vis_contents += mob_charge_effect
+		mastermob.vis_contents |= mob_charge_effect
 
 /datum/intent/proc/on_mouse_up()
 	if(chargedloop)
 		chargedloop.stop()
-	if(mastermob?.curplaying == src)
-		mastermob?.curplaying = null
+	if(mastermob.curplaying == src)
+		mastermob.curplaying = null
 	if(mob_light)
-		qdel(mob_light)
+		QDEL_NULL(mob_light)
 	if(mob_charge_effect)
-		mastermob?.vis_contents -= mob_charge_effect
+		mastermob.vis_contents -= mob_charge_effect
 
 
 /datum/intent/proc/on_mmb(atom/target, mob/living/user, params)
@@ -313,14 +355,14 @@
 /datum/intent/stab/militia
 	name = "militia stab"
 	damfactor = 1.1
-	penfactor = 50
+	penfactor = 2.5
 
 /datum/intent/pick //now like icepick intent, we really went in a circle huh
 	name = "pick"
 	icon_state = "inpick"
 	attack_verb = list("picks","impales")
 	hitsound = list('sound/combat/hits/pick/genpick (1).ogg', 'sound/combat/hits/pick/genpick (2).ogg')
-	penfactor = 80
+	penfactor = 4
 	animname = "strike"
 	item_d_type = "stab"
 	blade_class = BCLASS_PICK
@@ -332,7 +374,7 @@
 	icon_state = "inpick"
 	attack_verb = list("stabs", "impales")
 	hitsound = list('sound/combat/hits/bladed/genstab (1).ogg', 'sound/combat/hits/bladed/genstab (2).ogg', 'sound/combat/hits/bladed/genstab (3).ogg')
-	penfactor = 60
+	penfactor = 3
 	damfactor = 1.1
 	clickcd = CLICK_CD_CHARGED
 	releasedrain = 4
@@ -345,7 +387,7 @@
 	icon_state = "inpick"
 	attack_verb = list("picks","impales")
 	hitsound = list('sound/combat/hits/pick/genpick (1).ogg', 'sound/combat/hits/pick/genpick (2).ogg')
-	penfactor = 80
+	penfactor = 4
 	animname = "strike"
 	item_d_type = "stab"
 	blade_class = BCLASS_PICK
@@ -458,7 +500,7 @@
 	misscost = 1
 	releasedrain = 1	//More than punch cus pen factor.
 	swingdelay = 0
-	penfactor = 10
+	penfactor = 0.5
 	clickcd = 10
 	rmb_ranged = TRUE
 	candodge = TRUE
@@ -565,7 +607,7 @@
 	blade_class = BCLASS_BLUNT
 	hitsound = "punch_hard"
 	chargetime = 0
-	penfactor = 10
+	penfactor = 0.5
 	swingdelay = 0
 	candodge = TRUE
 	canparry = TRUE

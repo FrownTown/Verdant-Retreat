@@ -104,8 +104,13 @@
 	
 	/// Cached variable that reflects how much bleeding our wounds are applying to the limb. Handled inside each individual wound.
 	var/bleeding = 0
+	/// Temp var: tracks how much the last attack increased puncture wound bleeding (for embed tracking)
+	var/last_bleed_increase = 0
 
-
+	/// Is the limb flagged for two-stage death handling? (aka, decaps will instantly kill first, THEN remove the head on second apply)
+	var/two_stage_death = FALSE
+	/// Has the limb been marked as having suffered a two-stage death flag?
+	var/grievously_wounded = FALSE
 
 	grid_width = 32
 	grid_height = 64
@@ -119,6 +124,8 @@
 	var/list/appearance_list = list()
 //	var/specific_layer = aux ? aux_layer : BODYPARTS_LAYER
 	var/specific_layer = aux_layer ? aux_layer : BODYPARTS_LAYER
+	if((specific_layer == HANDS_PART_LAYER) && (human_owner.wear_shirt)) // Arms snowflake check
+		return appearance_list
 	var/specific_render_zone = aux ? aux_zone : body_zone
 	for(var/key in specific_markings)
 		var/color = specific_markings[key]
@@ -181,7 +188,7 @@
 		if(do_after(user, 50, target = src))
 			user.visible_message(span_warning("[user] consumes [src]!"),\
 							span_notice("I consume [src]!"))
-			playsound(get_turf(user), pick(dismemsound), 100, FALSE, -1)
+			playsound(user, pick(dismemsound), 100, FALSE, -1)
 			new /obj/effect/gibspawner/generic(get_turf(src), user)
 			user.fully_heal()
 			qdel(src)
@@ -291,7 +298,7 @@
 /obj/item/bodypart/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
 	. = ..()
 	if(status != BODYPART_ROBOTIC)
-		playsound(get_turf(src), 'sound/blank.ogg', 50, TRUE, -1)
+		playsound(src, 'sound/blank.ogg', 50, TRUE, -1)
 	pixel_x = rand(-3, 3)
 	pixel_y = rand(-3, 3)
 	if(!skeletonized && !(NOBLOOD in original_owner?.dna?.species?.species_traits))
@@ -437,7 +444,6 @@
 		owner.updatehealth()
 		if(stamina > DAMAGE_PRECISION)
 			owner.update_stamina()
-			owner.stam_regen_start_time = world.time + STAMINA_REGEN_BLOCK_TIME
 			. = TRUE
 	consider_processing()
 	update_disabled()
@@ -855,6 +861,22 @@
 	dismemberable = 0
 	max_damage = 5000
 	animal_origin = DEVIL_BODYPART
+
+/obj/item/bodypart/chest/bodypart_attacked_by(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, armor, was_blunted = FALSE, raw_damage = 0, armor_block = 0, obj/item/weapon)
+	. = ..()
+	if(owner && dam > 0 && zone_precise == BODY_ZONE_PRECISE_STOMACH)
+		if(bclass == BCLASS_BLUNT)
+			var/stamina_loss = round(dam*0.2)
+			var/owner_con = owner.STACON
+			if(armor_block < raw_damage/2)
+				if(dam > owner_con*2)
+					if(prob(owner_con*5))
+						stamina_loss = round(dam*0.1)
+					else
+						owner.vomit()
+						stamina_loss = round(dam*0.75)
+					
+				owner.stamina_add(-stamina_loss)
 
 /obj/item/bodypart/l_arm
 	name = "left arm"

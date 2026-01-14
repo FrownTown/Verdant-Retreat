@@ -98,40 +98,19 @@
 		else
 			. += span_notice("Both its sleeves have been torn!")
 
-/// Helper proc to count covered body parts and calculate integrity multiplier
-/obj/item/clothing/proc/get_coverage_integrity_mult()
-	var/covered_parts = 0
-
-	if(body_parts_covered & CHEST)
-		covered_parts++
-	if(body_parts_covered & GROIN)
-		covered_parts++
-	if(body_parts_covered & (ARM_LEFT | HAND_LEFT))
-		covered_parts++
-	if(body_parts_covered & (ARM_RIGHT | HAND_RIGHT))
-		covered_parts++
-	if(body_parts_covered & (LEG_LEFT | FOOT_LEFT))
-		covered_parts++
-	if(body_parts_covered & (LEG_RIGHT | FOOT_RIGHT))
-		covered_parts++
-
-	if(covered_parts == 0)
-		return 1.0
-
-	return covered_parts
-
 /obj/item/clothing/proc/calculate_zone_integrity(zone)
-	var/integrity_mult = get_coverage_integrity_mult()
-	if(integrity_mult > 3)
-		integrity_mult = 3
-		if(zone)
-			switch(zone)
-				if(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
-					return round((max_integrity * (1 / integrity_mult)) * 0.75, 10)
-				if(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
-					return round((max_integrity * (1 / integrity_mult)) * 0.85, 10)
+	var/amount = max_integrity
+
+	if(zone)
+		switch(zone)
+			if(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
+				if(!(slot_flags & (ITEM_SLOT_HANDS | ITEM_SLOT_WRISTS)))
+					amount = round(max_integrity * 0.75, 10)
+			if(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+				if(!(slot_flags & (ITEM_SLOT_SHOES | ITEM_SLOT_PANTS)))
+					amount = round(max_integrity * 0.85, 10)
 				
-	return round(max_integrity * (1 / integrity_mult), 10)
+	return amount
 
 /obj/item/clothing/proc/initialize_zone_durability()
 	broken_zones = list()
@@ -380,10 +359,10 @@
 	if(zone_integrity_r_leg != null)
 		zone_integrity_r_leg = get_zone_max_integrity(BODY_ZONE_R_LEG)
 
+	update_overall_integrity()
 	broken_zones.len = 0
 	..()
-
-	update_overall_integrity()
+	armor = original_armor
 
 /obj/item/proc/get_detail_tag() //this is for extra layers on clothes
 	return detail_tag
@@ -647,10 +626,6 @@
 			armorlist[x] = 0
 	..()
 
-/obj/item/clothing/obj_fix()
-	..()
-	armor = original_armor
-
 /*
 SEE_SELF  // can see self, no matter what
 SEE_MOBS  // can see all mobs, no matter what
@@ -816,12 +791,34 @@ BLIND     // can't see anything
 			return 1
 	return 0
 
+/// Helper proc to count covered body parts
+/obj/item/clothing/proc/get_coverage_integrity_zones()
+	var/covered_parts = 0
+
+	if(body_parts_covered & CHEST)
+		covered_parts++
+	if(body_parts_covered & GROIN)
+		covered_parts++
+	if(body_parts_covered & (ARM_LEFT | HAND_LEFT))
+		covered_parts++
+	if(body_parts_covered & (ARM_RIGHT | HAND_RIGHT))
+		covered_parts++
+	if(body_parts_covered & (LEG_LEFT | FOOT_LEFT))
+		covered_parts++
+	if(body_parts_covered & (LEG_RIGHT | FOOT_RIGHT))
+		covered_parts++
+
+	if(covered_parts == 0)
+		return 1
+
+	return covered_parts
+
 /obj/item/clothing/take_damage(damage_amount, damage_type = BRUTE, damage_flag, sound_effect, attack_dir, armor_penetration)
 	var/old_integrity = obj_integrity
 
 	if(uses_zone_integrity())
 		// Damage all zones when take_damage is called (non-targeted damage like fire/acid)
-		var/integrity_mult = get_coverage_integrity_mult()
+		var/integrity_mult = get_coverage_integrity_zones()
 		if(integrity_mult > 3)
 			integrity_mult = 3
 		var/split_damage = round(damage_amount / integrity_mult, 1)
