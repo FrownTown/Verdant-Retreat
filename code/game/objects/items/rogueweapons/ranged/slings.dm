@@ -201,7 +201,9 @@
 		if(userskill > 0)
 			variance_center += userskill * 0.025
 		var/variance_roll = get_damage_variance(/datum/skill/combat/slings, variance_center, user)
-		BB.damage = base_damage * (1 + (variance_roll / 100))
+
+		var/statmult = max(bonusstat / 20, 1)
+		BB.damage = (base_damage * (1 + (variance_roll / 100))) * statmult
 
 		BB.falloff_start_distance = 3 + max(0, floor((user.STASTR - 10) / 2))
 		BB.falloff_damage_per_turf = 5
