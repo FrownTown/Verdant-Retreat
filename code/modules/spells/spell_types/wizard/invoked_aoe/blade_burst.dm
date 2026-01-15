@@ -61,10 +61,13 @@
 		new /obj/effect/temp_visual/trap(affected_turf)
 	playsound(T, 'sound/magic/blade_burst.ogg', 80, TRUE, soundping = TRUE)
 
-	sleep(delay)
+	var/list/turfs = view(area_of_effect, T)
+	addtimer(CALLBACK(src, PROC_REF(burst), turfs, source_turf, user, T), delay)
+
+/obj/effect/proc_holder/spell/invoked/blade_burst/proc/burst(list/turfs, turf/source_turf, mob/living/user, turf/T)
 	var/play_cleave = FALSE
 
-	for(var/turf/affected_turf in view(area_of_effect, T))
+	for(var/turf/affected_turf in turfs)
 		new /obj/effect/temp_visual/blade_burst(affected_turf)
 		if(!(affected_turf in view(source_turf)))
 			continue
