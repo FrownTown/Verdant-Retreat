@@ -98,6 +98,8 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 	recharge_time = 20 SECONDS
 	miracle = TRUE
 	devotion_cost = 50
+	damage_variance = SPELL_VARIANCE_MID
+	is_offensive = TRUE
 	projectile_type = /obj/projectile/magic/astratablast
 
 /obj/projectile/magic/astratablast
@@ -534,6 +536,8 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 	recharge_time = 20 MINUTES //One per day
 	miracle = TRUE
 	devotion_cost = 200
+	damage_variance = SPELL_VARIANCE_LOW
+	is_offensive = TRUE
 
 /obj/effect/proc_holder/spell/invoked/sunstrike/cast(list/targets, mob/living/user)
 	..()
@@ -566,7 +570,7 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 	qdel(mark_on_user)
 	for(var/obj/structure/fluff/psycross/S in oview(5, user))
 		S.AOE_flash(user, range = 8)
-	new /obj/effect/temp_visual/firewave/sunstrike/primary(target)
+	new /obj/effect/temp_visual/firewave/sunstrike/primary(target, user, src)
 
 //============================================
 // STATUS EFFECTS & SUPPORTING CODE
@@ -994,10 +998,10 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 	alpha = 5
 	duration = 15.5
 
-/obj/effect/temp_visual/firewave/sunstrike/primary/Initialize(mapload, mob/living/carbon/caster)
+/obj/effect/temp_visual/firewave/sunstrike/primary/Initialize(mapload, mob/living/carbon/caster, obj/effect/proc_holder/spell/spell_source)
 	. = ..()
 	addtimer(CALLBACK(src, PROC_REF(pre_strike)), 1 SECONDS)
-	addtimer(CALLBACK(src, PROC_REF(strike), caster), 10 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(strike), caster, spell_source), 10 SECONDS)
 
 /obj/effect/temp_visual/firewave/sunstrike/primary/proc/pre_strike()
 	var/turf/T = get_turf(src)
@@ -1008,7 +1012,7 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 		for(var/mob/living/L in Target_turf.contents)
 			to_chat(L, span_astratabig("The Tyrant's oppressive gaze is upon you. Flee or Perish."))
 
-/obj/effect/temp_visual/firewave/sunstrike/primary/proc/strike(mob/living/carbon/caster)
+/obj/effect/temp_visual/firewave/sunstrike/primary/proc/strike(mob/living/carbon/caster, obj/effect/proc_holder/spell/spell_source)
 	var/turf/T = get_turf(src)
 	playsound(T,'sound/magic/astrata_choir.ogg', 100, TRUE)
 	explosion(T, -1, 0, 0, 0, 0, flame_range = 0, soundin = 'sound/misc/explode/incendiary (1).ogg')
@@ -1022,18 +1026,21 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 		for(var/mob/living/victim in Target_turf.contents)
 			to_chat(victim, span_astrataextreme("DIVINE FLAME RAINS DOWN FROM THE SKY!"))
 			var/dist_to_epicenter = get_dist(T, victim)
-			var/firedamage = 200 - (dist_to_epicenter*30)
+			var/base_firedamage = 200 - (dist_to_epicenter*30)
+			var/firedamage = spell_source ? spell_source.get_varied_damage(base_firedamage, caster) : base_firedamage
 			var/firestack = 10 - dist_to_epicenter
 			victim.adjustFireLoss(firedamage)
 			victim.adjust_fire_stacks(firestack)
 			victim.ignite_mob()
 			if(!victim.mind || istype(victim, /mob/living/simple_animal))
-				victim.adjustFireLoss(500)
+				var/npc_damage = spell_source ? spell_source.get_varied_damage(500, caster) : 500
+				victim.adjustFireLoss(npc_damage)
 				if(dist_to_epicenter <= 3)
 					victim.gib()
 					continue
 			if(dist_to_epicenter == 1) //pre-center
-				victim.adjustFireLoss(100) //100 firedamage
+				var/inner_damage = spell_source ? spell_source.get_varied_damage(100, caster) : 100
+				victim.adjustFireLoss(inner_damage) //100 firedamage
 				new /obj/effect/hotspot(get_turf(victim))
 			if(dist_to_epicenter == 0) //center
 				explosion(T, -1, 1, 1, 0, 0, flame_range = 1, soundin = 'sound/misc/explode/incendiary (1).ogg')
@@ -1042,7 +1049,8 @@ GLOBAL_LIST_EMPTY(divine_destruction_mobs) // Tracks mobs undergoing divine dest
 					victim.gib()
 					continue
 				else
-					victim.adjustFireLoss(500)
+					var/center_damage = spell_source ? spell_source.get_varied_damage(500, caster) : 500
+					victim.adjustFireLoss(center_damage)
 					victim.stat = DEAD
 		for(var/obj/item/I in range(1, T))
 			qdel(I)

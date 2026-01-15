@@ -24,6 +24,8 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane
 	cost = 2 // slightly less useful than Arcyne Bolt and supportish, so 2 cost
+	damage_variance = SPELL_VARIANCE_MID
+	is_offensive = TRUE
 
 /obj/projectile/energy/guided_bolt
 	name = "Guided Bolt"

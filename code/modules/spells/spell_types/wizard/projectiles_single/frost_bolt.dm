@@ -26,7 +26,7 @@
 	associated_skill = /datum/skill/magic/arcane //can be arcane, druidic, blood, holy
 	cost = 3
 	is_offensive = TRUE
-
+	damage_variance = SPELL_VARIANCE_HIGH
 	xp_gain = TRUE
 	miracle = FALSE
 

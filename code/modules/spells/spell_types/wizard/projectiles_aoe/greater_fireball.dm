@@ -22,6 +22,7 @@
 	chargedloop = /datum/looping_sound/invokefire
 	cost = 9
 	is_offensive = TRUE
+	damage_variance = SPELL_VARIANCE_LOW
 	xp_gain = TRUE
 
 /obj/projectile/magic/aoe/fireball/rogue/great

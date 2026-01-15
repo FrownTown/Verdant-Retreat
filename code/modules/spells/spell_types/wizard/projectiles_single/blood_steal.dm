@@ -23,6 +23,8 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/blood
 	cost = 3
+	damage_variance = SPELL_VARIANCE_MID
+	is_offensive = TRUE
 
 /obj/projectile/magic/bloodsteal
 	name = "blood steal"

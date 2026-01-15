@@ -25,6 +25,8 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane
 	cost = 3
+	damage_variance = SPELL_VARIANCE_MID
+	is_offensive = TRUE
 
 /obj/projectile/energy/rogue3
 	name = "Arcyne Bolt"

@@ -32,6 +32,8 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane
 	cost = 3 // Just in case
+	damage_variance = SPELL_VARIANCE_MID
+	is_offensive = TRUE
 
 /obj/effect/proc_holder/spell/invoked/projectile/airblade/cast(list/targets, mob/user = user)
 	var/mob/living/carbon/human/H = user

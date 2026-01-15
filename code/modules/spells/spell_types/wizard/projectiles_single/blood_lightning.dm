@@ -24,6 +24,7 @@
 	associated_skill = /datum/skill/magic/blood
 	is_offensive = TRUE
 	cost = 3
+	damage_variance = SPELL_VARIANCE_LOW
 
 /obj/projectile/magic/bloodlightning
 	name = "blood bolt"
