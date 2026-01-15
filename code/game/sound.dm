@@ -147,9 +147,11 @@
 		S = sound(get_sfx(soundin))
 
 	S.wait = 0 //No queue
-	S.channel = channel
-	if(!S.channel)
-		S.channel = SSsounds.random_available_channel()
+	// Use local variable to avoid multiple clients stomping on the same shared S.channel
+	var/sound_channel = channel
+	if(!sound_channel)
+		sound_channel = SSsounds.random_available_channel()
+	S.channel = sound_channel
 
 	var/obj/item/bodypart/head/dullahan/user_head
 	if(isdullahan(src))
