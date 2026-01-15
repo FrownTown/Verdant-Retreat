@@ -305,7 +305,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(do_crit)
 		var/datum/component/silverbless/psyblessed = weapon?.GetComponent(/datum/component/silverbless)
 		var/sundering = HAS_TRAIT(owner, TRAIT_SILVER_WEAK) && istype(weapon) && weapon?.is_silver && psyblessed?.is_blessed
-		var/crit_attempt = try_crit(sundering ? BCLASS_SUNDER : bclass, dam, user, zone_precise, silent, crit_message, raw_damage, armor_block, crit_resistance, weapon)
+		var/crit_attempt = try_crit(sundering ? BCLASS_SUNDER : bclass, dam, user, zone_precise, silent, crit_message, raw_damage, armor_block, crit_resistance, was_blunted, weapon)
 		if(crit_attempt)
 			return crit_attempt
 	return dynwound
@@ -344,7 +344,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	return dynwound
 
 /// Behemoth of a proc used to apply a wound after a bodypart is damaged in an attack
-/obj/item/bodypart/proc/try_crit(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0, obj/item/weapon)
+/obj/item/bodypart/proc/try_crit(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0, was_blunted = FALSE, obj/item/weapon)
 	if(!bclass || !dam || (owner.status_flags & GODMODE))
 		return FALSE
 	var/list/attempted_wounds = list()
@@ -416,7 +416,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		if(wound_applied)
 			attempted_wounds += wound_applied
 
-	if((bclass in GLOB.sunder_bclasses))
+	if((bclass in GLOB.sunder_bclasses) && !was_blunted)
 		if(HAS_TRAIT(owner, TRAIT_SILVER_WEAK) && !owner.has_status_effect(STATUS_EFFECT_ANTIMAGIC))
 			var/sunder_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, dam_divisor = 2)
 			if(prob(sunder_chance))
@@ -450,7 +450,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			return applied
 	return FALSE
 
-/obj/item/bodypart/chest/try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0, obj/item/weapon)
+/obj/item/bodypart/chest/try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0, was_blunted = FALSE, obj/item/weapon)
 	if(!bclass || !dam || (owner.status_flags & GODMODE))
 		return FALSE
 	var/list/attempted_wounds = list()
@@ -511,14 +511,16 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 		var/artery_bonus = ((bclass in GLOB.artery_strong_bclasses) && strong_bonus) ? strong_bonus : aimed_bonus
 		var/artery_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, dam_divisor = 10, bonus = artery_bonus)
 		if((zone_precise == BODY_ZONE_PRECISE_STOMACH) && !resistance && (bclass in GLOB.disembowel_bclasses))
-			var/wound_applied = try_add_crit_wound(
-				/datum/wound/slash/disembowel,
-				damage_dividend, dam, resistance,
-				artery_chance, CRIT_DISEMBOWEL_DIVISOR, CRIT_DISEMBOWEL_THRESHOLD,
-				silent, crit_message
-			)
-			if(wound_applied)
-				attempted_wounds += wound_applied
+			// Werewolves are immune to disembowelment unless sundered
+			if(!(istype(owner.dna?.species, /datum/species/werewolf) && !owner.has_wound(/datum/wound/sunder)))
+				var/wound_applied = try_add_crit_wound(
+					/datum/wound/slash/disembowel,
+					damage_dividend, dam, resistance,
+					artery_chance, CRIT_DISEMBOWEL_DIVISOR, CRIT_DISEMBOWEL_THRESHOLD,
+					silent, crit_message
+				)
+				if(wound_applied)
+					attempted_wounds += wound_applied
 
 		var/artery_type = /datum/wound/artery
 		var/artery_divisor = CRIT_ARTERY_DIVISOR
@@ -555,6 +557,9 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(bclass in GLOB.stab_bclasses)
 		var/stab_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, dam_divisor = 2, resistance_penalty = 12, bonus = aimed_bonus ? 12 : 0)
 		if(check_crit_threshold(damage_dividend, dam, resistance, CRIT_CHEST_ORGAN_STAB_DIVISOR, CRIT_CHEST_ORGAN_STAB_THRESHOLD) && prob(stab_chance))
+			// Werewolves are immune to lethal/organ crits unless sundered
+			if(istype(owner.dna?.species, /datum/species/werewolf) && !owner.has_wound(/datum/wound/sunder))
+				return FALSE
 			var/is_construct = isgolemp(owner) || isdoll(owner)
 			if(zone_precise == BODY_ZONE_CHEST)
 				if(prob(20) && owner.getorganslot(ORGAN_SLOT_HEART))
@@ -570,6 +575,8 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(bclass in GLOB.artery_bclasses)
 		var/slash_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, base_multiplier = 15, resistance_penalty = 15, bonus = strong_bonus)
 		if(check_crit_threshold(damage_dividend, dam, resistance, CRIT_CHEST_ORGAN_SLASH_DIVISOR, CRIT_CHEST_ORGAN_SLASH_THRESHOLD) && prob(slash_chance))
+			if(istype(owner.dna?.species, /datum/species/werewolf) && !owner.has_wound(/datum/wound/sunder))
+				return FALSE
 			var/is_construct = isgolemp(owner) || isdoll(owner)
 			if(zone_precise == BODY_ZONE_CHEST)
 				if(prob(10) && owner.getorganslot(ORGAN_SLOT_HEART))
@@ -585,6 +592,8 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if((bclass in GLOB.fracture_bclasses) && owner.has_wound(/datum/wound/fracture/chest) && (zone_precise == BODY_ZONE_CHEST))
 		var/blunt_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, base_multiplier = 18, resistance_penalty = 12, bonus = strong_bonus)
 		if(check_crit_threshold(damage_dividend, dam, resistance, CRIT_CHEST_ORGAN_BLUNT_DIVISOR, CRIT_CHEST_ORGAN_BLUNT_THRESHOLD) && prob(blunt_chance))
+			if(istype(owner.dna?.species, /datum/species/werewolf) && !owner.has_wound(/datum/wound/sunder))
+				return FALSE
 			var/is_construct = isgolemp(owner) || isdoll(owner)
 			if(prob(20) && owner.getorganslot(ORGAN_SLOT_HEART))
 				var/datum/wound/lethal/heart_penetration/bone_frag_wound = new /datum/wound/lethal/heart_penetration(dam)
@@ -603,7 +612,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			return applied
 	return FALSE
 
-/obj/item/bodypart/head/try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0)
+/obj/item/bodypart/head/try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0, was_blunted = FALSE)
 	var/static/list/eyestab_zones = list(BODY_ZONE_PRECISE_R_EYE, BODY_ZONE_PRECISE_L_EYE)
 	var/static/list/tonguestab_zones = list(BODY_ZONE_PRECISE_MOUTH)
 	var/static/list/nosestab_zones = list(BODY_ZONE_PRECISE_NOSE)
@@ -748,7 +757,7 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 					else
 						attempted_wounds += /datum/wound/facial/disfigurement/nose
 
-	if(bclass in GLOB.sunder_bclasses)
+	if((bclass in GLOB.sunder_bclasses) && !was_blunted)
 		if(HAS_TRAIT(owner, TRAIT_SILVER_WEAK) && !owner.has_status_effect(STATUS_EFFECT_ANTIMAGIC))
 			var/sunder_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, dam_divisor = 2)
 			if(prob(sunder_chance))
@@ -758,11 +767,15 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 	if(!is_construct && (bclass in GLOB.stab_bclasses) && (zone_precise in GLOB.brain_penetration_zones))
 		var/brain_stab_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, base_multiplier = 25, dam_divisor = 2, resistance_penalty = 15, bonus = strong_bonus ? 15 : 0)
 		if(check_crit_threshold(damage_dividend, dam, resistance, CRIT_BRAIN_PENETRATION_DIVISOR, CRIT_BRAIN_PENETRATION_THRESHOLD) && prob(brain_stab_chance) && owner.getorganslot(ORGAN_SLOT_BRAIN))
+			if(istype(owner.dna?.species, /datum/species/werewolf) && !owner.has_wound(/datum/wound/sunder))
+				return FALSE
 			attempted_wounds += /datum/wound/lethal/brain_penetration
 
 	if(!is_construct && (bclass in GLOB.fracture_bclasses) && owner.has_wound(/datum/wound/fracture/head))
 		var/brain_blunt_chance = calculate_crit_chance(damage_dividend, dam, resistance, armor_resistance = armor_resistance, resistance_penalty = 12, bonus = strong_bonus ? 12 : 0)
 		if(check_crit_threshold(damage_dividend, dam, resistance, CRIT_BRAIN_BLUNT_DIVISOR, CRIT_BRAIN_BLUNT_THRESHOLD) && prob(brain_blunt_chance) && owner.getorganslot(ORGAN_SLOT_BRAIN))
+			if(istype(owner.dna?.species, /datum/species/werewolf) && !owner.has_wound(/datum/wound/sunder))
+				return FALSE
 			var/datum/wound/lethal/brain_penetration/bone_frag_wound = new /datum/wound/lethal/brain_penetration(dam)
 			bone_frag_wound.from_fracture = TRUE
 			attempted_wounds += bone_frag_wound

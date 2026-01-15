@@ -258,7 +258,8 @@
 
 		var/variance_roll = get_damage_variance(/datum/skill/combat/bows, variance_center, user)
 
-		BB.damage = (BB.damage * (1 + (variance_roll / 100))) * damfactor
+		var/statmult = max(bonusstat / 20, 1)
+		BB.damage = ((BB.damage * (1 + (variance_roll / 100))) * damfactor) * statmult
 
 		// Set damage falloff parameters
 		BB.falloff_damage_per_turf = 5

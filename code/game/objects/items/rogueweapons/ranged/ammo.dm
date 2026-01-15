@@ -1,8 +1,8 @@
-#define ARROW_DAMAGE		30
-#define BOLT_DAMAGE			50
+#define ARROW_DAMAGE		45
+#define BOLT_DAMAGE			70
 #define BULLET_DAMAGE		80
-#define ARROW_PENETRATION	10
-#define BOLT_PENETRATION	50
+#define ARROW_PENETRATION	15
+#define BOLT_PENETRATION	60
 #define BULLET_PENETRATION	100
 
 //parent of all bolts and arrows ฅ^•ﻌ•^ฅ

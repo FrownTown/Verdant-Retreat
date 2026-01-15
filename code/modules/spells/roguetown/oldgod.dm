@@ -49,15 +49,17 @@
 		//Transfer wounds from each bodypart.
 		for(var/datum/wound/targetwound in tw_List)
 			if (istype(targetwound, /datum/wound/dismemberment))
-				continue				
+				continue
 			if (istype(targetwound, /datum/wound/facial))
-				continue					
+				continue
 			if (istype(targetwound, /datum/wound/fracture/head))
-				continue				
+				continue
 			if (istype(targetwound, /datum/wound/fracture/neck))
 				continue
 			if (istype(targetwound, /datum/wound/cbt/permanent))
-				continue			
+				continue
+			if (istype(targetwound, /datum/wound/grievous))
+				continue
 			var/obj/item/bodypart/c_BP = C_caster.get_bodypart(targetwound.bodypart_owner.body_zone)
 			c_BP.add_wound(targetwound.type)
 			var/obj/item/bodypart/t_BP = C_target.get_bodypart(targetwound.bodypart_owner.body_zone)
@@ -66,11 +68,11 @@
 	// Transfer blood
 	var/blood_transfer = 0
 	if(H.blood_volume < BLOOD_VOLUME_NORMAL)
-		blood_transfer = BLOOD_VOLUME_NORMAL - H.blood_volume
-		H.blood_volume = BLOOD_VOLUME_NORMAL
-		user.blood_volume -= blood_transfer
-		to_chat(user, span_warning("You feel your blood drain into [H]!"))
-		to_chat(H, span_notice("You feel your blood replenish!"))
+			blood_transfer = BLOOD_VOLUME_NORMAL - H.blood_volume
+			H.blood_volume = BLOOD_VOLUME_NORMAL
+			user.blood_volume = max(user.blood_volume - blood_transfer, BLOOD_VOLUME_SURVIVE)
+			to_chat(user, span_warning("You feel your blood drain into [H]!"))
+			to_chat(H, span_notice("You feel your blood replenish!"))
 
 	// Visual effects
 	user.visible_message(span_danger("[user] purifies [H]'s wounds!"))
