@@ -1865,7 +1865,7 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 	var/obj/item/clothing/bypassed_armor
 	var/list/bypassed_armors = list()
 	var/can_do_precision = FALSE
-	if(I.wbalance != WBALANCE_HEAVY || I.can_precision_strike || (bladec in GLOB.stab_bclasses))
+	if((I.wbalance != WBALANCE_HEAVY || I.can_precision_strike) && (bladec in GLOB.stab_bclasses))
 		can_do_precision = TRUE
 
 	if(user.cmode && istype(user.rmb_intent, /datum/rmb_intent/aimed) && can_do_precision)
