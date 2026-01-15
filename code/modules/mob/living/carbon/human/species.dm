@@ -1876,9 +1876,11 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 				var/armor_class = outer_armor.armor_class == ARMOR_CLASS_NONE && outer_armor.integ_armor_mod != ARMOR_CLASS_NONE ? outer_armor.integ_armor_mod : outer_armor.armor_class
 				if(armor_class == ARMOR_CLASS_HEAVY || (istype(outer_armor, /obj/item/clothing/head/roguetown/helmet) && outer_armor:flags_cover & HEADCOVERSEYES))
 					var/precision_chance = max(pen - outer_armor.armor.getRating(I.d_type) - GLOB.precision_vulnerable_zones[selzone], 0) // This way, it's easier to find gaps in damaged armor, and easier to achieve with high-penetration attacks
+					var/guaranteed_strike = FALSE
 					if(!H.cmode || H.incapacitated() || H.IsImmobilized())
 						precision_chance = 100
-					else 
+						guaranteed_strike = TRUE
+					else
 						if(I.associated_skill)
 							precision_chance += attacker.get_skill_level(I.associated_skill) * 10
 						if(((user in H.grabbedby) || (H in user.grabbedby)) && (I.wbalance == WBALANCE_SWIFT || I.can_precision_strike))
@@ -1907,27 +1909,31 @@ GLOBAL_LIST_INIT(precision_vulnerable_zones, list(BODY_ZONE_L_ARM = 5,
 								if(H.wear_wrists && outer_armor != H.wear_wrists)
 									if(H.wear_wrists.armor_class == ARMOR_CLASS_HEAVY || H.wear_wrists.integ_armor_mod == ARMOR_CLASS_HEAVY)
 										bypassed_armors += H.wear_wrists
-							
+
 							if(BODY_ZONE_R_LEG, BODY_ZONE_L_LEG, BODY_ZONE_PRECISE_GROIN)
 								if(H.wear_pants && outer_armor != H.wear_pants)
 									if(H.wear_pants.armor_class == ARMOR_CLASS_HEAVY || H.wear_pants.integ_armor_mod == ARMOR_CLASS_HEAVY)
 										bypassed_armors += H.wear_pants
-							
+
 							if(BODY_ZONE_PRECISE_NECK)
 								if(H.wear_neck && outer_armor != H.wear_neck)
 									if(H.wear_neck.armor_class == ARMOR_CLASS_HEAVY || H.wear_neck.integ_armor_mod == ARMOR_CLASS_HEAVY)
 										bypassed_armors += H.wear_neck
-							
+
 							if(BODY_ZONE_PRECISE_L_EYE, BODY_ZONE_PRECISE_R_EYE)
 								if(H.head && outer_armor != H.head)
 									if(H.head.armor_class == ARMOR_CLASS_HEAVY || H.head.integ_armor_mod == ARMOR_CLASS_HEAVY)
 										bypassed_armors += H.head
-						
-						H.visible_message(span_danger("[user] strikes through a gap in [H]'s armor!"), span_userdanger("[user] finds a gap in my armor!"))
-						attacker.filtered_balloon_alert(TRAIT_COMBAT_AWARE, "Gap found!")
+
+						if(guaranteed_strike)
+							H.visible_message(span_danger("[user] effortlessly strikes through a gap in [H]'s armor! [H.p_Theyre()] defenseless!"), span_userdanger("[user] effortlessly finds a gap in my armor! I'm defenseless!"))
+							attacker.filtered_balloon_alert(TRAIT_COMBAT_AWARE, "Auto gap!")
+						else
+							H.visible_message(span_danger("[user] strikes through a gap in [H]'s armor!"), span_userdanger("[user] finds a gap in my armor!"))
+							attacker.filtered_balloon_alert(TRAIT_COMBAT_AWARE, "Gap found!")
 					else
 						H.visible_message(span_warning("[user] attempts to strike through a gap in [H]'s armor, but fails!"), span_warning("[user] searches for a gap in my armor, but fails to find one!"))
-						attacker.filtered_balloon_alert(TRAIT_COMBAT_AWARE, "Gap not found")
+						attacker.filtered_balloon_alert(TRAIT_COMBAT_AWARE, "No gap!")
 
 	var/intent_damage_mult = user.used_intent.damfactor
 	var/combined_intdamfactor = used_intfactor * intent_damage_mult
