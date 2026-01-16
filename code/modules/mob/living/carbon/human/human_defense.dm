@@ -964,6 +964,22 @@
 			continue
 		examination += bodypart.check_for_injuries(user, deep_examination)
 
+	// Check for organ damage
+	var/list/organ_damage = list()
+	for(var/obj/item/organ/O in internal_organs)
+		if(O.damage > O.low_threshold)
+			var/organ_status
+			if(O.organ_flags & ORGAN_FAILING)
+				organ_status = span_dead("<B>FAILING</B>")
+			else if(O.damage > O.high_threshold)
+				organ_status = span_artery("<B>heavily damaged</B>")
+			else
+				organ_status = span_warning("damaged")
+			organ_damage += span_info("☼ [capitalize(O.name)]: [organ_status]")
+
+	if(organ_damage.len)
+		examination += organ_damage
+
 	examination += "ø ------------ ø</span>"
 	if(!silent)
 		to_chat(user, examination.Join("\n"))
