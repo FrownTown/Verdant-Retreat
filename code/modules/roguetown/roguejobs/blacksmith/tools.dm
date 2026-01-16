@@ -133,29 +133,31 @@
 
 			if(cloth_to_fix)
 				exp_gained = 0
+				var/any_repair_done = FALSE
 				for(var/fix_zone in GLOB.armor_check_zones)
 					if(cloth_to_fix.has_zone_integrity(fix_zone))
 						var/max_repairable_int = cloth_to_fix.get_zone_max_integrity(fix_zone)
 						if(unskilled && (fix_zone in cloth_to_fix.broken_zones))
 							max_repairable_int = max_repairable_int * 0.6
-						
+
 						var/current_zone_int = cloth_to_fix.get_zone_integrity(fix_zone)
 						var/actual_repair = 0
-						
+
 						if(current_zone_int < max_repairable_int)
 							// Cap repair amount
 							actual_repair = min(repair_percent, max_repairable_int - current_zone_int)
 							if(actual_repair > 0)
-								var/old_z_int = cloth_to_fix.get_zone_integrity(fix_zone)
-								var/new_z_int = cloth_to_fix.modify_zone_integrity(fix_zone, actual_repair)
-								if(new_z_int != null)
-									exp_gained += (new_z_int - old_z_int)
+								cloth_to_fix.modify_zone_integrity(fix_zone, actual_repair)
+								any_repair_done = TRUE
 
 						if(!unskilled && (fix_zone in cloth_to_fix.broken_zones))
 							if(cloth_to_fix.get_zone_integrity(fix_zone) >= cloth_to_fix.get_zone_max_integrity(fix_zone))
 								cloth_to_fix.broken_zones -= fix_zone
 
 				cloth_to_fix.update_overall_integrity()
+				// Only award XP once per repair action, not per zone
+				if(any_repair_done)
+					exp_gained = repair_percent
 			else
 				var/repair_cap = attacked_item.max_integrity
 				if(unskilled && (attacked_item.obj_broken || attacked_item.shoddy_repair))
