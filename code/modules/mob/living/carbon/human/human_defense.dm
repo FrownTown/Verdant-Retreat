@@ -160,10 +160,18 @@
 					var/effective_armor = val * effectiveness
 
 					// Apply blunt weapon modifiers based on armor class (scaled by effectiveness)
-					// For unarmed attacks (no weapon), only apply modifier if attacker has TRAIT_CIVILIZEDBARBARIAN
+					// For unarmed attacks or unarmed-skill weapons (like knuckles), only apply modifier if attacker has TRAIT_CIVILIZEDBARBARIAN
 					var/apply_blunt_modifier = FALSE
 					if(d_type == "blunt")
-						if(used_weapon || (attacker && HAS_TRAIT(attacker, TRAIT_CIVILIZEDBARBARIAN)))
+						var/is_unarmed_weapon = FALSE
+						if(used_weapon && istype(used_weapon, /obj/item/rogueweapon))
+							var/obj/item/rogueweapon/RW = used_weapon
+							if(RW.associated_skill == /datum/skill/combat/unarmed)
+								is_unarmed_weapon = TRUE
+
+						if(used_weapon && !is_unarmed_weapon)
+							apply_blunt_modifier = TRUE
+						else if(attacker && HAS_TRAIT(attacker, TRAIT_CIVILIZEDBARBARIAN))
 							apply_blunt_modifier = TRUE
 
 					if(apply_blunt_modifier)
