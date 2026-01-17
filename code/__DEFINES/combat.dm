@@ -363,7 +363,7 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define DAMAGE_PRECISION 0.1
 
 #define STRONG_STANCE_DMG_BONUS 0.1
-#define STRONG_SHP_BONUS 2
+#define STRONG_SHP_BONUS 1
 #define STRONG_INTG_BONUS 2
 
 //bullet_act() return values
@@ -377,7 +377,7 @@ GLOBAL_LIST_INIT(shove_disarming_types, typecacheof(list(
 #define BLUNT_DEFAULT_PENFACTOR		1
 #define INTEG_PARRY_DECAY			1	//Default integrity decay on parry.
 #define INTEG_PARRY_DECAY_NOSHARP	5	//Integrity decay on parry for weapons with no sharpness OR for off-hand parries.
-#define SHARPNESS_ONHIT_DECAY		3	//Sharpness decay on parry.
+#define SHARPNESS_ONHIT_DECAY		1	//Sharpness decay on parry.
 #define SHARPNESS_TIER1_THRESHOLD	0.8	//%-age threshold when damage starts to fall off -- mainly damfactor and STR factor. NOT base damage value.
 #define SHARPNESS_TIER2_THRESHOLD	0.25//%-age threshold when damage *really* falls off. Base damage value included.
 

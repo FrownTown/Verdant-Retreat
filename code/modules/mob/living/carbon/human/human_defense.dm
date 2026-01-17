@@ -160,14 +160,21 @@
 					var/effective_armor = val * effectiveness
 
 					// Apply blunt weapon modifiers based on armor class (scaled by effectiveness)
-					// For unarmed attacks (no weapon), only apply modifier if attacker has TRAIT_CIVILIZEDBARBARIAN
-					var/apply_blunt_modifier = FALSE
 					if(d_type == "blunt")
-						if(used_weapon || (attacker && HAS_TRAIT(attacker, TRAIT_CIVILIZEDBARBARIAN)))
-							apply_blunt_modifier = TRUE
+						var/is_unarmed_weapon = FALSE
+						if(used_weapon && istype(used_weapon, /obj/item/rogueweapon))
+							var/obj/item/rogueweapon/RW = used_weapon
+							if(RW.associated_skill == /datum/skill/combat/unarmed)
+								is_unarmed_weapon = TRUE
 
-					if(apply_blunt_modifier)
-						var/blunt_modifier = get_blunt_ap_mod(C, effectiveness)
+						// Determine if we apply the vital zone bonus
+						var/apply_vital_bonus = TRUE
+						if(!used_weapon || is_unarmed_weapon)
+							// Unarmed or unarmed weapons (knuckles) don't get vital zone bonus unless expert pugilist
+							if(!attacker || !HAS_TRAIT(attacker, TRAIT_CIVILIZEDBARBARIAN))
+								apply_vital_bonus = FALSE
+
+						var/blunt_modifier = get_blunt_ap_mod(C, effectiveness, def_zone, apply_vital_bonus)
 						var/modified_pen = armor_penetration + blunt_modifier
 						effective_armor = max(effective_armor - modified_pen, 0)
 					else
@@ -271,11 +278,12 @@
 						var/durability_percent = (zone_integrity / zone_max) * 100
 						return durability_percent
 
-/mob/living/carbon/human/proc/get_blunt_ap_mod(obj/item/clothing/C, effectiveness)
+/mob/living/carbon/human/proc/get_blunt_ap_mod(obj/item/clothing/C, effectiveness, def_zone, apply_vital_bonus = TRUE)
 	var/effective_class = C.armor_class == ARMOR_CLASS_NONE ? C.integ_armor_mod : C.armor_class
 	var/blunt_modifier = 0
 
 	// Blunt AP bonus scales UP with damage (inverse of effectiveness)
+	// This bonus is only applied for proper weapons, not unarmed/knuckles (without expert pugilist)
 	var/damage_factor = (1 - effectiveness) * 2
 
 	switch(effective_class)
@@ -289,6 +297,27 @@
 			if(istype(C, /obj/item/clothing/head/helmet))
 				blunt_modifier += BLUNT_AP_MOD_HEAVY_HELMET * damage_factor
 
+	// Attacks against vital zones receive penalties until the armor is damaged (scales with durability)
+	if(apply_vital_bonus)
+		var/armor_penalty = 0
+		if(def_zone == BODY_ZONE_CHEST)
+			switch(effective_class) // These are magic numbers for now, can be adjusted later
+				if(ARMOR_CLASS_HEAVY)
+					armor_penalty = 26 * effectiveness
+				if(ARMOR_CLASS_MEDIUM)
+					armor_penalty = 18 * effectiveness
+				if(ARMOR_CLASS_LIGHT)
+					armor_penalty = 8 * effectiveness
+		if(def_zone == BODY_ZONE_HEAD)
+			switch(effective_class)
+				if(ARMOR_CLASS_HEAVY)
+					armor_penalty = 12 * effectiveness
+				if(ARMOR_CLASS_MEDIUM)
+					armor_penalty = 10 * effectiveness
+				if(ARMOR_CLASS_LIGHT)
+					armor_penalty = 8 * effectiveness
+
+		blunt_modifier -= armor_penalty
 	return blunt_modifier
 
 //This proc returns obj/item/clothing, the armor that has "soaked" the crit. Using it for dismemberment check
@@ -965,6 +994,22 @@
 			examination += span_info("☼ [capitalize(parse_zone(body_zone))]: <span class='deadsay'><b>MISSING</b></span>")
 			continue
 		examination += bodypart.check_for_injuries(user, deep_examination)
+
+	// Check for organ damage
+	var/list/organ_damage = list()
+	for(var/obj/item/organ/O in internal_organs)
+		if(O.damage > O.low_threshold)
+			var/organ_status
+			if(O.organ_flags & ORGAN_FAILING)
+				organ_status = span_dead("<B>FAILING</B>")
+			else if(O.damage > O.high_threshold)
+				organ_status = span_artery("<B>heavily damaged</B>")
+			else
+				organ_status = span_warning("damaged")
+			organ_damage += span_info("☼ [capitalize(O.name)]: [organ_status]")
+
+	if(organ_damage.len)
+		examination += organ_damage
 
 	examination += "ø ------------ ø</span>"
 	if(!silent)

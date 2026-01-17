@@ -1,10 +1,10 @@
 /obj/effect/proc_holder/spell/invoked/psydonlux_tamper
 	name = "WEEP"
-	overlay_state = "psydonweeps"
+	overlay_state = "WEEP"
 	releasedrain = 20
 	chargedrain = 0
 	chargetime = 0
-	range = 2
+	range = 7
 	warnie = "sydwarning"
 	desc = "Bleed for the target, taking their wounds and refilling their blood level."
 	movement_interrupt = FALSE
@@ -46,24 +46,10 @@
 			revert_cast()
 			return FALSE
 
-		//Transfer wounds from each bodypart.
-		for(var/datum/wound/targetwound in tw_List)
-			if (istype(targetwound, /datum/wound/dismemberment))
-				continue
-			if (istype(targetwound, /datum/wound/facial))
-				continue
-			if (istype(targetwound, /datum/wound/fracture/head))
-				continue
-			if (istype(targetwound, /datum/wound/fracture/neck))
-				continue
-			if (istype(targetwound, /datum/wound/cbt/permanent))
-				continue
-			if (istype(targetwound, /datum/wound/grievous))
-				continue
-			var/obj/item/bodypart/c_BP = C_caster.get_bodypart(targetwound.bodypart_owner.body_zone)
-			c_BP.add_wound(targetwound.type)
-			var/obj/item/bodypart/t_BP = C_target.get_bodypart(targetwound.bodypart_owner.body_zone)
-			t_BP.remove_wound(targetwound.type)
+		for(var/obj/item/bodypart/victim_bodypart as anything in C_target.bodyparts)
+			var/obj/item/bodypart/our_bodypart = C_caster.get_bodypart(victim_bodypart.body_zone)
+			if (our_bodypart)
+				victim_bodypart.transfer_wounds(our_bodypart)
 
 	// Transfer blood
 	var/blood_transfer = 0
@@ -306,7 +292,7 @@
 	releasedrain = 20
 	chargedrain = 0
 	chargetime = 0
-	range = 1
+	range = 7
 	warnie = "sydwarning"
 	movement_interrupt = FALSE
 	sound = 'sound/magic/psyabsolution.ogg'
