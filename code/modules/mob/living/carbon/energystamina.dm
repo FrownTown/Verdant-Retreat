@@ -67,7 +67,7 @@
 	if (amt <= chip_amt)
 		if (athletics_skill && prob(athletics_skill * 16)) // 16% chance per athletics skill to straight up negate nutrition loss
 			return 0
-		if (amt == 2 && prob(STACON * 5)) // only sprinting knocks off 2 stamina at a time, so test this vs our con to see if we drop it
+		if (amt == 2 && get_stat_roll(STACON) >= 10) // only sprinting knocks off 2 stamina at a time, so test this vs our con to see if we drop it
 			return 0
 
 	var/tox_damage = getToxLoss()

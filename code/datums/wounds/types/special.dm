@@ -518,7 +518,7 @@
 		if(cached_organ)
 			cached_organ.applyOrganDamage(organ_damage)
 
-	if(prob(80-affected.STACON*2))
+	if(get_stat_roll(affected.STACON) < 12)
 		affected.Unconscious((rand(20,30)-affected.STACON) SECONDS)
 
 	to_chat(affected, span_userdanger("[pick(penetration_messages)]"))

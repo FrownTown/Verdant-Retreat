@@ -200,7 +200,7 @@
 		return
 	var/mob/living/carbon/human/victim = O
 	if(victim.STALUC >= 10)
-		if(prob((victim.STALUC - 10) * 10))
+		if(get_stat_roll(victim.STALUC) >= 18)
 			to_chat(victim, span_warning("Your foot narrowly misses [src]. Be careful!"))
 			return
 	playsound(victim, 'sound/items/knife_open.ogg', 100, TRUE)

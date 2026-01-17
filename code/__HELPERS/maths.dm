@@ -43,3 +43,7 @@
 			current_y_step += y_distance_sign
 			line += locate(current_x_step, current_y_step, starting_z)
 	return line
+
+/proc/get_stat_roll(stat_value)
+	var/mod = floor((stat_value - 10) / 2)
+	return rand(1, 20) + mod

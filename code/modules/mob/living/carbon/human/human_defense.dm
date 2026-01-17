@@ -1233,24 +1233,31 @@
 
 	if(d_intent == INTENT_PARRY && can_weapon_parry)
 		is_parry_attempt = TRUE
+		var/skill_level = 0
 		if(parry_weapon.associated_skill)
-			prob2defend = get_skill_level(parry_weapon.associated_skill) * 20
+			skill_level = get_skill_level(parry_weapon.associated_skill)
 		else
-			prob2defend = HAS_TRAIT(src, TRAIT_CIVILIZEDBARBARIAN) ? get_skill_level(/datum/skill/combat/unarmed) * 20 : get_skill_level(/datum/skill/combat/unarmed) * 10
+			skill_level = get_skill_level(/datum/skill/combat/unarmed)
+			if(!HAS_TRAIT(src, TRAIT_CIVILIZEDBARBARIAN))
+				skill_level = max(0, skill_level - 2)
 
-		prob2defend = CLAMP(prob2defend, 5, 95)
+		prob2defend = (skill_level * 4)
 
 	else if(d_intent == INTENT_DODGE && (mobility_flags & MOBILITY_STAND))
 		is_dodge_attempt = TRUE
-		prob2defend = STASPD * 5
-		prob2defend = CLAMP(prob2defend, 5, 95)
-
+		
 	// If no valid defense, fail
 	if(!is_parry_attempt && !is_dodge_attempt)
 		return FALSE
 
 	// Roll for success
-	if(!prob(prob2defend))
+	var/success = FALSE
+	if (is_parry_attempt)
+		success = (rand(1, 20) + prob2defend) >= 20
+	else
+		success = get_stat_roll(STASPD) > get_stat_roll(shooter.STASPD)
+
+	if(!success)
 		if(client?.prefs.showrolls)
 			to_chat(src, span_warning("Failed to [is_parry_attempt ? "parry" : "dodge"] point-blank shot! [prob2defend]%"))
 		return FALSE

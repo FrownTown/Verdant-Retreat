@@ -241,6 +241,6 @@
 	. = ..()
 	if(owner && dam > 0 && armor_block < raw_damage/2)
 		var/stamina_loss = bclass == BCLASS_BLUNT ? round(dam*0.25) : round(dam*0.15)
-		if(!prob(owner.STACON*5))
+		if(get_stat_roll(owner.STACON) < 10)
 			stamina_loss *= 2
 		owner.stamina_add(-stamina_loss)

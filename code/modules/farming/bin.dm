@@ -65,7 +65,7 @@
 				user.visible_message(span_warning("[user] kicks [src]!"), \
 					span_warning("I kick [src]!"))
 			return
-		if(prob(L.STASTR * 8))
+		if(get_stat_roll(L.STASTR) >= 5)
 			playsound(src, 'sound/combat/hits/onwood/woodimpact (1).ogg', 100)
 			if(HAS_TRAIT(user, TRAIT_LAMIAN_TAIL))
 				user.visible_message(span_warning("[user] slaps [src] over with [user.p_their()] tail!"), \

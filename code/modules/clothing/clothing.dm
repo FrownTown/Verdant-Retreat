@@ -427,7 +427,7 @@
 				return
 			if(!do_after(user, 20, target = user))
 				return
-			if(prob(L.STASTR * 8))
+			if(get_stat_roll(L.STASTR) >= 5)
 				torn_sleeve_number += 1
 				r_sleeve_status = SLEEVE_TORN
 				user.visible_message(span_notice("[user] tears [src]."))
@@ -451,7 +451,7 @@
 				return
 			if(!do_after(user, 20, target = user))
 				return
-			if(prob(L.STASTR * 8))
+			if(get_stat_roll(L.STASTR) >= 5)
 				torn_sleeve_number += 1
 				l_sleeve_status = SLEEVE_TORN
 				user.visible_message(span_notice("[user] tears [src]."))

@@ -256,17 +256,9 @@
 
 		//stat checking block
 		if(!(world.time % 5))
-			var/statchance = 50
-
-			if(STASTR > L.STASTR)
-				statchance = 50 + (STASTR - L.STASTR * 10)
-
-			else if(STASTR < L.STASTR)
-				statchance = 50 - (L.STASTR - STASTR * 10)
-			if(statchance < 10)
-				statchance = 10
-			if(prob(statchance))
+			if(get_stat_roll(STASTR) >= get_stat_roll(L.STASTR))
 				visible_message(span_info("[src] pushes [M]."))
+				
 			else
 				visible_message(span_warning("[src] pushes [M]."))
 				return TRUE

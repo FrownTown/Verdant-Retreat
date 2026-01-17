@@ -80,7 +80,7 @@
 				var/mob/living/L = user
 				if(L.STASTR >= initial(kickthresh))
 					kickthresh--
-				if((prob(L.STASTR * 0.5) || kickthresh == 0) && (L.STASTR >= initial(kickthresh)))
+				if((get_stat_roll(L.STASTR) >= 20 || kickthresh == 0) && (L.STASTR >= initial(kickthresh)))
 					playsound(src, 'sound/combat/hits/onwood/woodimpact (1).ogg', 100)
 					if(HAS_TRAIT(user, TRAIT_LAMIAN_TAIL))
 						user.visible_message(span_warning("[user] slams [src] open with [user.p_their()] tail!"), \

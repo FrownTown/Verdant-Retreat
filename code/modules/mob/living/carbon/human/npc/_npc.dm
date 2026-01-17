@@ -557,7 +557,7 @@
 						if(should_target(L))
 							retaliate(L)
 						// don't detect sneaking enemies if you're looking above you
-						if (!is_checking_above && world.time >= next_passive_detect && L.alpha == 0 && L.rogue_sneaking && prob(STAPER / 2))
+						if (!is_checking_above && world.time >= next_passive_detect && L.alpha == 0 && L.rogue_sneaking && (get_stat_roll(STAPER) >= 20))
 							if (!npc_detect_sneak(L, -20)) // attempt a passive detect with 20% increased difficulty
 								next_passive_detect = world.time + STAPER SECONDS
 

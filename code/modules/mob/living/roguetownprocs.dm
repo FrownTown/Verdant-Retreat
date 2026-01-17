@@ -262,12 +262,12 @@
 
 			if(mainhand)
 				if(mainhand.can_parry)
-					mainhand_defense += (H.get_skill_level(mainhand.associated_skill) * 20)
-					mainhand_defense += (mainhand.wdefense_dynamic * 10)
+					mainhand_defense += (H.get_skill_level(mainhand.associated_skill) * 4)
+					mainhand_defense += (mainhand.wdefense_dynamic * 2)
 			if(offhand)
 				if(offhand.can_parry)
-					offhand_defense += (H.get_skill_level(offhand.associated_skill) * 20)
-					offhand_defense += (offhand.wdefense_dynamic * 10)
+					offhand_defense += (H.get_skill_level(offhand.associated_skill) * 4)
+					offhand_defense += (offhand.wdefense_dynamic * 2)
 
 			if(mainhand_defense >= offhand_defense)
 				highest_defense += mainhand_defense
@@ -277,25 +277,29 @@
 
 			var/defender_skill = 0
 			var/attacker_skill = 0
+			
+			var/def_roll = rand(1, 20)
 
-			if(highest_defense <= (H.get_skill_level(/datum/skill/combat/unarmed) * 20))
+			if(highest_defense <= (H.get_skill_level(/datum/skill/combat/unarmed) * 4))
 				defender_skill = H.get_skill_level(/datum/skill/combat/unarmed)
 				var/obj/B = H.get_item_by_slot(SLOT_WRISTS)
 				if(istype(B, /obj/item/clothing/wrists/roguetown/bracers))
-					prob2defend += (defender_skill * 30)
+					def_roll += (defender_skill * 6)
 				else
-					prob2defend += (defender_skill * 10)		// no bracers gonna be butts.
+					def_roll += (defender_skill * 2)
 				weapon_parry = FALSE
 			else
 				if(used_weapon)
 					defender_skill = H.get_skill_level(used_weapon.associated_skill)
 					if(used_weapon.item_flags & PEASANT_WEAPON && HAS_TRAIT(H, TRAIT_PEASANTMILITIA))
-						prob2defend += 20 //Identical to +1 defender skill
+						def_roll += 4 
 				else
 					defender_skill = H.get_skill_level(/datum/skill/combat/unarmed)
-				prob2defend += highest_defense
+				def_roll += highest_defense
 				weapon_parry = TRUE
 
+			var/atk_roll = rand(1, 20)
+			
 			if(U.mind)
 				if(intenty.masteritem)
 					attacker_skill = U.get_skill_level(intenty.masteritem.associated_skill)
@@ -303,11 +307,12 @@
 					if(intenty.sharpness_penalty)
 						intenty.masteritem.remove_bintegrity(intenty.sharpness_penalty)
 
-					prob2defend -= (attacker_skill * 20)
-					if((intenty.masteritem.wbalance == WBALANCE_SWIFT) && (user.STASPD > src.STASPD)) //enemy weapon is quick, so get a bonus based on spddiff
-						var/spdmod = ((user.STASPD - src.STASPD) * 10)
-						var/permod = ((src.STAPER - user.STAPER) * 10)
-						var/intmod = ((src.STAINT - user.STAINT) * 3)
+					atk_roll += (attacker_skill * 4)
+					
+					if((intenty.masteritem.wbalance == WBALANCE_SWIFT) && (user.STASPD > src.STASPD))
+						var/spdmod = ((user.STASPD - src.STASPD) * 2)
+						var/permod = ((src.STAPER - user.STAPER) * 2)
+						var/intmod = floor((src.STAINT - user.STAINT) * 0.6)
 						if(mind)
 							if(permod > 0)
 								spdmod -= permod
@@ -315,68 +320,65 @@
 								spdmod -= intmod
 						var/finalmod = spdmod
 						if(mind)
-							finalmod = clamp(spdmod, 0, 30)
-						prob2defend -= finalmod
+							finalmod = clamp(spdmod, 0, 6)
+						atk_roll += finalmod
 					if(intenty.masteritem.item_flags & PEASANT_WEAPON && HAS_TRAIT(U, TRAIT_PEASANTMILITIA))
-						prob2defend -= 20 //Identical to +1 attacker skill
+						atk_roll += 4
 				else
 					attacker_skill = U.get_skill_level(/datum/skill/combat/unarmed)
-					prob2defend -= (attacker_skill * 20)
+					atk_roll += (attacker_skill * 4)
 
 			if(HAS_TRAIT(src, TRAIT_GUIDANCE))
-				prob2defend += 20
+				def_roll += 4
 
 			if(HAS_TRAIT(user, TRAIT_GUIDANCE))
-				prob2defend -= 20
+				atk_roll += 4
 
 			if(HAS_TRAIT(src, TRAIT_NODEF))
-				prob2defend = 0
+				def_roll = -99
 
 			if(HAS_TRAIT(src, TRAIT_SLAYER))
-				prob2defend *= 0.7
+				def_roll = floor(def_roll * 0.7)
 
 			// parrying while knocked down sucks ass
 			if(!(mobility_flags & MOBILITY_STAND))
-				prob2defend *= 0.65
+				def_roll = floor(def_roll * 0.65)
 
 			if(HAS_TRAIT(H, TRAIT_SENTINELOFWITS))
 				if(ishuman(H))
 					var/mob/living/carbon/human/SH = H
 					var/sentinel = SH.calculate_sentinel_bonus()
-					prob2defend += sentinel
+					def_roll += floor(sentinel / 5)
 
 			if(HAS_TRAIT(H, TRAIT_CURSE_RAVOX))
-				prob2defend -= 30
+				def_roll -= 6
 
-			prob2defend = clamp(prob2defend, 5, 95)
-			if(HAS_TRAIT(user, TRAIT_HARDSHELL) && H.client)	//Dwarf-merc specific limitation w/ their armor on in pvp
-				prob2defend = clamp(prob2defend, 5, 70)
+			if(HAS_TRAIT(user, TRAIT_HARDSHELL) && H.client)
+				def_roll = min(def_roll, 14)
 			if(!H?.check_armor_skill())
-				prob2defend = clamp(prob2defend, 5, 75)			//Caps your max parry to 75 if using armor you're not trained in. Bad dexerity.
-				drained = drained + 5							//More stamina usage for not being trained in the armor you're using.
+				def_roll = min(def_roll, 15)
+				drained = drained + 5
 
 			//Dual Wielding
 			var/defender_dualw
-			var/extradefroll
 
 			//Dual Wielder defense disadvantage
 			if(HAS_TRAIT(src, TRAIT_DUALWIELDER) && (istype(offhand, mainhand) || istype(mainhand, offhand)))
-				extradefroll = prob(prob2defend)
 				defender_dualw = TRUE
 
 			if(src.client?.prefs.showrolls)
-				var/text = "Roll to parry... [prob2defend]%"
+				var/text = "Parry Roll: [def_roll] Defense vs [atk_roll] Attack"
 				if(defender_dualw)
-					text += " Twice! Disadvantage! ([(prob2defend / 100) * (prob2defend / 100) * 100]%)"
+					text += " (Disadvantage -4)"
 				to_chat(src, span_info("[text]"))
 
-			var/parry_status = FALSE
+			var/parry_status = (def_roll >= atk_roll)
+			
 			if(defender_dualw)
-				if(prob(prob2defend) && extradefroll)
-					parry_status = TRUE
-			else
-				if(prob(prob2defend))
-					parry_status = TRUE
+				// Disadvantage
+				if(parry_status)
+					def_roll -= 4
+					parry_status = (def_roll >= atk_roll)
 
 			if(parry_status)
 				if(intenty.masteritem)
@@ -557,6 +559,124 @@
 					to_chat(src, span_boldwarning("There's nowhere to dodge to!"))
 					return FALSE
 				else
+					var/obj/item/I = intenty?.masteritem
+					var/chest_armored = FALSE
+					var/legs_armored = FALSE
+					var/armor_class = ARMOR_CLASS_NONE
+					var/special_dodge = FALSE
+					var/mob/living/carbon/human/H_src = null
+					
+					if(ishuman(src))
+						H_src = src
+						if(H_src.wear_armor && istype(H_src.wear_armor, /obj/item/clothing))
+							chest_armored = TRUE
+						if(H_src.wear_pants && istype(H_src.wear_pants, /obj/item/clothing))
+							legs_armored = TRUE
+						
+						if(chest_armored || legs_armored)
+							armor_class = H_src.highest_ac_worn()
+						
+						if(HAS_TRAIT(H_src, TRAIT_DODGEEXPERT))
+							special_dodge = TRUE
+
+					var/def_roll = get_stat_roll(src.STASPD)
+					var/atk_roll = get_stat_roll(user.STASPD)
+					
+					if(src)
+						if(H_src?.check_dodge_skill())
+							def_roll += 2 // Skill bonus
+					
+					if(I) // Weapon modifiers
+						if(I.wbalance == WBALANCE_SWIFT && istype(user.rmb_intent, /datum/rmb_intent/swift) && user.STASPD > src.STASPD)
+							def_roll -= 2
+						if(I.wbalance == WBALANCE_HEAVY && istype(user.rmb_intent, /datum/rmb_intent/strong) && src.STASPD > user.STASPD)
+							def_roll += 2
+						if(!(H_src?.check_dodge_skill()))
+							def_roll -= (user.get_skill_level(I.associated_skill) * 2)
+					
+					if(H_src)
+						if(!H_src.check_armor_skill() || H_src.legcuffed)
+							H_src.Knockdown(1)
+							return FALSE
+						if(I) // Armed attack
+							if(!I.associated_skill)
+								def_roll += 2 // Improvised weapon penalty for attacker
+							else
+								if(!(H_src.check_dodge_skill()))
+									def_roll += (H_src.get_skill_level(I.associated_skill) * 2)
+						else // Unarmed attack
+							if(user.used_intent.unarmed)
+								def_roll -= (user.get_skill_level(/datum/skill/combat/unarmed) * 2)
+								def_roll += (H_src.get_skill_level(/datum/skill/combat/unarmed) * 2)
+
+						if(HAS_TRAIT(src, TRAIT_GUIDANCE))
+							def_roll += 4
+						if(HAS_TRAIT(user, TRAIT_GUIDANCE))
+							def_roll -= 4
+						if(HAS_TRAIT(src, TRAIT_NODEF))
+							def_roll = -99 // Auto fail
+						if(HAS_TRAIT(src, TRAIT_SLAYER))
+							def_roll -= 5
+						if(!(src.mobility_flags & MOBILITY_STAND))
+							def_roll -= 5
+						
+						if(HAS_TRAIT(H_src, TRAIT_SENTINELOFWITS))
+							var/sentinel = H_src.calculate_sentinel_bonus()
+							def_roll += floor(sentinel / 5)
+
+						if(HAS_TRAIT(H_src, TRAIT_CURSE_RAVOX))
+							def_roll -= 6
+
+						var/armored = (chest_armored || legs_armored) ? armor_class : ARMOR_CLASS_NONE
+						switch(armored)
+							if(ARMOR_CLASS_LIGHT, ARMOR_CLASS_NONE)
+								if(HAS_TRAIT(H_src, TRAIT_DODGEEXPERT))
+									def_roll += max(1, 4 - floor((H_src.STASPD - 10)))
+								else
+									def_roll += 1
+							if(ARMOR_CLASS_HEAVY)
+								if(HAS_TRAIT(H_src, TRAIT_HEAVYARMOR))
+									def_roll -= 1
+								else
+									def_roll -= 4
+
+						if(special_dodge)
+							def_roll = floor(def_roll / 2) // Halve effective roll for special dodge
+
+						// Dual Wielding
+						var/attacker_dualw
+						var/defender_dualw
+						
+						var/mainhand = src.get_active_held_item()
+						var/offhand	= src.get_inactive_held_item()
+						if(mainhand && offhand && HAS_TRAIT(src, TRAIT_DUALWIELDER) && istype(offhand, mainhand))
+							defender_dualw = TRUE // Disadvantage
+							
+						var/obj/item/mainh = user.get_active_held_item()
+						var/obj/item/offh = user.get_inactive_held_item()
+						if(mainh && offh && HAS_TRAIT(user, TRAIT_DUALWIELDER) && istype(mainh, offh))
+							attacker_dualw = TRUE // Advantage
+
+						if(src.client?.prefs.showrolls)
+							to_chat(src, span_info("Dodge Roll: [def_roll] vs [atk_roll]"))
+
+						var/dodge_success = (def_roll >= atk_roll)
+						
+						if(defender_dualw && !attacker_dualw)
+							if(dodge_success)
+								def_roll -= 4
+								dodge_success = (def_roll >= atk_roll)
+						else if(attacker_dualw && !defender_dualw)
+							def_roll -= 4
+							dodge_success = (def_roll >= atk_roll)
+
+						if(!dodge_success)
+							return FALSE
+					
+					else
+						if(def_roll < atk_roll)
+							return FALSE
+
 					if(do_dodge(user, turfy))
 						flash_fullscreen("blackflash2")
 						user.aftermiss()
@@ -599,8 +719,9 @@
 		if(H.stamina_add(parrydrain))
 			if(stamina_before + parrydrain >= H.max_stamina && ishuman(user))
 				var/mob/living/carbon/human/attacker = user
-				var/disarm_chance = (attacker.STASTR - H.STASTR) * 10 - (balance_diff * 15)
-				if(prob(disarm_chance))
+				// Disarm check: Attacker Str Roll vs Defender Str Roll + Balance Mod + 10 (DC offset)
+				// Balance diff is usually 0, 1, or 2. * 3 scales it to d20.
+				if(get_stat_roll(attacker.STASTR) >= get_stat_roll(H.STASTR) + (balance_diff * 3) + 10)
 					return PARRY_DISARM
 
 			if(W)
