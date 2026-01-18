@@ -43,7 +43,7 @@
 			if(!COOLDOWN_FINISHED(src, shield_bang))
 				return
 			user.visible_message(span_danger("[user] bangs [src] with [attackby_item]!"))
-			playsound(user.loc, 'sound/combat/shieldbang.ogg', 50, TRUE)
+			playsound(user, 'sound/combat/shieldbang.ogg', 50, TRUE)
 			COOLDOWN_START(src, shield_bang, SHIELD_BANG_COOLDOWN)
 			return
 
@@ -448,10 +448,10 @@
 	max_integrity = 200
 	possible_item_intents = list(SHIELD_BLOCK, FENCER_DAZE) */
 
-/obj/item/rogueweapon/shield/capbuckler // unique, better buckler for knight captain
+/obj/item/rogueweapon/shield/championbuckler // unique, better buckler for the champion
 	name = "'Order'"
-	desc = "A special buckler shield made out of blacksteel for the captain of the guard, adorned with the Scarlet Reach crest."
-	icon_state = "capbuckler"
+	desc = "A special buckler shield made out of blacksteel for the realm's champion, adorned with the Scarlet Reach crest."
+	icon_state = "champbuckler"
 	icon = 'icons/roguetown/weapons/shields32.dmi'
 	slot_flags = ITEM_SLOT_HIP | ITEM_SLOT_BACK
 	force = 20

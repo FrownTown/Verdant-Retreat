@@ -27,7 +27,10 @@
 		update_move_intent_slowdown() // Apply speed changes
 
 		AddSpell(new /obj/effect/proc_holder/spell/self/spiderfangs/mire)
-		real_name = "Lesser Mire Crawler ([stored_mob.real_name])" //Preserve original character name
+		if (src.client.prefs?.wildshape_name)
+			real_name = "lesser mire crawler ([stored_mob.real_name])"
+		else
+			real_name = "lesser mire crawler"
 
 
 // mirecrawler SPECIES DATUM //
@@ -71,7 +74,7 @@
 	)
 
 /datum/species/mirecrawler/send_voice(mob/living/carbon/human/H)
-	playsound(get_turf(H), pick('sound/vo/mobs/spider/attack (1).ogg','sound/vo/mobs/spider/attack (2).ogg','sound/vo/mobs/spider/attack (3).ogg','sound/vo/mobs/spider/attack (4).ogg'), 80, TRUE, -1)
+	playsound(H, pick('sound/vo/mobs/spider/attack (1).ogg','sound/vo/mobs/spider/attack (2).ogg','sound/vo/mobs/spider/attack (3).ogg','sound/vo/mobs/spider/attack (4).ogg'), 80, TRUE, -1)
 
 /datum/species/mirecrawler/regenerate_icons(mob/living/carbon/human/H)
 	H.icon = 'modular_hearthstone/icons/mob/mirespider_small.dmi'

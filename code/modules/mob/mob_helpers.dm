@@ -246,9 +246,7 @@
 		var/letter = text[i]
 		if(prob(chance))
 			if(replace_characters)
-				letter = ""
-			for(var/j in 1 to rand(0, 2))
-				letter += pick("#","@","*","&","%","$","/", "<", ">", ";","*","*","*","*","*","*","*")
+				letter = "*"
 		. += letter
 
 
@@ -625,6 +623,7 @@
 	on_cmode()
 
 /mob/proc/on_cmode()
+	SEND_SIGNAL(src, COMSIG_COMBAT_MODE)
 	return
 
 /mob

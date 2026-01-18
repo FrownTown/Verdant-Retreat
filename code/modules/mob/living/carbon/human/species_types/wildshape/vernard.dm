@@ -22,8 +22,11 @@
 		update_move_intent_slowdown() // Apply speed changes
 
 		AddSpell(new /obj/effect/proc_holder/spell/self/foxclaws)
-		real_name = "Vernard ([stored_mob.real_name])" //So we don't get a random name
 		faction += "wolfs" // Foxes have the same faction code-wise so leaving it for now
+		if (src.client.prefs?.wildshape_name)
+			real_name = "vernard ([stored_mob.real_name])"
+		else
+			real_name = "vernard"
 
 // FOX SPECIES DATUM //
 /datum/species/shapefox
@@ -65,7 +68,7 @@
 	)
 
 /datum/species/shapefox/send_voice(mob/living/carbon/human/H)
-	playsound(get_turf(H), pick('sound/vo/mobs/vw/idle (1).ogg','sound/vo/mobs/vw/idle (2).ogg','sound/vo/mobs/vw/bark (1).ogg','sound/vo/mobs/vw/bark (2).ogg','sound/vo/mobs/vw/idle (3).ogg'), 80, TRUE, -1)
+	playsound(H, pick('sound/vo/mobs/vw/idle (1).ogg','sound/vo/mobs/vw/idle (2).ogg','sound/vo/mobs/vw/bark (1).ogg','sound/vo/mobs/vw/bark (2).ogg','sound/vo/mobs/vw/idle (3).ogg'), 80, TRUE, -1)
 
 /datum/species/shapefox/regenerate_icons(mob/living/carbon/human/H)
 	H.icon = 'icons/roguetown/mob/monster/fox.dmi'

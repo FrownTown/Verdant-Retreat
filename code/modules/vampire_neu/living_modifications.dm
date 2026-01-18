@@ -280,11 +280,11 @@
 	if(istype(coffin) && total_damage && (src in coffin.contents))
 		if(!HAS_TRAIT(src, TRAIT_DEATHCOMA))
 			to_chat(src, span_notice("You enter the horrible slumber of deathless Torpor. You will heal until you are renewed."))
-			ADD_TRAIT(src, TRAIT_DEATHCOMA, VAMPIRE_TRAIT)
+			ADD_TRAIT(src, TRAIT_DEATHCOMA, TRAIT_VAMPIRE)
 		heal_overall_damage(5, 5)
 		adjust_bloodpool(10)
 	if(HAS_TRAIT(src, TRAIT_DEATHCOMA) && (total_damage <= 0 || (!istype(coffin) || !(src in coffin.contents))))
-		REMOVE_TRAIT(src, TRAIT_DEATHCOMA, VAMPIRE_TRAIT)
+		REMOVE_TRAIT(src, TRAIT_DEATHCOMA, TRAIT_VAMPIRE)
 		to_chat(src, span_warning("You have recovered from Torpor."))
 
 /mob/living/carbon/human/proc/handle_bloodpool_effects()
@@ -303,7 +303,7 @@
 			remove_status_effect(/datum/status_effect/debuff/thirstyt1)
 			remove_status_effect(/datum/status_effect/debuff/thirstyt2)
 			if(prob(3))
-				playsound(get_turf(src), pick('sound/vo/hungry1.ogg','sound/vo/hungry2.ogg','sound/vo/hungry3.ogg'), 100, TRUE, -1)
+				playsound(src, pick('sound/vo/hungry1.ogg','sound/vo/hungry2.ogg','sound/vo/hungry3.ogg'), 100, TRUE, -1)
 
 	if(bloodpool < 100 && prob(9))
 		if(last_frenzy_check + 5 MINUTES < world.time)
@@ -338,4 +338,4 @@
 
 /mob/living/carbon/human/proc/get_vampire_generation()
 	var/datum/antagonist/vampire/licker_datum = mind?.has_antag_datum(/datum/antagonist/vampire)
-	return licker_datum?.generation
+	return (istype(licker_datum)) ? licker_datum.generation : FALSE

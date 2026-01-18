@@ -303,7 +303,7 @@
 						target = M
 						break
 					if(target)
-						if(target.Adjacent(src))
+						if(target.Adjacent(src) || (CanReach(target, W) && used_intent.effective_range_type))
 							do_attack_animation(T, used_intent.animname, used_intent.masteritem, used_intent = src.used_intent)
 							resolveAdjacentClick(target,W,params,used_hand)
 							atkswinging = null
@@ -509,7 +509,7 @@ GLOBAL_LIST_EMPTY(reach_dummy_pool)
 			return FALSE
 		if(1)
 			return FALSE //here.Adjacent(there)
-		if(2 to INFINITY)
+		if(2 to INFINITY) // only apply to weapons with 2+ range (spears, lances, zweihander, etc)
 			var/obj/dummy
 			if(GLOB.reach_dummy_pool.len)
 				dummy = GLOB.reach_dummy_pool[GLOB.reach_dummy_pool.len]
@@ -518,6 +518,9 @@ GLOBAL_LIST_EMPTY(reach_dummy_pool)
 				dummy = new /obj()
 				dummy.pass_flags |= PASSTABLE
 				dummy.invisibility = INVISIBILITY_ABSTRACT
+			// this is set to FLYING for weapons that reach over 2 tiles to allow attacking over holes
+			// possibly not the best way of solving it, but it will prevent the error in issue #1983 (for now)
+			dummy.movement_type = FLYING
 
 			dummy.forceMove(get_turf(here))
 			for(var/i in 1 to reach) //Limit it to that many tries
@@ -925,7 +928,7 @@ GLOBAL_LIST_EMPTY(reach_dummy_pool)
 	if(get_dist(src, A) <= 2)
 		if(A.loc == src)
 			A.ShiftRightClick(src)
-		if(T == loc)
+		else if(T == loc)
 			look_up()
 		else
 			if(istransparentturf(T))

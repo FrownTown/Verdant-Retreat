@@ -26,8 +26,11 @@
 		update_move_intent_slowdown() // Apply speed changes
 
 		AddSpell(new /obj/effect/proc_holder/spell/self/bearclaws)
-		real_name = "Direbear ([stored_mob.real_name])" //So we don't get a random name
 		faction += "bears" // It IS a bear
+		if (src.client.prefs?.wildshape_name)
+			real_name = "direbear ([stored_mob.real_name])"
+		else
+			real_name = "direbear"
 
 // BEAR SPECIES DATUM //
 /datum/species/shapebear
@@ -69,7 +72,7 @@
 	)
 
 /datum/species/shapebear/send_voice(mob/living/carbon/human/H)
-	playsound(get_turf(H), pick('sound/vo/mobs/direbear/direbear_attack1.ogg','sound/vo/mobs/direbear/direbear_attack2.ogg','sound/vo/mobs/direbear/direbear_attack3.ogg'), 80, TRUE, -1)
+	playsound(H, pick('sound/vo/mobs/direbear/direbear_attack1.ogg','sound/vo/mobs/direbear/direbear_attack2.ogg','sound/vo/mobs/direbear/direbear_attack3.ogg'), 80, TRUE, -1)
 
 /datum/species/shapebear/regenerate_icons(mob/living/carbon/human/H)
 	H.icon = 'icons/roguetown/mob/monster/direbear.dmi'

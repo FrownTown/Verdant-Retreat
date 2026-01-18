@@ -262,6 +262,29 @@
 	item_state = "leathertights"
 	salvage_result = /obj/item/natural/hide/cured
 
+/obj/item/clothing/under/roguetown/trou/formal
+	name = "formal trousers"
+	desc = "A formal pair of trousers."
+	icon = 'icons/roguetown/clothing/pants.dmi'
+	icon_state = "butlerpants"
+	item_state = "butlerpants"
+	mob_overlay_icon = 'icons/roguetown/clothing/onmob/pants.dmi'
+	detail_tag = "_detail"
+	sleeved = 'icons/roguetown/clothing/onmob/helpers/sleeves_maids.dmi'
+	slot_flags = ITEM_SLOT_PANTS
+	salvage_result = /obj/item/natural/cloth
+	detail_color = CLOTHING_BLACK
+
+/obj/item/clothing/under/roguetown/trou/formal/shorts
+	name = "trouser shorts"
+	desc = "A pair of formal trouser shorts, fit for any strapping young lad."
+	icon = 'icons/roguetown/clothing/pants.dmi'
+	icon_state = "butlershorts"
+	item_state = "butlershorts"
+	mob_overlay_icon = 'icons/roguetown/clothing/onmob/pants.dmi'
+	slot_flags = ITEM_SLOT_PANTS
+	detail_color = CLOTHING_BLACK
+
 /obj/item/clothing/under/roguetown/skirt
 	name = "skirt"
 	desc = "Long, flowing, and modest."
@@ -627,13 +650,13 @@
 	flags_inv = HIDECROTCH
 
 // new knight captain drip
-/obj/item/clothing/under/roguetown/platelegs/captain
-	name = "captain's chausses"
-	desc = "Cuisses made of plated steel, offering additional protection against blunt force. These are specially fitted for the captain."
-	icon_state = "capplateleg"
-	item_state = "capplateleg"
-	icon = 'icons/roguetown/clothing/special/captain.dmi'
-	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/captain.dmi'
+/obj/item/clothing/under/roguetown/platelegs/champion
+	name = "champion's chausses"
+	desc = "Cuisses made of plated steel, offering additional protection against blunt force. These are specially fitted for the champion."
+	icon_state = "champplateleg"
+	item_state = "champplateleg"
+	icon = 'icons/roguetown/clothing/special/champion.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/champion.dmi'
 
 /obj/item/clothing/under/roguetown/carapacelegs
 	name = "carapace chausses"
