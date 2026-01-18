@@ -1,0 +1,172 @@
+GLOBAL_LIST_EMPTY(liquid_types)
+cell
+	parent_type = /datum
+
+	// Turf variables that are always initialized
+	var/list/fluid_volume
+	var/list/new_volume
+	var/fluidsum = 0 // Total amount of fluid on the turf from all fluid_volumes. Shouldn't ever exceed 100.
+	var/new_fluidsum = 0
+
+	// Turf variables that are initialized by specific conditions or functions
+	var/vector/flow_vector_modification // Modifications to flow vector can be done per-turf. Null by default, so they don't get processed. We can abuse 3D vectors to use the z axis as a multiplier for magnitude. Initialize with vector(x, y, magnitude)
+	var/is_liquid_source = FALSE // Make this TRUE to make a turf spawn fluid.
+	var/production_rate = 0 // Amount of the fluid produced each processing loop.
+	var/is_liquid_sink = FALSE // Make this TRUE to make a turf despawn fluid.
+	var/absorption_rate = 0 // Amount of fluid deleted per processing loop by the sink.
+	var/last_fluid_level = 0 // Tracks the amount of fluid in the last processing loop. So we know if we need to update the icon or not.
+	var/last_fluid_time = 0 // When this turf last had significant fluid (for pool persistence)
+
+	var/fluid_flags // A bitfield of flags for fluids. Look in code\__defines\liquid.dm for definitions.
+	var/coords/coords
+	var/pool_id = 0 // A numeric reference to the generic datum that is used as a wrapper to store a list of cells that form a pool. 0 means no pool.
+
+	// Fire and smoke system variables
+	var/fire_level = 0 // Intensity of fire (0-100)
+	var/fire_fuel = 0 // Available combustible material (0-100)
+	var/fire_temperature = T20C // Heat level in Celsius
+	var/smoke_density = 0 // Smoke concentration (0-100)
+	var/smoke_type = SMOKE_TYPE_FIRE // Type of smoke
+	var/oxygen_level = DEFAULT_OXYGEN_LEVEL // Local oxygen availability (0-100)
+	var/has_air = TRUE // Whether this cell has breathable atmosphere
+	var/vector/air_flow_vector // Direction/strength of local air movement
+	var/backdraft_potential = 0 // Accumulated unburned fuel from oxygen-starved fires
+	var/is_enclosed = FALSE // Whether this cell is in an enclosed space
+	var/fire_flags = 0 // Bitflags for fire states
+	var/last_fire_level = 0 // Previous fire level for optimization (following liquid pattern)
+
+	New(turf/target_turf)
+		..()
+		coords = new(target_turf.x, target_turf.y, target_turf.z) // This way we can avoid circular references.
+
+	proc/InitLiquids()
+		fluid_volume = list()
+		new_volume = list()
+		fluid_flags = 0
+		for(var/fluid in GLOB.liquid_types)
+			var/datum/liquid/newfluid = new fluid
+			if(newfluid.reagent)
+				newfluid.color = initial(newfluid.reagent:color)
+			fluid_volume[newfluid] = 0
+			new_volume[newfluid] = 0
+
+	proc/InitFireSmoke()
+		// Initialize fire and smoke variables with default values
+		fire_level = 0
+		fire_fuel = 0
+		fire_temperature = T20C
+		smoke_density = 0
+		smoke_type = SMOKE_TYPE_FIRE
+		oxygen_level = DEFAULT_OXYGEN_LEVEL
+		has_air = TRUE
+		air_flow_vector = null
+		backdraft_potential = 0
+		is_enclosed = FALSE
+		fire_flags = 0
+		last_fire_level = 0
+
+	// Note: InitExtraLiquids() was removed as it was not intended for production use
+
+	// Cell API methods for safe fluid manipulation
+	proc/add_fluid_safe(datum/liquid/fluid_type, amount)
+		return GLOB.liquid_manager.add_fluid(get_turf_from_cell(), fluid_type, amount)
+
+	proc/remove_fluid_safe(datum/liquid/fluid_type, amount)
+		return GLOB.liquid_manager.remove_fluid(get_turf_from_cell(), fluid_type, amount)
+
+	proc/get_fluid_amount_safe(datum/liquid/fluid_type)
+		return GET_FLUID_AMOUNT(get_turf_from_cell(), fluid_type)
+
+	proc/get_total_fluid_safe()
+		return GET_TOTAL_FLUID(get_turf_from_cell())
+
+	proc/get_dominant_fluid_safe()
+		return GET_DOMINANT_FLUID(get_turf_from_cell())
+
+	proc/has_fluid_type_safe(datum/liquid/fluid_type)
+		return HAS_FLUID_TYPE(get_turf_from_cell(), fluid_type)
+
+	proc/get_all_fluids_safe()
+		return GET_ALL_FLUIDS(get_turf_from_cell())
+
+	proc/clear_all_fluids_safe()
+		return CLEAR_ALL_FLUIDS(get_turf_from_cell())
+
+	proc/get_turf_from_cell()
+		return locate(coords.x_pos, coords.y_pos, coords.z_pos)
+
+	// Helper to get existing fluid datum by type - eliminates verbose locate() calls!
+	proc/get_fluid_datum(fluid_type)
+		return locate(fluid_type) in fluid_volume
+
+	// Fluid flag management methods
+	proc/set_fluid_flag(flag)
+		fluid_flags |= flag
+
+	proc/clear_fluid_flag(flag)
+		fluid_flags &= ~flag
+
+	proc/has_fluid_flag(flag)
+		return (fluid_flags & flag) != 0
+
+	proc/toggle_fluid_flag(flag)
+		fluid_flags ^= flag
+
+	// Pool management methods
+	proc/set_pool_id(new_id)
+		pool_id = new_id
+
+	proc/get_pool_id()
+		return pool_id
+
+	proc/clear_pool_id()
+		pool_id = 0
+
+	// Flow vector methods
+	proc/set_flow_vector_modification(vector/new_vector)
+		flow_vector_modification = new_vector
+
+	proc/clear_flow_vector_modification()
+		flow_vector_modification = null
+
+	proc/has_flow_modification()
+		return flow_vector_modification != null
+
+	// Source/sink management
+	proc/make_liquid_source(rate = 1)
+		is_liquid_source = TRUE
+		production_rate = rate
+		if(get_turf_from_cell())
+			SSliquid.liquid_sources += get_turf_from_cell()
+
+	proc/make_liquid_sink(rate = 1)
+		is_liquid_sink = TRUE
+		absorption_rate = rate
+		if(get_turf_from_cell())
+			SSliquid.liquid_sinks += get_turf_from_cell()
+
+	proc/remove_liquid_source()
+		is_liquid_source = FALSE
+		production_rate = 0
+		if(get_turf_from_cell())
+			SSliquid.liquid_sources -= get_turf_from_cell()
+
+	proc/remove_liquid_sink()
+		is_liquid_sink = FALSE
+		absorption_rate = 0
+		if(get_turf_from_cell())
+			SSliquid.liquid_sinks -= get_turf_from_cell()
+
+	// Fluid level tracking
+	proc/update_last_fluid_level()
+		last_fluid_level = SSliquid.get_fluid_level(get_turf_from_cell())
+
+	proc/get_last_fluid_level()
+		return last_fluid_level
+
+	// Direct access discouraged methods
+	proc/get_raw_fluid_volume()
+		return fluid_volume
+
+	proc/get_raw_new_volume()
+		return new_volume

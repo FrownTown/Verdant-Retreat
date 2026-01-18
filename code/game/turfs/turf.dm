@@ -55,6 +55,10 @@
 	var/neighborlay_override
 	var/teleport_restricted = FALSE //whether turf teleport spells are forbidden from teleporting to this turf
 
+	// Liquid simulation system variables
+	var/cell/cell // Cell datum for liquid simulation
+	var/obj/effect/liquid/liquid_overlay // Visual overlay for liquid
+
 	vis_flags = VIS_INHERIT_PLANE|VIS_INHERIT_ID
 
 /turf/vv_edit_var(var_name, new_value)
