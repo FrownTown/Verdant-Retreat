@@ -81,6 +81,39 @@
 /datum/behavior_tree/node/action/deadite_migrate
 	my_action = /bt_action/deadite_migrate
 
+/datum/behavior_tree/node/action/colossus_stomp
+	my_action = /bt_action/colossus_stomp
+
+/datum/behavior_tree/node/action/behemoth_quake
+	my_action = /bt_action/behemoth_quake
+
+/datum/behavior_tree/node/action/leyline_teleport
+	my_action = /bt_action/leyline_teleport
+
+/datum/behavior_tree/node/action/obelisk_activate
+	my_action = /bt_action/obelisk_activate
+
+/datum/behavior_tree/node/action/dryad_vine
+	my_action = /bt_action/dryad_vine
+
+/datum/behavior_tree/node/action/chicken_check_ready
+	my_action = /bt_action/chicken_check_ready
+
+/datum/behavior_tree/node/action/chicken_lay_egg
+	my_action = /bt_action/chicken_lay_egg
+
+/datum/behavior_tree/node/action/chicken_find_nest
+	my_action = /bt_action/chicken_find_nest
+
+/datum/behavior_tree/node/action/chicken_check_material
+	my_action = /bt_action/chicken_check_material
+
+/datum/behavior_tree/node/action/chicken_build_nest
+	my_action = /bt_action/chicken_build_nest
+
+/datum/behavior_tree/node/action/chicken_find_material
+	my_action = /bt_action/chicken_find_material
+
 // ------------------------------------------------------------------------------
 // SEQUENCES AND SELECTORS (DEFINITIONS)
 // ------------------------------------------------------------------------------
@@ -224,6 +257,115 @@
 	)
 
 // ------------------------------------------------------------------------------
+// SUMMON SEQUENCES/SELECTORS
+// ------------------------------------------------------------------------------
+
+/datum/behavior_tree/node/selector/engage_target_colossus
+	my_nodes = list(
+		/datum/behavior_tree/node/action/colossus_stomp,
+		/datum/behavior_tree/node/sequence/attack_sequence,
+		/datum/behavior_tree/node/action/move_to_target
+	)
+
+/datum/behavior_tree/node/sequence/combat_colossus
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/selector/engage_target_colossus
+	)
+
+/datum/behavior_tree/node/selector/engage_target_behemoth
+	my_nodes = list(
+		/datum/behavior_tree/node/action/behemoth_quake,
+		/datum/behavior_tree/node/sequence/attack_sequence,
+		/datum/behavior_tree/node/action/move_to_target
+	)
+
+/datum/behavior_tree/node/sequence/combat_behemoth
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/selector/engage_target_behemoth
+	)
+
+/datum/behavior_tree/node/selector/engage_target_leyline
+	my_nodes = list(
+		/datum/behavior_tree/node/action/leyline_teleport,
+		/datum/behavior_tree/node/sequence/attack_sequence,
+		/datum/behavior_tree/node/action/move_to_target
+	)
+
+/datum/behavior_tree/node/sequence/combat_leyline
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/selector/engage_target_leyline
+	)
+
+/datum/behavior_tree/node/selector/engage_target_obelisk
+	my_nodes = list(
+		/datum/behavior_tree/node/action/obelisk_activate,
+		/datum/behavior_tree/node/action/move_to_target
+	)
+
+/datum/behavior_tree/node/sequence/combat_obelisk
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/selector/engage_target_obelisk
+	)
+
+/datum/behavior_tree/node/selector/engage_target_dryad
+	my_nodes = list(
+		/datum/behavior_tree/node/action/dryad_vine,
+		/datum/behavior_tree/node/sequence/attack_sequence,
+		/datum/behavior_tree/node/action/move_to_target
+	)
+
+/datum/behavior_tree/node/sequence/combat_dryad
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/selector/engage_target_dryad
+	)
+
+// ------------------------------------------------------------------------------
+// CHICKEN SEQUENCES/SELECTORS
+// ------------------------------------------------------------------------------
+
+/datum/behavior_tree/node/sequence/chicken_lay_on_nest
+	my_nodes = list(
+		/datum/behavior_tree/node/action/chicken_lay_egg
+	)
+
+/datum/behavior_tree/node/sequence/chicken_build_nest
+	my_nodes = list(
+		/datum/behavior_tree/node/action/chicken_check_material,
+		/datum/behavior_tree/node/action/chicken_build_nest
+	)
+
+/datum/behavior_tree/node/sequence/chicken_find_nest
+	my_nodes = list(
+		/datum/behavior_tree/node/action/chicken_find_nest,
+		/datum/behavior_tree/node/action/move_to_dest
+	)
+
+/datum/behavior_tree/node/sequence/chicken_find_material
+	my_nodes = list(
+		/datum/behavior_tree/node/action/chicken_find_material,
+		/datum/behavior_tree/node/action/move_to_dest
+	)
+
+/datum/behavior_tree/node/selector/chicken_nesting_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/chicken_lay_on_nest,
+		/datum/behavior_tree/node/sequence/chicken_build_nest,
+		/datum/behavior_tree/node/sequence/chicken_find_nest,
+		/datum/behavior_tree/node/sequence/chicken_find_material
+	)
+
+/datum/behavior_tree/node/sequence/chicken_egg_laying
+	my_nodes = list(
+		/datum/behavior_tree/node/action/chicken_check_ready,
+		/datum/behavior_tree/node/selector/chicken_nesting_logic
+	)
+
+// ------------------------------------------------------------------------------
 // TREES (ROOTS)
 // ------------------------------------------------------------------------------
 
@@ -336,5 +478,54 @@
 		/datum/behavior_tree/node/sequence/combat,
 		/datum/behavior_tree/node/action/deadite_migrate,
 		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/colossus_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_colossus,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/behemoth_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_behemoth,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/leyline_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_leyline,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/obelisk_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_obelisk,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/dryad_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_dryad,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/insane_clown_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+/datum/behavior_tree/node/selector/chicken_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/chicken_egg_laying,
 		/datum/behavior_tree/node/sequence/idle
 	)

@@ -177,7 +177,7 @@
 				"<span class='danger'>[src] grabs you.</span>")
 	if(istype(AM, /mob/living/simple_animal))
 		var/mob/living/simple_animal/simple_animal = AM
-		simple_animal.toggle_ai(AI_ON)
+		SSai.WakeUp(simple_animal)
 	return TRUE
 
 /atom/movable/proc/stop_pulling(forced = TRUE)

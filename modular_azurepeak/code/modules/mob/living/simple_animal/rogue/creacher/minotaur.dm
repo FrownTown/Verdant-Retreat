@@ -55,10 +55,6 @@
 	dodgetime = 0
 	aggressive = 1
 
-//new ai, old ai off
-	AIStatus = AI_ON
-	can_have_ai = FALSE
-
 //	stat_attack = UNCONSCIOUS
 
 /mob/living/simple_animal/hostile/retaliate/rogue/minotaur/Initialize()
@@ -68,6 +64,8 @@
 	ADD_TRAIT(src, TRAIT_BASHDOORS, TRAIT_GENERIC)
 	
 	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = MINOTAUR_ATTACK_SPEED
 
@@ -193,8 +191,6 @@
 	clickcd = MINOTAUR_AXE_ATTACK_SPEED
 
 /mob/living/simple_animal/hostile/retaliate/rogue/minotaur/original
-	AIStatus = AI_ON
-	can_have_ai = FALSE
 
 // Dungeon-taur - Less health then normal.
 /mob/living/simple_animal/hostile/retaliate/rogue/minotaur/wounded

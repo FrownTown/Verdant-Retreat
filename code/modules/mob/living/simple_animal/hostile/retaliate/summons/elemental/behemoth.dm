@@ -50,6 +50,13 @@
 	var/rock_cd
 	inherent_spells = list(/obj/effect/proc_holder/spell/invoked/ele_quake)
 
+/mob/living/simple_animal/hostile/retaliate/rogue/elemental/behemoth/Initialize()
+	. = ..()
+	ai_root = new /datum/behavior_tree/node/selector/behemoth_tree()
+	ai_root.blackboard = new
+	ai_root.next_move_delay = move_to_delay
+	SSai.Register(src)
+
 /mob/living/simple_animal/hostile/retaliate/rogue/elemental/behemoth/death(gibbed)
 	..()
 	var/turf/deathspot = get_turf(src)
@@ -81,47 +88,6 @@
 	light_outer_range = 2
 	duration = 1.5 SECONDS
 	layer = ABOVE_ALL_MOB_LAYER //this doesnt render above mobs? it really should
-
-/mob/living/simple_animal/hostile/retaliate/rogue/elemental/behemoth/MoveToTarget(list/possible_targets)//Step 5, handle movement between us and our target
-	stop_automated_movement = 1
-	if(!target || !CanAttack(target))
-		LoseTarget()
-		return 0
-	if(binded)
-		return 0
-	if(target in possible_targets)
-		var/target_distance = get_dist(targets_from,target)
-		if(ranged) //We ranged? Shoot at em
-			if(!target.Adjacent(targets_from) && ranged_cooldown <= world.time) //But make sure they're not in range for a melee attack and our range attack is off cooldown
-				OpenFire(target)
-		if(!Process_Spacemove()) //Drifting
-			walk(src,0)
-			return 1
-		if(world.time >= src.rock_cd + 200 && !client)
-			quake(target)
-			src.rock_cd = world.time
-		if(retreat_distance != null) //If we have a retreat distance, check if we need to run from our target
-			if(target_distance <= retreat_distance) //If target's closer than our retreat distance, run
-				walk_away(src,target,retreat_distance,move_to_delay)
-			else
-				Goto(target,move_to_delay,minimum_distance) //Otherwise, get to our minimum distance so we chase them
-		else
-			Goto(target,move_to_delay,minimum_distance)
-		if(target)
-			if(targets_from && isturf(targets_from.loc) && target.Adjacent(targets_from)) //If they're next to us, attack
-				MeleeAction()
-			else
-				if(rapid_melee > 1 && target_distance <= melee_queue_distance)
-					MeleeAction(FALSE)
-				in_melee = FALSE //If we're just preparing to strike do not enter sidestep mode
-			return 1
-		return 0
-	else
-		if(ranged_ignores_vision && ranged_cooldown <= world.time) //we can't see our target... but we can fire at them!
-			OpenFire(target)
-		Goto(target,move_to_delay,minimum_distance)
-		FindHidden()
-		return 1
 
 /obj/effect/proc_holder/spell/invoked/ele_quake
 	name = "Quake"

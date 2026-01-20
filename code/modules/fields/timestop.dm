@@ -165,7 +165,7 @@
 	walk(L, 0) //stops them mid pathing even if they're stunimmune
 	if(isanimal(L))
 		var/mob/living/simple_animal/S = L
-		S.toggle_ai(AI_OFF)
+		SSai.GoToSleep(S)
 	if(ishostile(L))
 		var/mob/living/simple_animal/hostile/H = L
 		H.LoseTarget()
@@ -176,7 +176,7 @@
 	frozen_mobs -= L
 	if(isanimal(L))
 		var/mob/living/simple_animal/S = L
-		S.toggle_ai(initial(S.AIStatus))
+		SSai.WakeUp(S)
 
 //you don't look quite right, is something the matter?
 /datum/proximity_monitor/advanced/timestop/proc/into_the_negative_zone(atom/A)

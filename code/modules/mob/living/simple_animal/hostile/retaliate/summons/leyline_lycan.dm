@@ -4,6 +4,12 @@
 	ADD_TRAIT(src, TRAIT_NOBREATH, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_TOXIMMUNE, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC)
+	
+	ai_root = new /datum/behavior_tree/node/selector/leyline_tree()
+	
+	ai_root.blackboard = new
+	ai_root.next_move_delay = move_to_delay
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/leylinelycan
 	icon = 'icons/mob/summonable/32x32.dmi'
@@ -48,46 +54,6 @@
 	aggressive = 1
 	var/teleport_cooldown
 	var/obj/structure/leyline/source
-
-/mob/living/simple_animal/hostile/retaliate/rogue/leylinelycan/MoveToTarget(list/possible_targets)
-	stop_automated_movement = 1
-	if(!target || !CanAttack(target))
-		LoseTarget()
-		return 0
-	if(binded)
-		return 0
-	if(target in possible_targets)
-		var/target_distance = get_dist(targets_from,target)
-		if(world.time >= teleport_cooldown)
-			leyline_teleport(target)
-		if(ranged) //We ranged? Shoot at em
-			if(!target.Adjacent(targets_from) && ranged_cooldown <= world.time) //But make sure they're not in range for a melee attack and our range attack is off cooldown
-				OpenFire(target)
-		if(!Process_Spacemove()) //Drifting
-			walk(src,0)
-			return 1
-		if(retreat_distance != null) //If we have a retreat distance, check if we need to run from our target
-			if(target_distance <= retreat_distance) //If target's closer than our retreat distance, run
-				walk_away(src,target,retreat_distance,move_to_delay)
-			else
-				Goto(target,move_to_delay,minimum_distance) //Otherwise, get to our minimum distance so we chase them
-		else
-			Goto(target,move_to_delay,minimum_distance)
-		if(target)
-			if(targets_from && isturf(targets_from.loc) && target.Adjacent(targets_from)) //If they're next to us, attack
-				MeleeAction()
-			else
-				if(rapid_melee > 1 && target_distance <= melee_queue_distance)
-					MeleeAction(FALSE)
-				in_melee = FALSE //If we're just preparing to strike do not enter sidestep mode
-			return 1
-		return 0
-	else
-		if(ranged_ignores_vision && ranged_cooldown <= world.time) //we can't see our target... but we can fire at them!
-			OpenFire(target)
-		Goto(target,move_to_delay,minimum_distance)
-		FindHidden()
-		return 1
 
 /mob/living/simple_animal/hostile/retaliate/rogue/leylinelycan/simple_add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE)	//No wounding the lycan.
 	return

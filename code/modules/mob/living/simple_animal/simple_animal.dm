@@ -144,11 +144,6 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 	var/dextrous = FALSE
 	var/dextrous_hud_type = /datum/hud/dextrous
 
-	///The Status of our AI, can be set to AI_ON (On, usual processing), AI_IDLE (Will not process, but will return to AI_ON if an enemy comes near), NPC_AI_OFF (Off, Not processing ever), AI_Z_OFF (Temporarily off due to nonpresence of players).
-	var/AIStatus = AI_ON
-	///once we have become sentient, we can never go back.
-	var/can_have_ai = TRUE
-
 	///Domestication.
 	var/tame = FALSE
 	///What the mob eats, typically used for taming or animal husbandry.
@@ -194,7 +189,6 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 
 /mob/living/simple_animal/Initialize()
 	. = ..()
-	GLOB.simple_animals[AIStatus] += src
 	if(gender == PLURAL)
 		gender = pick(MALE,FEMALE)
 	if(!real_name)
@@ -207,11 +201,14 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 		AddSpell(newspell)
 	if(is_flying_animal)
 		ADD_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
+
+	if(!ai_root)
+		ai_root = new /datum/behavior_tree/node/selector/generic_friendly_tree()
+		ai_root.blackboard = new
+	SSai.Register(src)
 	
 /mob/living/simple_animal/Destroy()
-	GLOB.simple_animals[AIStatus] -= src
-	if (SSnpcpool.state == SS_PAUSED && LAZYLEN(SSnpcpool.currentrun))
-		SSnpcpool.currentrun -= src
+	SSai.Unregister(src)
 
 	if(nest)
 		nest.spawned_mobs -= src
@@ -220,10 +217,6 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 	if(ssaddle)
 		QDEL_NULL(ssaddle)
 		ssaddle = null
-
-	var/turf/T = get_turf(src)
-	if (T && AIStatus == AI_Z_OFF)
-		SSidlenpcpool.idle_mobs_by_zlevel[T.z] -= src
 
 	. = ..()
 
@@ -319,63 +312,6 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 	..()
 	if(stuttering)
 		stuttering = 0
-
-/mob/living/simple_animal/proc/handle_automated_action()
-	set waitfor = FALSE
-	return
-
-/mob/living/simple_animal/proc/handle_automated_movement()
-	set waitfor = FALSE
-	if(!stop_automated_movement && wander && !doing)
-		if(ssaddle && has_buckled_mobs())
-			return 0
-		if(binded)
-			return FALSE
-		if((isturf(loc) || allow_movement_on_non_turfs) && (mobility_flags & MOBILITY_MOVE))		//This is so it only moves if it's not inside a closet, gentics machine, etc.
-			turns_since_move++
-			if(turns_since_move >= turns_per_move)
-				if(!(stop_automated_movement_when_pulled && pulledby)) //Some animals don't move when pulled
-					var/anydir = pick(GLOB.cardinals)
-					if(Process_Spacemove(anydir))
-						Move(get_step(src, anydir), anydir)
-						turns_since_move = 0
-			return 1
-
-/mob/living/simple_animal/proc/handle_automated_speech(override)
-	set waitfor = FALSE
-	if(speak_chance)
-		if(prob(speak_chance) || override)
-			if(speak && speak.len)
-				if((emote_hear && emote_hear.len) || (emote_see && emote_see.len))
-					var/length = speak.len
-					if(emote_hear && emote_hear.len)
-						length += emote_hear.len
-					if(emote_see && emote_see.len)
-						length += emote_see.len
-					var/randomValue = rand(1,length)
-					if(randomValue <= speak.len)
-						say(pick(speak), forced = "poly")
-					else
-						randomValue -= speak.len
-						if(emote_see && randomValue <= emote_see.len)
-							emote("me [pick(emote_see)]", 1)
-						else
-							emote("me [pick(emote_hear)]", 2)
-				else
-					say(pick(speak), forced = "poly")
-			else
-				if(!(emote_hear && emote_hear.len) && (emote_see && emote_see.len))
-					emote("me", 1, pick(emote_see))
-				if((emote_hear && emote_hear.len) && !(emote_see && emote_see.len))
-					emote("me", 2, pick(emote_hear))
-				if((emote_hear && emote_hear.len) && (emote_see && emote_see.len))
-					var/length = emote_hear.len + emote_see.len
-					var/pick = rand(1,length)
-					if(pick <= emote_see.len)
-						emote("me", 1, pick(emote_see))
-					else
-						emote("me", 2, pick(emote_hear))
-
 
 /mob/living/simple_animal/proc/environment_is_safe(check_temp = FALSE)
 	. = TRUE
@@ -724,8 +660,8 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 		animate(src, transform = ntransform, time = 2, easing = EASE_IN|EASE_OUT)
 
 /mob/living/simple_animal/proc/sentience_act() //Called when a simple animal gains sentience via gold slime potion
-	toggle_ai(AI_OFF) // To prevent any weirdness.
-	can_have_ai = FALSE
+	// No legacy logic needed here anymore. AI is controlled by behavior tree.
+	return
 
 /mob/living/simple_animal/update_sight()
 	if(!client)
@@ -914,35 +850,11 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 	. = ..()
 	LoadComponent(/datum/component/riding)
 
-/mob/living/simple_animal/proc/toggle_ai(togglestatus)
-	if(!can_have_ai && (togglestatus != AI_OFF))
-		return
-	if (AIStatus != togglestatus)
-		if (togglestatus > 0 && togglestatus < 5)
-			if (togglestatus == AI_Z_OFF || AIStatus == AI_Z_OFF)
-				var/turf/T = get_turf(src)
-				if (AIStatus == AI_Z_OFF)
-					SSidlenpcpool.idle_mobs_by_zlevel[T.z] -= src
-				else
-					SSidlenpcpool.idle_mobs_by_zlevel[T.z] += src
-			GLOB.simple_animals[AIStatus] -= src
-			GLOB.simple_animals[togglestatus] += src
-			AIStatus = togglestatus
-		else
-			stack_trace("Something attempted to set simple animals AI to an invalid state: [togglestatus]")
-
 /mob/living/simple_animal/adjustHealth(amount, updating_health = TRUE, forced = FALSE)
 	. = ..()
 	if(!ckey && !stat)//Not unconscious
-		if(AIStatus == AI_IDLE)
-			toggle_ai(AI_ON)
+		SSai.WakeUp(src)
 
-
-/mob/living/simple_animal/onTransitZ(old_z, new_z)
-	..()
-	if (AIStatus == AI_Z_OFF)
-		SSidlenpcpool.idle_mobs_by_zlevel[old_z] -= src
-		toggle_ai(initial(AIStatus))
 
 /mob/living/simple_animal/Move()
 	if(binded)
@@ -959,8 +871,6 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 		food = max(food + 30, 100)
 
 /mob/living/simple_animal/Life()
-	if(!client && can_have_ai && (AIStatus == AI_Z_OFF || AIStatus == AI_OFF))
-		return
 	. = ..()
 	if(.)
 		if(food > 0)

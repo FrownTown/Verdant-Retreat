@@ -27,7 +27,7 @@
 	QDEL_NULL(rect)
 
 	for(var/atom/movable/AM in candidates)
-		if(AM in view(view_radius, center_turf))
+		if(!los_blocked(source, AM) && get_dist(center_turf, AM) <= view_radius)
 			. += AM
 
 	return .
@@ -69,7 +69,7 @@
 
 /**
  * Returns a list of movable atoms that are hearing sensitive in view_radius and line of sight to source
- * the majority of the work is passed off to the spatial grid if view_radius > 0
+ * the majority of the work is passed off to the quadtree if view_radius > 0
  * because view() isnt a raycasting algorithm, this does not hold symmetry to it. something in view might not be hearable with this.
  * if you want that use get_hearers_in_view() - however thats significantly more expensive
  *

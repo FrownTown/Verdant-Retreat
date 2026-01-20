@@ -63,8 +63,6 @@
 	
 
 //new ai, old ai off
-	AIStatus = AI_ON
-	can_have_ai = FALSE
 
 /obj/effect/decal/remains/mole
 	name = "remains"
@@ -80,6 +78,8 @@
 	update_icon()
 	
 	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = MOLE_ATTACK_SPEED
 	SSai.Register(src)

@@ -46,9 +46,7 @@
 //	if (client && (stat == DEAD))
 //		client.ghostize()
 
-	var/turf/T = get_turf(src)
-	if (isturf(T))
-		update_z(T.z)
+	GLOB.player_list |= src
 
 	//Vents
 //	if(ventcrawler)

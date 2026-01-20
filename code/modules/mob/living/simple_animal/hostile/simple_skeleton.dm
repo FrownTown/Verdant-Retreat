@@ -36,14 +36,15 @@
 	footstep_type = FOOTSTEP_MOB_BAREFOOT
 	del_on_death = TRUE
 
-	can_have_ai = TRUE //disable native ai
-	AIStatus = AI_ON
+	aggressive = 1
+	desc = "A reanimated skeleton. It wants you dead."
 
 	melee_cooldown = SKELETON_ATTACK_SPEED
 
 /mob/living/simple_animal/hostile/rogue/skeleton/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
 	. = ..()
 	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
 	SSai.Register(src)
@@ -128,6 +129,7 @@
 /mob/living/simple_animal/hostile/rogue/skeleton/bow/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
 	. = ..(mapload, user, cabal_affine, is_summoned)
 	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
 	SSai.Register(src)

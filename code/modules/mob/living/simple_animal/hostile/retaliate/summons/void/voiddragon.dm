@@ -269,7 +269,7 @@ It will also call down lightning strikes from the sky, and fling people with it'
 /mob/living/simple_animal/hostile/retaliate/rogue/voiddragon/MeleeAction(patience = TRUE)
 	if(rapid_melee > 1)
 		var/datum/callback/cb = CALLBACK(src, PROC_REF(CheckAndAttack))
-		var/delay = SSnpcpool.wait / rapid_melee
+		var/delay = ai_root.next_attack_delay / rapid_melee
 		for(var/i in 1 to rapid_melee)
 			addtimer(cb, (i - 1)*delay)
 	else
@@ -450,10 +450,6 @@ It will also call down lightning strikes from the sky, and fling people with it'
 	if(binded)
 		to_chat(src,span_warning("You're currently bound and unable to move!"))
 		return
-	if(!swooping)
-		..()
-
-/mob/living/simple_animal/hostile/retaliate/rogue/voiddragon/Goto(target, delay, minimum_distance)
 	if(!swooping)
 		..()
 

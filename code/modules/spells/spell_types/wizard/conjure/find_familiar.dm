@@ -336,10 +336,8 @@
 					mind_datum.AddSpell(spell_instance)
 
 	// Disable automated/AI features
-	awakener.can_have_ai = FALSE
-	awakener.AIStatus = AI_OFF
-	awakener.stop_automated_movement = TRUE
-	awakener.stop_automated_movement_when_pulled = TRUE
+	awakener.mind = user.mind
+	awakener.faction = user.faction
 	awakener.wander = FALSE
 
 	var/faction_to_add = "[user.mind.current.real_name]_faction" //Should stop necromancer's skellies from murdering the necromancer's pet.

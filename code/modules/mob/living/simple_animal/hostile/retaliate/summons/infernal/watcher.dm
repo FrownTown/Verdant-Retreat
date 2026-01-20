@@ -63,7 +63,7 @@
 		src.visible_message(span_danger("[src] emits a burst of flames from its core!"))
 	if(rapid_melee > 1)
 		var/datum/callback/cb = CALLBACK(src, PROC_REF(CheckAndAttack))
-		var/delay = SSnpcpool.wait / rapid_melee
+		var/delay = ai_root.next_attack_delay / rapid_melee
 		for(var/i in 1 to rapid_melee)
 			addtimer(cb, (i - 1)*delay)
 	else

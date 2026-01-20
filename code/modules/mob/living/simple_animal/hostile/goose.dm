@@ -37,13 +37,6 @@
 	var/icon_vomit_end = "vomit_end"
 	var/message_cooldown = 0
 
-/mob/living/simple_animal/hostile/retaliate/goose/handle_automated_movement()
-	. = ..()
-	if (stat == DEAD)
-		return
-	if(prob(5) && random_retaliate == TRUE)
-		Retaliate()
-
 /mob/living/simple_animal/hostile/retaliate/goose/vomit
 	name = "Birdboat"
 	real_name = "Birdboat"

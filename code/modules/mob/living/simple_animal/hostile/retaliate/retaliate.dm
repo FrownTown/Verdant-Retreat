@@ -10,20 +10,6 @@
 				src.visible_message(span_notice("[src] calms down."))
 				LoseTarget()
 
-/mob/living/simple_animal/hostile/retaliate
-	var/aggressive = 0
-
-/mob/living/simple_animal/hostile/retaliate/ListTargets()
-	if(!(!ai_root))
-		if(aggressive)
-			return ..()
-		else
-			if(!enemies.len)
-				return list()
-			var/list/see = ..()
-			see &= enemies // Remove all entries that aren't in enemies
-			return see
-
 /mob/living/simple_animal/hostile/retaliate/proc/DismemberBody(mob/living/L)
 	//Lets keep track of this to see if we start getting wounded while eating.
 	testing("[src]_eating_[L]")
@@ -40,17 +26,14 @@
 			if(iscarbon(L))
 				var/mob/living/carbon/C = L
 				var/obj/item/bodypart/limb
-				var/list/limb_list = list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+				var/list/limb_list = list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_HEAD, BODY_ZONE_CHEST)
+				var/list/candidates = list()
 				for(var/zone in limb_list)
 					limb = C.get_bodypart(zone)
 					if(limb)
-						limb.dismember()
-						return TRUE
-				limb = C.get_bodypart(BODY_ZONE_HEAD)
-				if(limb)
-					limb.dismember()
-					return TRUE
-				limb = C.get_bodypart(BODY_ZONE_CHEST)
+						candidates += limb
+
+				limb = pick(candidates)
 				if(limb)
 					if(!limb.dismember())
 						C.gib()
@@ -62,7 +45,7 @@
 
 /mob/living/simple_animal/hostile/retaliate/proc/Retaliate()
 //	var/list/around = view(src, vision_range)
-	toggle_ai(AI_ON)
+	SSai.WakeUp(src)
 	var/list/around = hearers(vision_range, src)
 
 	for(var/atom/movable/A in around)

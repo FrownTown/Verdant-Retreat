@@ -70,18 +70,6 @@
 	projectiletype = pick(allowed_projectile_types)
 	..()
 
-/mob/living/simple_animal/hostile/boss/baroness/handle_automated_action()
-	. = ..()
-	if(health < 1500)
-		minimum_distance = 3
-		retreat_distance = 3
-		if(target && next_cast < world.time && next_summon < world.time)
-			spawn_minions(minions_to_spawn)
-			INVOKE_ASYNC(src, TYPE_PROC_REF(/atom/movable, say), "Defend your Matriarch!", null, list("colossus", "yell"))
-			next_cast = world.time + 10
-			next_summon = world.time + 1800
-			return .
-
 /obj/projectile/magic/frostbolt/Baroness
 	speed = 11
 	damage = 10

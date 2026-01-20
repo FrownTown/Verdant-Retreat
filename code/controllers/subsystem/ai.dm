@@ -52,19 +52,24 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 		GLOB.npc_list -= M
 		QDEL_NULL(M.ai_root)
 
-/datum/controller/subsystem/processing/ai/proc/WakeUp(mob/living/M)
-	if(sleeping_mobs[M])
-		sleeping_mobs.Remove(M)
-		active_mobs[M] = TRUE
-		M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
-		M.ai_root.next_think_tick = world.time // Let it think immediately
-		M.ai_root.next_sleep_tick = world.time + M.ai_root.next_sleep_delay
+/datum/controller/subsystem/processing/ai/proc/WakeUp(mob/living/M, forced = FALSE)
+	if(!M) return
+	if(forced) M.ai_root.ai_flags &= ~AI_FLAG_FORCESLEEP
+	if(M.ai_root.ai_flags & AI_FLAG_FORCESLEEP) return
+	if(sleeping_mobs[M]) sleeping_mobs.Remove(M)
+	else return // Defensive programming, should never hit this condition afaik
+	
+	active_mobs[M] = TRUE
+	M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
+	M.ai_root.next_think_tick = world.time // Let it think immediately
+	M.ai_root.next_sleep_tick = world.time + M.ai_root.next_sleep_delay
 
-/datum/controller/subsystem/processing/ai/proc/GoToSleep(mob/living/M)
-	if(active_mobs[M])
-		if(M.ai_root.next_sleep_tick < world.time)
-			active_mobs.Remove(M)
-			sleeping_mobs[M] = TRUE
+/datum/controller/subsystem/processing/ai/proc/GoToSleep(mob/living/M, forced = FALSE)
+	if(!active_mobs[M]) return
+	if(forced) M.ai_root.ai_flags |= AI_FLAG_FORCESLEEP
+	if(M.ai_root.next_sleep_tick < world.time) 
+		sleeping_mobs[M] = TRUE
+		active_mobs.Remove(M)
 
 /datum/controller/subsystem/processing/ai/proc/on_max_z_changed()
 	// Resize lists if necessary when max Z changes
@@ -89,7 +94,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 
 		// Check if enough time has passed for the mob to think again.
 		if(current_time >= M.ai_root.next_think_tick)
-			if(!(M.ai_root.ai_flags & (AI_FLAG_PERSISTENT|AI_FLAG_ASSUMEDIRECTCONTROL)))
+			if(!(M.ai_root.ai_flags & (AI_FLAG_PERSISTENT|AI_FLAG_ASSUMEDIRECTCONTROL|AI_FLAG_FORCESLEEP)))
 
 				var/list/nearby_players = SSquadtree.players_in_range(M.qt_range, T.z, QTREE_SCAN_MOBS|QTREE_EXCLUDE_OBSERVER)
 
@@ -109,11 +114,11 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 			M.ai_root.next_think_tick = current_time + M.ai_root.next_think_delay
 
 	for(var/mob/living/M as anything in unregister_queue)
-		#ifdef AI_SQUADS
+#ifdef AI_SQUADS
 		var/ai_squad/squad = M.ai_root.blackboard[AIBLK_SQUAD_DATUM]
 		if(squad)
 			squad.RemoveMember(M)
-		#endif
+#endif
 		Unregister(M)
 
 	for(var/mob/living/M as anything in sleep_queue)
@@ -121,7 +126,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 
 	unregister_queue.len = 0
 	sleep_queue.len = 0
-	#ifdef AI_SQUADS
+#ifdef AI_SQUADS
 	if(current_time > next_squad_update_tick)
 		for(var/ai_squad/S as anything in squads)
 			if(length(S.members))
@@ -282,7 +287,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	for (var/mob/living/hunter as anything in hunt_squad.members)
 		hunter.ai_root.target = hunt_target
 
-	#endif AI_SQUADS
+#endif
 
 //================================================================
 //SUBSYSTEM HELPERS

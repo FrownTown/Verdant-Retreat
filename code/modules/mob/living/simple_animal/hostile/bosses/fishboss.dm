@@ -47,14 +47,7 @@
 	var/mob/new_mob
 	var/spawned_mobs = 0	
 	loot = list(/obj/item/rogueweapon/mace/goden/deepduke)
-//stolen from lich code
-/mob/living/simple_animal/hostile/boss/fishboss/handle_automated_action()
-	. = ..()
-	if(target && next_summon < world.time) //Second summon ability. Spawns a mob of simple skeletons
-		spawn_minions(minions_to_spawn)
-		INVOKE_ASYNC(src, TYPE_PROC_REF(/atom/movable, say), "Ggglg- ♐︎◆︎♋︎❒︎♑︎'♎︎□︎♓︎♑︎!", null, list("colossus", "yell"))
-		next_summon = world.time + 600
-		return .
+
 
 /mob/living/simple_animal/hostile/boss/fishboss/proc/spawn_minions()
 	var/spawn_chance = 100

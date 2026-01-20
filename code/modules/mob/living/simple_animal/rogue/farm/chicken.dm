@@ -1,4 +1,3 @@
-
 /mob/living/simple_animal/hostile/retaliate/rogue/chicken
 	icon = 'icons/roguetown/mob/monster/chicken.dmi'
 	name = "\improper chicken"
@@ -118,59 +117,14 @@
 	pixel_x = rand(-6, 6)
 	pixel_y = rand(0, 10)
 	++chicken_count
+	
+	ai_root = new /datum/behavior_tree/node/selector/chicken_tree()
+	ai_root.next_move_delay = move_to_delay
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/chicken/Destroy()
 	--chicken_count
 	return ..()
-
-/mob/living/simple_animal/hostile/retaliate/rogue/chicken/Life()
-	..()
-	if(!stat && (production > 29) && egg_type && isturf(loc) && !enemies.len)
-		testing("laying egg with [production] production")
-		if(locate(/obj/structure/fluff/nest) in loc)
-			visible_message(span_alertalien("[src] [pick(layMessage)]"))
-			production = max(production - 30, 0)
-			var/obj/item/reagent_containers/food/snacks/egg/E = new egg_type(get_turf(src))
-			E.pixel_x = rand(-6,6)
-			E.pixel_y = rand(-6,6)
-			if(eggsFertile)
-				if(chicken_count < MAX_CHICKENS && prob(50))
-					E.fertile = TRUE
-		else if(!stop_automated_movement)
-			//look for nests
-			var/list/foundnests = list()
-			for(var/obj/structure/fluff/nest/N in oview(src))
-				foundnests += N
-			//if no nests, look for chaff and build one
-			if(!foundnests.len)
-				//look for chaff in our loc first, build nest
-				var/obj/item/CH = locate(/obj/item/natural/fibers) in loc
-				if(CH)
-					qdel(CH)
-					new /obj/structure/fluff/nest(loc)
-					visible_message(span_notice("[src] builds a nest."))
-				else
-					CH = locate(/obj/item/grown/log/tree/stick) in loc
-					if(CH)
-						qdel(CH)
-						new /obj/structure/fluff/nest(loc)
-						visible_message(span_notice("[src] builds a nest."))
-				//if cant find, look for chaff in view and move to it
-				var/list/foundchaff = list()
-				for(var/obj/item/natural/fibers/C in oview(src))
-					foundchaff += C
-				if(!foundchaff.len)
-					for(var/obj/item/grown/log/tree/stick/S in oview(src))
-						foundchaff += S
-				if(foundchaff.len)
-					stop_automated_movement = TRUE
-					Goto(pick(foundchaff),move_to_delay)
-					addtimer(CALLBACK(src, PROC_REF(return_action)), 15 SECONDS)
-			else
-				stop_automated_movement = TRUE
-				Goto(pick(foundnests),move_to_delay)
-				addtimer(CALLBACK(src, PROC_REF(return_action)), 15 SECONDS)
-
 
 /obj/structure/fluff/nest
 	name = "nest"

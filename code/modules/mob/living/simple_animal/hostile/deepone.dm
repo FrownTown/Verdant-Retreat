@@ -35,14 +35,12 @@
 	faction = list("deepone")
 	footstep_type = FOOTSTEP_MOB_BAREFOOT
 
-	can_have_ai = TRUE 
-	AIStatus = AI_ON
-
 
 
 /mob/living/simple_animal/hostile/rogue/deepone/Initialize()
 	. = ..()
 	ai_root = new /datum/behavior_tree/node/selector/deepone_melee_tree()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
 	SSai.Register(src)
@@ -82,6 +80,7 @@
 /mob/living/simple_animal/hostile/rogue/deepone/spit/Initialize()
 	. = ..()
 	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
 	SSai.Register(src)
@@ -106,6 +105,7 @@
 /mob/living/simple_animal/hostile/rogue/deepone/wiz/Initialize()
 	. = ..()
 	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED	
 	SSai.Register(src)

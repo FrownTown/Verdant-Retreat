@@ -65,8 +65,6 @@
 	eat_forever = TRUE
 
 //new ai, old ai off
-	AIStatus = AI_ON
-	can_have_ai = FALSE
 	melee_cooldown = RAT_ATTACK_SPEED
 	stat_attack = UNCONSCIOUS
 	wander = 0 // Disable simple_animal wandering
@@ -92,6 +90,7 @@
 	
 	// NEW AI SYSTEM
 	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = 5
 	ai_root.next_attack_delay = RAT_ATTACK_SPEED
 	SSai.Register(src)

@@ -158,7 +158,7 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/arcane/noc_guard/beckoned(mob/user)
 	if((src.summoner == user) && !stop_automated_movement)
 		stop_automated_movement = TRUE
-		Goto(user, move_to_delay)
+		set_ai_path_to(user)
 		addtimer(CALLBACK(src, PROC_REF(return_action)), 3 SECONDS)
 	else if(src.summoner != user)
 		Retaliate()

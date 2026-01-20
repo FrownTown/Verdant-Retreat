@@ -68,15 +68,6 @@
 		break_sneak()
 	return ..()
 
-/mob/living/simple_animal/hostile/retaliate/rogue/lamia/handle_automated_action()
-	if(!sneaking && world.time >= sneak_cooldown && isturf(loc) && light_check < world.time)
-		var/turf/ourlocation = get_turf(src)
-		var/light_amount = ourlocation.get_lumcount()
-		light_check = world.time + light_check_delay
-		if(light_amount < SHADOW_SPECIES_LIGHT_THRESHOLD)
-			sneak_now()
-	return ..()
-
 /mob/living/simple_animal/hostile/retaliate/rogue/lamia/simple_limb_hit(zone)
 	if(!zone)
 		return ""

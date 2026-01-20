@@ -69,8 +69,6 @@
 	
 
 //new ai, old ai off
-	AIStatus = AI_ON
-	can_have_ai = FALSE
 	melee_cooldown = WOLF_ATTACK_SPEED
 
 /obj/effect/decal/remains/wolf
@@ -90,7 +88,8 @@
 	// NEW AI SYSTEM
 	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = WOLF_ATTACK_SPEED
+	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	ai_root.blackboard = new
 	SSai.Register(src)
 
 

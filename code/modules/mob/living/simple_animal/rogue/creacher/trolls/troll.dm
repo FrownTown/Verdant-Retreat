@@ -74,8 +74,8 @@
 //	stat_attack = UNCONSCIOUS
 	remains_type = /obj/effect/decal/remains/troll
 	
-	can_have_ai = FALSE //disable native ai
-	AIStatus = AI_ON
+	aggressive = 1
+	desc = "A troll. It wants you dead."
 	melee_cooldown = TROLL_ATTACK_SPEED
 
 	var/critvuln = FALSE
@@ -86,6 +86,8 @@
 		ADD_TRAIT(src, TRAIT_CRITICAL_WEAKNESS, TRAIT_GENERIC)
 	
 	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
+	
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = TROLL_ATTACK_SPEED
 	SSai.Register(src)

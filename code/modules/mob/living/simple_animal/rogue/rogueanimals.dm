@@ -1,5 +1,3 @@
-
-
 //these mobs run away when attacked
 /mob/living/simple_animal/hostile/retaliate/rogue
 	turns_per_move = 5
@@ -86,92 +84,11 @@
 	emote("death")
 	..(gibbed)
 
-/mob/living/simple_animal/hostile/retaliate/rogue/handle_automated_movement()
-	set waitfor = FALSE
-	if(!stop_automated_movement && wander && !doing)
-		if(ssaddle && has_buckled_mobs())
-			return 0
-		if(find_food())
-			return
-		else
-			..()
-
-/mob/living/simple_animal/hostile/retaliate/rogue/proc/find_food()
-	if(food > 50 && !eat_forever)
-		return
-	var/list/around = view(1, src)
-	var/list/foundfood = list()
-	if(stat)
-		return
-	for(var/obj/item/F in around)
-		if(is_type_in_list(F, food_type))
-			foundfood += F
-			if(src.Adjacent(F))
-				face_atom(F)
-				playsound(src,'sound/misc/eat.ogg', rand(30,60), TRUE)
-				qdel(F)
-				food = max(food + 30, 100)
-				return TRUE
-	for(var/obj/item/F in foundfood)
-		if(is_type_in_list(F, food_type))
-			var/turf/T = get_turf(F)
-			Goto(T,move_to_delay,0)
-			return TRUE
-	return FALSE
-
 /mob/living/simple_animal/hostile/retaliate/rogue/AttackingTarget()
 	//If you can't act and dont have a player stop moving.
 	if(!can_act && !client)
 		return FALSE
 	return ..()
-
-/mob/living/simple_animal/hostile/retaliate/rogue/proc/eat_bodies()
-	var/mob/living/L
-//	var/list/around = view(aggro_vision_range, src)
-	var/list/around = hearers(1, src)
-	var/list/foundfood = list()
-	if(stat)
-		return
-	for(var/mob/living/eattarg in around)
-		if(eattarg.stat != CONSCIOUS)
-			foundfood += eattarg
-			L = eattarg
-			if(src.Adjacent(L))
-				if(iscarbon(L))
-					var/mob/living/carbon/C = L
-					if(attack_sound)
-						playsound(src, pick(attack_sound), 100, TRUE, -1)
-					face_atom(C)
-					src.visible_message(span_danger("[src] starts to rip apart [C]!"))
-					if(do_after(src,100, target = L))
-						var/obj/item/bodypart/limb
-						var/list/limb_list = list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
-						for(var/zone in limb_list)
-							limb = C.get_bodypart(zone)
-							if(limb)
-								limb.dismember()
-								return TRUE
-						limb = C.get_bodypart(BODY_ZONE_HEAD)
-						if(limb)
-							limb.dismember()
-							return TRUE
-						limb = C.get_bodypart(BODY_ZONE_CHEST)
-						if(limb)
-							if(!limb.dismember())
-								C.gib()
-							return TRUE
-				else
-					if(attack_sound)
-						playsound(src, pick(attack_sound), 100, TRUE, -1)
-					src.visible_message(span_danger("[src] starts to rip apart [L]!"))
-					if(do_after(src,100, target = L))
-						L.gib()
-						return TRUE
-	for(var/mob/living/eattarg in foundfood)
-		var/turf/T = get_turf(eattarg)
-		Goto(T,move_to_delay,0)
-		return TRUE
-	return FALSE
 
 /mob/living/simple_animal/hostile/retaliate/rogue/Initialize()
 	. = ..()
@@ -272,7 +189,7 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/beckoned(mob/user)
 	if(tame && !stop_automated_movement)
 		stop_automated_movement = TRUE
-		Goto(user,move_to_delay)
+		set_ai_path_to(user)
 		addtimer(CALLBACK(src, PROC_REF(return_action)), 3 SECONDS)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/food_tempted(obj/item/O, mob/user)
@@ -280,5 +197,5 @@
 	if(is_type_in_list(O, food_type) && !stop_automated_movement)
 		testing("infoodtype")
 		stop_automated_movement = TRUE
-		Goto(user,move_to_delay)
+		set_ai_path_to(user)
 		addtimer(CALLBACK(src, PROC_REF(return_action)), 3 SECONDS)

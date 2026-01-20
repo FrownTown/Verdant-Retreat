@@ -182,6 +182,11 @@
 /mob/living/simple_animal/hostile/clown_insane/Initialize()
 	. = ..()
 	status_flags |= GODMODE //Slightly easier to maintain.
+	
+	ai_root = new /datum/behavior_tree/node/selector/insane_clown_tree()
+	
+	ai_root.blackboard = new
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/clown_insane/Destroy()
 	timer = null
@@ -219,12 +224,6 @@
 /mob/living/simple_animal/hostile/clown_insane/proc/teleport_to_target()
 	if(target && isturf(target.loc)) //Hiding in lockers works to get rid of this thing.
 		forceMove(target.loc)
-
-/mob/living/simple_animal/hostile/clown_insane/MoveToTarget()
-	return
-
-/mob/living/simple_animal/hostile/clown_insane/AttackingTarget()
-	return
 
 /mob/living/simple_animal/hostile/clown_insane/adjustHealth(amount, updating_health = TRUE, forced = FALSE)
 	. = 0

@@ -43,6 +43,7 @@
 #define AI_FLAG_FEARLESS 0x2
 #define AI_FLAG_PERSISTENT 0x4 // For mobs that don't sleep.
 #define AI_FLAG_ASSUMEDIRECTCONTROL 0x8 // Used to prevent NPCs that are being controlled by an admin using AI commander from going back to sleep if there are no players around.
+#define AI_FLAG_FORCESLEEP 0x16 // Forces the mob to skip processing, used for certain status effects etc.
 
 // Defines for AI states tracked by the AI commander module
 #define AI_CMD_STATE_MOVE 0

@@ -83,8 +83,8 @@
 	var/datum/action/cooldown/mob_cooldown/bear_swipe/swipe = new(src)
 	swipe.Grant(src)
 	
-	// NEW AI SYSTEM
 	ai_root = new /datum/behavior_tree/node/selector/direbear_tree()
+	ai_root.blackboard = new
 	ai_root.blackboard["targeted_action"] = swipe
 	ai_root.next_move_delay = 5
 	ai_root.next_attack_delay = RAT_ATTACK_SPEED

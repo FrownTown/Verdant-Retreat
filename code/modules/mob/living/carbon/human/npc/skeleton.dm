@@ -89,6 +89,7 @@
 	// Initialize behavior tree AI (for NPC skeletons only)
 	if(istype(src, /mob/living/carbon/human/species/skeleton/npc))
 		ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+		ai_root.blackboard = new
 		SSai.Register(src)
 		ai_root.blackboard = new
 		ai_root.next_move_delay = 3

@@ -95,34 +95,6 @@
 			new minions_chosen (get_step(boss,pick_n_take(directions)), 1)
 		summoned_minions += 1;
 
-/mob/living/simple_animal/hostile/boss/lich/handle_automated_action()
-	. = ..()
-	if(target && next_cast < world.time && next_summon < world.time) //Second summon ability. Spawns a mob of simple skeletons
-		spawn_minions(minions_to_spawn)
-		INVOKE_ASYNC(src, TYPE_PROC_REF(/atom/movable, say), "Minions, to me!", null, list("colossus", "yell"))
-		next_cast = world.time + 10
-		next_summon = world.time + 600
-		return .
-	if(target && next_cast < world.time && next_blink < world.time) //Triggers a blink spell
-		if(blink.cast_check(0,src))
-			blink.choose_targets(src)
-			blink.invocation = pick(taunt)
-			next_cast = world.time + 20
-			next_blink = world.time + 120
-			return .
-	if(target && next_cast < world.time && health < maxHealth * 0.33 && next_blaststrong < world.time) //Fires a wave of greater fireballs after blinking
-		INVOKE_ASYNC(src, TYPE_PROC_REF(/atom/movable, say), "I am immortal, you are NOTHING!", null, list("colossus", "yell"))
-		playsound(src, 'sound/magic/antimagic.ogg', 70, TRUE)
-		blaststrong()
-		next_cast = world.time + 100
-		next_blaststrong = world.time + 300
-		return .
-	if(target && next_cast < world.time) //fires a wave of a random projectile after blinking
-		blast()
-		next_cast = world.time + 100
-		return .
-
-
 /mob/living/simple_animal/hostile/boss/lich/proc/blast(set_angle)
 	var/turf/target_turf = get_turf(target)
 	newtonian_move(get_dir(target_turf, src))

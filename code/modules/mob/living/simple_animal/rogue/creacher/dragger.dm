@@ -44,8 +44,8 @@
 	canparry = TRUE
 	retreat_health = null
 
-	can_have_ai = TRUE //disable native ai
-	AIStatus = AI_ON
+	aggressive = 1
+	desc = "A corpse dragger. It wants you dead."
 
 /mob/living/simple_animal/hostile/rogue/dragger/electrocute_act(shock_damage, source, siemens_coeff = 1, flags = NONE)
 	return FALSE
@@ -110,6 +110,8 @@
 	ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC)
 	
 	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
+	
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DRAGGER_ATTACK_SPEED
 	SSai.Register(src)

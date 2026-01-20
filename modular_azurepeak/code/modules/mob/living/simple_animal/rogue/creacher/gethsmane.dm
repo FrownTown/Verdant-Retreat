@@ -9,9 +9,6 @@
 	color = "#485775"
 	attack_same = 0
 
-	AIStatus = AI_ON
-	can_have_ai = TRUE
-
 /mob/living/simple_animal/hostile/retaliate/rogue/bigrat/gethsmane/AttackingTarget()
 	. = ..()
 	if(. && isliving(target))

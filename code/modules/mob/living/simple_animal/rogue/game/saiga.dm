@@ -173,15 +173,6 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/saiga/saigabuck/tame
 	tame = TRUE
 
-//the saiga's procs
-
-/mob/living/simple_animal/hostile/retaliate/rogue/saiga/find_food()
-	..()
-	var/obj/structure/vine/SV = locate(/obj/structure/vine) in loc
-	if(SV)
-		SV.eat(src)
-		food = max(food + 30, 100)
-
 /mob/living/simple_animal/hostile/retaliate/rogue/saiga/update_icon()
 	cut_overlays()
 	..()
