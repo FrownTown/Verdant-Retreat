@@ -18,8 +18,8 @@
 #define AI_DEFAULT_THINK_DELAY 0.5 SECONDS
 #define AI_DEFAULT_MOVE_DELAY 1 SECOND // MAY THEY RUN (this allows us to set custom move delays on a per-mob basis by accessing the mob's ai_root node.next_move_delay variable. Setting it to 1 decisecond allows NPCs to move as fast as players.)
 #define AI_DEFAULT_ATTACK_DELAY 1 SECOND
-#define AI_DEFAULT_CHATTER_DELAY 1 SECONDS
-#define AI_DEFAULT_EMOTE_DELAY 2 SECONDS
+#define AI_DEFAULT_CHATTER_DELAY 3 SECONDS
+#define AI_DEFAULT_EMOTE_DELAY 5 SECONDS
 #define AI_DEFAULT_MAX_FEAR 60
 #define AI_DEFAULT_PURSUE_TIME 10 SECONDS
 #define AI_DEFAULT_SEARCH_TIME 10 SECONDS

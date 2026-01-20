@@ -56,7 +56,7 @@
 
 	// Initialize behavior tree for ranged combat
 	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
-	ai_root.blackboard = list()
+	ai_root.blackboard = new
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = 0
 	SSai.Register(src)

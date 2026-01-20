@@ -2,6 +2,8 @@
 // AI SUBSYSTEM
 // ==============================================================================
 
+#define AI_SQUADS // Enable AI squad functionality. Comment out to disable.
+
 PROCESSING_SUBSYSTEM_DEF(ai)
 	name = "AI"
 	priority = SS_PRIORITY_AI
@@ -14,9 +16,11 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	var/list/sleeping_mobs
 	var/list/unregister_queue
 	var/list/sleep_queue
+	#ifdef AI_SQUADS
 	var/list/squads
 	var/list/squads_to_remove
 	var/next_squad_update_tick = 0
+	#endif
 
 /datum/controller/subsystem/processing/ai/Initialize()
 	..()
@@ -35,15 +39,14 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 		active_mobs[M] = TRUE
 		M.ai_root.next_think_tick = world.time + M.ai_root.next_think_delay
 		GLOB.npc_list |= M
-		// Initialize qt_range for spatial queries if not already done
-		if(!M.qt_range)
-			M.qt_range = new /datum/shape/rectangle(M.x, M.y, AI_HIBERNATION_RANGE * 2, AI_HIBERNATION_RANGE * 2)
 
 /datum/controller/subsystem/processing/ai/proc/Unregister(mob/living/M)
 	if(M)
+		#ifdef AI_SQUADS
 		if(M.ai_root.blackboard[AIBLK_SQUAD_DATUM])
 			var/ai_squad/squad = M.ai_root.blackboard[AIBLK_SQUAD_DATUM]
 			squad.RemoveMember(M)
+		#endif
 		active_mobs.Remove(M)
 		sleeping_mobs.Remove(M)
 		GLOB.npc_list -= M
@@ -63,37 +66,10 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 			active_mobs.Remove(M)
 			sleeping_mobs[M] = TRUE
 
-/datum/controller/subsystem/processing/ai/proc/OnPlayerMoved(atom/movable/source, atom/old_loc, dir, forced)
-	if(!ismob(source)) return
-	var/mob/living/moved_mob = source
-	if(!moved_mob.client || isobserver(moved_mob)) return
-
-	var/turf/T = get_turf(moved_mob)
-	if(!T) return
-
-	// Initialize qt_range if not already done
-	if(!moved_mob.qt_range)
-		moved_mob.qt_range = new /datum/shape/rectangle(moved_mob.x, moved_mob.y, AI_HIBERNATION_RANGE * 2, AI_HIBERNATION_RANGE * 2)
-
-	// Checks if a player is close enough to a sleeping NPC to wake them up using the quadtree.
-	moved_mob.qt_range.UpdateQTMover(moved_mob.x, moved_mob.y)
-	var/list/nearby_npcs = SSquadtree.npc_carbons_in_range(moved_mob.qt_range, T.z)
-
-	for(var/mob/living/M as anything in nearby_npcs)
-		WakeUp(M)
-
 /datum/controller/subsystem/processing/ai/proc/on_max_z_changed()
 	// Resize lists if necessary when max Z changes
 	// For now, this is just a placeholder to satisfy the call from World.dm
 	return
-
-// Called when a player logs in to register movement tracking
-/datum/controller/subsystem/processing/ai/proc/RegisterPlayerMovement(mob/living/player)
-	if(player.client && !isobserver(player))
-		RegisterSignal(player, COMSIG_MOVABLE_MOVED, PROC_REF(OnPlayerMoved))
-		// Initialize their qt_range
-		if(!player.qt_range)
-			player.qt_range = new /datum/shape/rectangle(player.x, player.y, AI_HIBERNATION_RANGE * 2, AI_HIBERNATION_RANGE * 2)
 
 // Processing our active mobs
 /datum/controller/subsystem/processing/ai/fire(var/time_delta)
@@ -113,7 +89,6 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 
 		// Check if enough time has passed for the mob to think again.
 		if(current_time >= M.ai_root.next_think_tick)
-			M.qt_range.UpdateQTMover(M.x, M.y)
 			if(!(M.ai_root.ai_flags & (AI_FLAG_PERSISTENT|AI_FLAG_ASSUMEDIRECTCONTROL)))
 
 				var/list/nearby_players = SSquadtree.players_in_range(M.qt_range, T.z, QTREE_SCAN_MOBS|QTREE_EXCLUDE_OBSERVER)
@@ -134,9 +109,11 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 			M.ai_root.next_think_tick = current_time + M.ai_root.next_think_delay
 
 	for(var/mob/living/M as anything in unregister_queue)
+		#ifdef AI_SQUADS
 		var/ai_squad/squad = M.ai_root.blackboard[AIBLK_SQUAD_DATUM]
 		if(squad)
 			squad.RemoveMember(M)
+		#endif
 		Unregister(M)
 
 	for(var/mob/living/M as anything in sleep_queue)
@@ -144,7 +121,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 
 	unregister_queue.len = 0
 	sleep_queue.len = 0
-
+	#ifdef AI_SQUADS
 	if(current_time > next_squad_update_tick)
 		for(var/ai_squad/S as anything in squads)
 			if(length(S.members))
@@ -305,10 +282,14 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	for (var/mob/living/hunter as anything in hunt_squad.members)
 		hunter.ai_root.target = hunt_target
 
+	#endif AI_SQUADS
+
 //================================================================
 //SUBSYSTEM HELPERS
 //================================================================
 
 // Below are any functions or types that are useful for interacting with this subsystem, or with NPCs in general.
 
-/mob/living/var/datum/shape/qt_range // Each mob has a single shape datum to define the quadtree's areas of interest for running searches. This is more performant than creating and destroying the shape datums on every tick.
+/mob/var/datum/shape/qt_range // Each mob has a single shape datum to define the quadtree's areas of interest for running searches. This is more performant than creating and destroying the shape datums on every tick.
+
+#undef AI_SQUADS

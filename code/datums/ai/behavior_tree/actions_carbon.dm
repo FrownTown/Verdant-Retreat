@@ -21,8 +21,10 @@
 	var/mob/living/new_target = null
 	var/closest_dist = search_range + 1
 
-	for(var/mob/living/L in view(search_range, user))
-		if(!user.should_target(L))
+	var/list/targets = get_nearby_entities(user, search_range)
+
+	for(var/mob/living/L in targets)
+		if(!user.should_target(L) || los_blocked(user, L))
 			continue
 
 		var/dist = get_dist(user, L)

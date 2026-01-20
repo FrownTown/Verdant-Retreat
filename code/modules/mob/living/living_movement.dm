@@ -1,6 +1,6 @@
 /mob/living/Moved()
 	. = ..()
-	stop_looking()
+	SEND_SIGNAL(SSquadtree, COMSIG_MOB_MOVED, src)
 	update_turf_movespeed(loc)
 	update_pixel_shifting(TRUE)
 //	if(m_intent == MOVE_INTENT_RUN)

@@ -31,6 +31,8 @@ GLOBAL_VAR_INIT(mobids, 1)
 	GLOB.mob_directory -= tag
 	focus = null
 
+	SSquadtree.UnregisterMob(src)
+
 	for (var/alert in alerts)
 		clear_alert(alert, TRUE)
 	if(observers && observers.len)
@@ -87,6 +89,8 @@ GLOBAL_VAR_INIT(mobids, 1)
 	become_hearing_sensitive()
 	update_config_movespeed()
 	update_movespeed(TRUE)
+	qt_range = RECT(x, y, AI_HIBERNATION_RANGE, AI_HIBERNATION_RANGE)
+	SSquadtree.RegisterMob(src)
 
 /**
  * Generate the tag for this mob

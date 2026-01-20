@@ -47,6 +47,8 @@
 	var/list/goap_goals_cache
 	var/list/goap_actions_cache
 
+	var/active_node_text // Debug text showing the currently running node
+
 	#ifdef BT_DEBUG
 	var/next_log_tick = 0
 	var/next_log_delay = 5 SECONDS
@@ -285,6 +287,13 @@
 			return node_state
 		if(NODE_RUNNING)
 			node_state = NODE_RUNNING
+			if(npc.ai_root)
+				var/txt = "[my_action.type]"
+				var/last_slash = findlasttext(txt, "/")
+				if(last_slash)
+					txt = copytext(txt, last_slash + 1)
+				npc.ai_root.active_node_text = txt
+
 			#ifdef BT_DEBUG
 			if(world.time > next_log_tick)
 				next_log_tick = world.time + next_log_delay

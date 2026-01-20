@@ -19,12 +19,15 @@
 
 	var/list/targets = list()
 	if(!H.search_objects)
-		targets = hearers(H.vision_range, H.targets_from) - H
+		targets = get_nearby_entities(H, search_range)
 	else
-		targets = oview(H.vision_range, H.targets_from)
+		var/list/candidates = get_nearby_entities(H, search_range)
+		for(var/mob/living/L in candidates)
+			if(!los_blocked(H, L))
+				targets += L
 
 	user.ai_root.blackboard["possible_targets"] = targets
-	return targets.len ? NODE_SUCCESS : NODE_FAILURE
+	return length(targets) ? NODE_SUCCESS : NODE_FAILURE
 
 /bt_action/found_target
 
@@ -146,10 +149,15 @@
 		H.last_aggro_loss = 0
 
 		H.vision_range = H.aggro_vision_range
-		if(new_target && H.emote_taunt.len && prob(H.taunt_chance))
-			H.emote("me", 1, "[pick(H.emote_taunt)] at [new_target].")
-			H.taunt_chance = max(H.taunt_chance-7,2)
-		H.emote("aggro")
+	
+		if(H.ai_root.next_emote_tick >= world.time)
+			if(new_target && H.emote_taunt.len && prob(H.taunt_chance))
+				H.emote("me", 1, "[pick(H.emote_taunt)] at [new_target].")
+				H.taunt_chance = max(H.taunt_chance-7,2)
+			H.emote("aggro")
+
+			var/next_emote = H.ai_root.next_emote_delay ? H.ai_root.next_emote_delay : AI_DEFAULT_EMOTE_DELAY
+			H.ai_root.next_emote_tick = world.time + next_emote
 
 	return NODE_SUCCESS
 
@@ -260,7 +268,6 @@
 	if(!istype(H))
 		return NODE_FAILURE
 
-	H.stop_automated_movement = 0
 	H.vision_range = initial(H.vision_range)
 	H.taunt_chance = initial(H.taunt_chance)
 	return NODE_SUCCESS
@@ -277,14 +284,11 @@
 
 	if(user.ai_root)
 		user.ai_root.target = null
-		// STOP MOVING: Clear path
-		user.ai_root.path = null
-		user.ai_root.move_destination = null
+		user.set_ai_path_to(null)
 
 	H.approaching_target = FALSE
 	H.in_melee = FALSE
 
-	H.stop_automated_movement = 0
 	H.vision_range = initial(H.vision_range)
 	H.taunt_chance = initial(H.taunt_chance)
 
@@ -471,10 +475,11 @@
 	if(user.ai_root && world.time >= user.ai_root.next_move_tick)
 		var/turf/T = get_step(user, pick(GLOB.cardinals))
 		if(T && !T.density)
-			// Manual 1-step path
-			user.ai_root.path = list(T)
-			user.ai_root.move_destination = T
-			return NODE_RUNNING 
+			if(user.set_ai_path_to(T))
+				return NODE_RUNNING 
+		
+		return NODE_FAILURE
+	
 	return NODE_RUNNING
 
 /bt_action/flee_target
@@ -541,7 +546,7 @@
 	if(!dest || QDELETED(dest))
 		return NODE_FAILURE
 		
-	user.ai_root.move_destination = dest
+	user.set_ai_path_to(dest)
 	return NODE_SUCCESS
 
 
@@ -1061,6 +1066,12 @@
 	var/list/speak
 
 /bt_action/random_speech/evaluate(mob/living/user, mob/living/target, list/blackboard)
+	var/can_chat = user.ai_root.next_chatter_tick >= world.time
+	var/can_emote = user.ai_root.next_emote_tick >= world.time
+
+	if(!can_chat && !can_emote)
+		return NODE_FAILURE
+
 	if(prob(speech_chance))
 		var/len_hear = length(emote_hear)
 		var/len_see = length(emote_see)
@@ -1069,13 +1080,25 @@
 		
 		if(total == 0) return NODE_FAILURE
 
+		var/next_chat = user.ai_root.next_chatter_delay ? user.ai_root.next_chatter_delay : AI_DEFAULT_CHATTER_DELAY
+		var/next_emote = user.ai_root.next_emote_delay ? user.ai_root.next_emote_delay : AI_DEFAULT_EMOTE_DELAY
+
 		var/roll = rand(1, total)
-		if(roll <= len_hear)
-			user.emote(pick(emote_hear))
-		else if(roll <= len_hear + len_see)
-			user.emote(pick(emote_see))
+		if(can_emote)
+			if(roll <= len_hear)
+				user.emote(pick(emote_hear))
+				user.ai_root.next_emote_tick = world.time + next_emote
+			else if(roll <= len_hear + len_see)
+				user.emote(pick(emote_see))
+				user.ai_root.next_emote_tick = world.time + next_emote
+			else
+				user.say(pick(speak))
+				user.ai_root.next_chatter_tick = world.time + next_chat
+		
+		// Fallback if can chat, but not emote
 		else
 			user.say(pick(speak))
+			user.ai_root.next_chatter_tick = world.time + next_chat
 		return NODE_SUCCESS
 	return NODE_FAILURE
 
@@ -1141,8 +1164,15 @@
 	if(world.time - user.ai_root.blackboard["eating_body"] >= 100) // 10 seconds
 		if(iscarbon(target))
 			var/mob/living/carbon/C = target
-			// Dismemberment logic sim
-			C.gib() 
+			var/list/limbs = list()
+			for(var/obj/item/I in C.bodyparts)
+				limbs += I
+			if(length(limbs))
+				var/obj/item/bodypart/limb = pick(limbs)
+				limb.dismember()
+				limb.Destroy()
+			else
+				C.gib()
 		else
 			target.gib()
 		
@@ -1189,7 +1219,6 @@
 			if(idx > 0 && idx < length(path))
 				var/turf/next = path[idx+1]
 				blackboard[target_key] = next
-				user.ai_root.move_destination = next
 				user.set_ai_path_to(next)
 				return NODE_RUNNING
 			else if(idx == length(path))
@@ -1210,7 +1239,6 @@
 		// Logic: Pick first point
 		var/turf/first = path[1]
 		blackboard[target_key] = first
-		user.ai_root.move_destination = first
 		user.set_ai_path_to(first)
 		return NODE_RUNNING
 

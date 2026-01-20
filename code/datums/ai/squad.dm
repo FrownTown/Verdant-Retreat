@@ -8,7 +8,7 @@
 	var/atom/center_of_mass
 	var/max_size = 10
 	var/squad_type // Typepath of the mobs in this squad, usually set to the leader's type
-	var/list/blackboard = list()
+	var/list/blackboard = new
 
 /ai_squad/New(mob/living/new_leader)
 	if(new_leader)

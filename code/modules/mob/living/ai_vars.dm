@@ -48,6 +48,14 @@
 	// Don't repath if we are already going there and have a path
 	if(ai_root.move_destination == destination && length(ai_root.path))
 		return TRUE
+
+	// For a 1 step path, just set it directly for performance
+	if(get_dist(src, destination) <= 1)
+		var/turf/T = get_turf(destination)
+		if(T && !T.density && CanReach())
+			ai_root.path = list(T)
+			ai_root.move_destination = T
+			return TRUE
 	
 	ai_root.path = A_Star(src, get_turf(src), get_turf(destination))
 	ai_root.move_destination = destination

@@ -18,6 +18,8 @@
 	AddElement(/datum/element/movetype_handler)
 
 /mob/living/Destroy()
+	if(qt_range)
+		QDEL_NULL(qt_range)
 	surgeries = null
 	if(LAZYLEN(status_effects))
 		for(var/s in status_effects)
@@ -33,6 +35,7 @@
 
 	stop_offering_item()
 
+	SSquadtree.UnregisterMob(src)
 	GLOB.mob_living_list -= src
 	for(var/s in ownedSoullinks)
 		var/datum/soullink/S = s

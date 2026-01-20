@@ -17,16 +17,11 @@
 
 	///What distance should we be checking for interesting things when considering idling/deidling?
 	var/interesting_dist = AI_DEFAULT_INTERESTING_DIST
-	///our current cell grid
-	var/datum/cell_tracker/our_cells
 
 /mob/living/carbon/human/Initialize()
 	. = ..()
-	our_cells = new(interesting_dist, interesting_dist, 1)
-	set_new_cells()
 
 /mob/living/carbon/human/Destroy()
-	our_cells = null
 	return ..()
 
 /mob/living/carbon/human/proc/IsStandingStill()
@@ -184,6 +179,7 @@
 
 /mob/living/carbon/human/attackby(obj/item/W, mob/user, params)
 	. = ..()
+	if(!ai_root) return
 	if((W.force) && (!ai_root.target) && (W.damtype != STAMINA) )
 		retaliate(user)
 
@@ -220,31 +216,6 @@
 	else
 		return FALSE
 
-/mob/living/carbon/human/proc/on_client_enter(datum/source, atom/target)
-	SIGNAL_HANDLER
-
-/mob/living/carbon/human/proc/on_client_exit(datum/source, datum/exited)
-	SIGNAL_HANDLER
-
-/mob/living/carbon/human/proc/set_new_cells()
-	var/turf/our_turf = get_turf(src)
-	if(isnull(our_turf))
-		return
-
-	var/list/cell_collections = our_cells.recalculate_cells(our_turf)
-
-	for(var/datum/old_grid as anything in cell_collections[2])
-		UnregisterSignal(old_grid, list(SPATIAL_GRID_CELL_ENTERED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), SPATIAL_GRID_CELL_EXITED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)))
-
-	for(var/datum/spatial_grid_cell/new_grid as anything in cell_collections[1])
-		RegisterSignal(new_grid, SPATIAL_GRID_CELL_ENTERED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), PROC_REF(on_client_enter))
-		RegisterSignal(new_grid, SPATIAL_GRID_CELL_EXITED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), PROC_REF(on_client_exit))
-
-/mob/living/carbon/human/proc/update_grid()
-	SIGNAL_HANDLER
-	set_new_cells()
-
 /mob/living/carbon/human/Moved()
 	. = ..()
-	if(ai_root)
-		update_grid()
+

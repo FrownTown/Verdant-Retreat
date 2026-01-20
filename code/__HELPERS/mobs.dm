@@ -606,3 +606,36 @@ GLOBAL_LIST_EMPTY(species_list)
 		sleep(1)
 	if(set_original_dir)
 		AM.setDir(originaldir)
+
+/proc/get_nearby_entities(mob/living/source, range) // Uses the quadtree and the existing source.qt_range shape initialized on the mob to get a list of all humans or human-based npcs in range.
+	if(source.qt_range)
+		source.qt_range.width = range
+		source.qt_range.height = range
+
+		var/list/entities = ENTITIES_IN_RANGE(source) - source
+
+		source.qt_range.width = AI_HIBERNATION_RANGE
+		source.qt_range.height = AI_HIBERNATION_RANGE
+
+		return entities
+
+/proc/qt_view(mob/living/source) // Version of view() that uses the quadtree and a bressenham line to check for LOS at lightning speed! This shouldn't be relied on for anything other than very basic LOS checks, it's just here for performance reasons.
+	if(source.qt_range)
+		var/dist = NPC_VIEWRANGE
+		if(source.client)
+			dist = source.client.view
+
+		source.qt_range.width = dist
+		source.qt_range.height = dist
+
+		var/list/entities = ENTITIES_IN_RANGE(source) - source
+		var/list/visible = list()
+
+		for(var/mob/living/M as anything in entities)
+			if(get_dist(source, M) <= dist && !los_blocked(source, M))
+				visible += M
+
+		source.qt_range.width = AI_HIBERNATION_RANGE
+		source.qt_range.height = AI_HIBERNATION_RANGE
+
+		return visible

@@ -433,7 +433,7 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
 	return TRUE
 
 /datum/liquid_registry/proc/determine_exposure_type(mob/living/M, turf/T, fluid_level, requested_type)
-	if(M.stat != DEAD && ishuman(M) && breath)
+	if(M.stat != DEAD && ishuman(M) && FALSE) // Placeholder for future drowning checks
 		return "drowning"
 
 	switch(fluid_level)

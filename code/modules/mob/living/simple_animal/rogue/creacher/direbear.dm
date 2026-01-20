@@ -58,9 +58,7 @@
 	stat_attack = UNCONSCIOUS	//You falling unconcious won't save you, little one..
 	eat_forever = TRUE
 
-//new ai, old ai off
-	AIStatus = AI_ON
-	can_have_ai = TRUE
+
 
 /mob/living/simple_animal/hostile/retaliate/rogue/direbear/get_sound(input)
 	switch(input)

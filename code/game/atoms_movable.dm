@@ -57,11 +57,6 @@
 	///only the last container of a client eye has this list assuming no movement since SSparallax's last fire
 	var/list/client_mobs_in_contents
 
-	/// String representing the spatial grid groups we want to be held in.
-	/// acts as a key to the list of spatial grid contents types we exist in via SSspatial_grid.spatial_grid_categories.
-	/// We do it like this to prevent people trying to mutate them and to save memory on holding the lists ourselves
-	var/spatial_grid_key
-
 
 /atom/movable/proc/can_zFall(turf/source, levels = 1, turf/target, direction)
 	if(!direction)
@@ -375,22 +370,6 @@
 		newtonian_move(Dir)
 	if (length(client_mobs_in_contents))
 		update_parallax_contents()
-	var/turf/old_turf = get_turf(OldLoc)
-	var/turf/new_turf = get_turf(src)
-
-	if(HAS_SPATIAL_GRID_CONTENTS(src))
-		if(old_turf && new_turf && (old_turf.z != new_turf.z \
-			|| GET_SPATIAL_INDEX(old_turf.x) != GET_SPATIAL_INDEX(new_turf.x) \
-			|| GET_SPATIAL_INDEX(old_turf.y) != GET_SPATIAL_INDEX(new_turf.y)))
-
-			SSspatial_grid.exit_cell(src, old_turf)
-			SSspatial_grid.enter_cell(src, new_turf)
-
-		else if(old_turf && !new_turf)
-			SSspatial_grid.exit_cell(src, old_turf)
-
-		else if(new_turf && !old_turf)
-			SSspatial_grid.enter_cell(src, new_turf)
 
 	return TRUE
 
@@ -414,6 +393,7 @@
 	//We rely on Entered and Exited to manage this list, and the copy of this list that is on any /atom/movable "Containers"
 	//If we clear this before the nullspace move, a ref to this object will be hung in any of its movable containers
 	LAZYNULL(important_recursive_contents)
+	GLOB.hearables -= src
 	invisibility = INVISIBILITY_ABSTRACT
 	if(pulledby)
 		pulledby.stop_pulling()
@@ -1178,12 +1158,6 @@ GLOBAL_VAR_INIT(pixel_diff_time, 1)
 			var/list/recursive_contents = location.important_recursive_contents // blue hedgehog velocity
 			LAZYINITLIST(recursive_contents[channel])
 			recursive_contents[channel] -= gone.important_recursive_contents[channel]
-			switch(channel)
-				if(RECURSIVE_CONTENTS_CLIENT_MOBS, RECURSIVE_CONTENTS_HEARING_SENSITIVE)
-					if(!length(recursive_contents[channel]))
-						// This relies on a nice property of the linked recursive and gridmap types
-						// They're defined in relation to each other, so they have the same value
-						SSspatial_grid.remove_grid_awareness(location, channel)
 			ASSOC_UNSETEMPTY(recursive_contents, channel)
 			UNSETEMPTY(location.important_recursive_contents)
 
@@ -1198,10 +1172,6 @@ GLOBAL_VAR_INIT(pixel_diff_time, 1)
 			LAZYINITLIST(location.important_recursive_contents)
 			var/list/recursive_contents = location.important_recursive_contents // blue hedgehog velocity
 			LAZYINITLIST(recursive_contents[channel])
-			switch(channel)
-				if(RECURSIVE_CONTENTS_CLIENT_MOBS, RECURSIVE_CONTENTS_HEARING_SENSITIVE)
-					if(!length(recursive_contents[channel]))
-						SSspatial_grid.add_grid_awareness(location, channel)
 			recursive_contents[channel] |= arrived.important_recursive_contents[channel]
 
 ///allows this movable to hear and adds itself to the important_recursive_contents list of itself and every movable loc its in
@@ -1214,12 +1184,9 @@ GLOBAL_VAR_INIT(pixel_diff_time, 1)
 	for(var/atom/movable/location as anything in get_nested_locs(src) + src)
 		LAZYINITLIST(location.important_recursive_contents)
 		var/list/recursive_contents = location.important_recursive_contents // blue hedgehog velocity
-		if(!length(recursive_contents[RECURSIVE_CONTENTS_HEARING_SENSITIVE]))
-			SSspatial_grid.add_grid_awareness(location, SPATIAL_GRID_CONTENTS_TYPE_HEARING)
 		recursive_contents[RECURSIVE_CONTENTS_HEARING_SENSITIVE] += list(src)
 
-	var/turf/our_turf = get_turf(src)
-	SSspatial_grid.add_grid_membership(src, our_turf, SPATIAL_GRID_CONTENTS_TYPE_HEARING)
+	GLOB.hearables += src
 
 /**
  * removes the hearing sensitivity channel from the important_recursive_contents list of this and all nested locs containing us if there are no more sources of the trait left
@@ -1234,15 +1201,11 @@ GLOBAL_VAR_INIT(pixel_diff_time, 1)
 	if(HAS_TRAIT(src, TRAIT_HEARING_SENSITIVE))
 		return
 
-	var/turf/our_turf = get_turf(src)
-	/// We get our awareness updated by the important recursive contents stuff, here we remove our membership
-	SSspatial_grid.remove_grid_membership(src, our_turf, SPATIAL_GRID_CONTENTS_TYPE_HEARING)
+	GLOB.hearables -= src
 
 	for(var/atom/movable/location as anything in get_nested_locs(src) + src)
 		var/list/recursive_contents = location.important_recursive_contents // blue hedgehog velocity
 		recursive_contents[RECURSIVE_CONTENTS_HEARING_SENSITIVE] -= src
-		if(!length(recursive_contents[RECURSIVE_CONTENTS_HEARING_SENSITIVE]))
-			SSspatial_grid.remove_grid_awareness(location, SPATIAL_GRID_CONTENTS_TYPE_HEARING)
 		ASSOC_UNSETEMPTY(recursive_contents, RECURSIVE_CONTENTS_HEARING_SENSITIVE)
 		UNSETEMPTY(location.important_recursive_contents)
 
@@ -1270,26 +1233,15 @@ GLOBAL_VAR_INIT(pixel_diff_time, 1)
 	for(var/atom/movable/movable_loc as anything in get_nested_locs(src) + src)
 		LAZYINITLIST(movable_loc.important_recursive_contents)
 		var/list/recursive_contents = movable_loc.important_recursive_contents // blue hedgehog velocity
-		if(!length(recursive_contents[RECURSIVE_CONTENTS_CLIENT_MOBS]))
-			SSspatial_grid.add_grid_awareness(movable_loc, SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)
 		LAZYINITLIST(recursive_contents[RECURSIVE_CONTENTS_CLIENT_MOBS])
 		recursive_contents[RECURSIVE_CONTENTS_CLIENT_MOBS] |= src
 
-	var/turf/our_turf = get_turf(src)
-	/// We got our awareness updated by the important recursive contents stuff, now we add our membership
-	SSspatial_grid.add_grid_membership(src, our_turf, SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)
-
 ///Clears the clients channel of this mob
 /mob/proc/clear_important_client_contents()
-	var/turf/our_turf = get_turf(src)
-	SSspatial_grid.remove_grid_membership(src, our_turf, SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)
-
 	for(var/atom/movable/movable_loc as anything in get_nested_locs(src) + src)
 		LAZYINITLIST(movable_loc.important_recursive_contents)
 		var/list/recursive_contents = movable_loc.important_recursive_contents // blue hedgehog velocity
 		LAZYINITLIST(recursive_contents[RECURSIVE_CONTENTS_CLIENT_MOBS])
 		recursive_contents[RECURSIVE_CONTENTS_CLIENT_MOBS] -= src
-		if(!length(recursive_contents[RECURSIVE_CONTENTS_CLIENT_MOBS]))
-			SSspatial_grid.remove_grid_awareness(movable_loc, SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)
 		ASSOC_UNSETEMPTY(recursive_contents, RECURSIVE_CONTENTS_CLIENT_MOBS)
 		UNSETEMPTY(movable_loc.important_recursive_contents)

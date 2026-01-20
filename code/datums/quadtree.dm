@@ -23,6 +23,15 @@
 	..()
 	return QDEL_HINT_IWILLGC
 
+/coords/qthearable
+	/// Relevant atom the coords are associated to.
+	var/atom/movable/hearable
+
+/coords/qthearable/Destroy()
+	hearable = null
+	..()
+	return QDEL_HINT_IWILLGC
+
 /datum/shape //Leaving rectangles as a subtype if anyone decides to add circles later - Did it lol - Plasmatik
 	var/center_x = 0
 	var/center_y = 0
@@ -120,6 +129,7 @@
 	var/datum/shape/rectangle/boundary
 	var/list/coords/qtplayer/player_coords
 	var/list/coords/qtnpc/npc_coords
+	var/list/coords/qthearable/hearable_coords
 	var/z_level
 	var/is_divided
 	var/final_divide = FALSE
@@ -140,6 +150,7 @@
 	QDEL_NULL(boundary)
 	QDEL_NULL(player_coords)
 	QDEL_NULL(npc_coords) // Added for cleanup
+	QDEL_NULL(hearable_coords)
 	..()
 	return QDEL_HINT_IWILLGC // Shouldn't have to begin with
 
@@ -207,6 +218,28 @@
 	npc_coords.Add(n_coords)
 	return TRUE
 
+/datum/quadtree/proc/insert_hearable(coords/qthearable/h_coords)
+	if(!boundary.contains(h_coords))
+		return FALSE
+
+	if(!hearable_coords)
+		hearable_coords = list()
+
+	if(final_divide || length(hearable_coords) < QUADTREE_CAPACITY)
+		hearable_coords.Add(h_coords)
+		return TRUE
+
+	if(!is_divided)
+		subdivide()
+
+	if(nw_branch.insert_hearable(h_coords)) return TRUE
+	if(ne_branch.insert_hearable(h_coords)) return TRUE
+	if(sw_branch.insert_hearable(h_coords)) return TRUE
+	if(se_branch.insert_hearable(h_coords)) return TRUE
+
+	hearable_coords.Add(h_coords)
+	return TRUE
+
 /datum/quadtree/proc/query_range(datum/shape/range, list/found_players, flags = 0)
 	if(!found_players)
 		found_players = list()
@@ -245,3 +278,20 @@
 	for(var/coords/qtnpc/N as anything in npc_coords)
 		if(N.npc && range.contains(N))
 			found_npcs.Add(N.npc)
+
+/datum/quadtree/proc/query_range_hearables(datum/shape/range, list/found_hearables)
+	if(!found_hearables)
+		found_hearables = list()
+	. = found_hearables
+	if(!range?.intersects(boundary))
+		return
+	if(is_divided)
+		nw_branch.query_range_hearables(range, found_hearables)
+		ne_branch.query_range_hearables(range, found_hearables)
+		sw_branch.query_range_hearables(range, found_hearables)
+		se_branch.query_range_hearables(range, found_hearables)
+	if(!hearable_coords)
+		return
+	for(var/coords/qthearable/H as anything in hearable_coords)
+		if(H.hearable && range.contains(H))
+			found_hearables.Add(H.hearable)
