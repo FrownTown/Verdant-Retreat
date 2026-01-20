@@ -28,13 +28,12 @@
 		next_step = ai_root.path[1]
 
 	if(next_step && get_dist(src, next_step) <= 1)
-		step_towards(src, next_step)
+		Move(next_step, get_dir(src, next_step))
 		ai_root.next_move_tick = world.time + ai_root.next_move_delay
 		return TRUE
 	else
 		// Path is invalid, clear it
-		ai_root.path = null
-		ai_root.move_destination = null
+		set_ai_path_to(null)
 		return FALSE
 
 /mob/living/proc/set_ai_path_to(atom/destination)

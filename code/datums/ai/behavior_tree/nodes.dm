@@ -313,7 +313,7 @@
 /datum/behavior_tree/node/action/Destroy()
 	// The action wrapper also needs to clean up the action datum it holds.
 	my_action.Destroy()
-	. = QDEL_HINT_IWILLGC
+	. = ..(QDEL_HINT_IWILLGC)
 
 // Decorator node, for things like Inverters, Succeeders, etc.
 /datum/behavior_tree/node/decorator
@@ -327,4 +327,4 @@
 /datum/behavior_tree/node/decorator/Destroy()
 	if(child)
 		child.Destroy()
-	. = QDEL_HINT_IWILLGC
+	. = ..(QDEL_HINT_IWILLGC)

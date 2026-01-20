@@ -6,7 +6,7 @@
 
 // New AI system compat
 #define AI_ON AI_STATUS_ON
-#define NPC_AI_OFF AI_STATUS_OFF
+#define AI_OFF AI_STATUS_OFF
 #define AI_IDLE AI_STATUS_IDLE
 
 ///Carbon checks

@@ -22,8 +22,8 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
 	var/allow_dynamic_liquids = FALSE // Controls whether dynamic liquids and floor reactions are enabled
 	
 	// Performance optimization caching
-	var/list/behavior_cache = list() // Cache for expensive behavior lookups
-	var/list/validation_cache = list() // Cache for validation results
+	var/list/behavior_cache // Cache for expensive behavior lookups
+	var/list/validation_cache // Cache for validation results
 	var/cache_timer = 0
 	var/cache_cleanup_interval = 200 // Clean cache every 200 ticks
 
@@ -40,6 +40,7 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
 	discover_liquid_types()
 	build_reagent_maps()
 	register_default_behaviors()
+	enable_dynamic_liquids()
 
 /datum/liquid_registry/proc/discover_liquid_types()
 	registered_liquids.Cut()
@@ -432,7 +433,7 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
 	return TRUE
 
 /datum/liquid_registry/proc/determine_exposure_type(mob/living/M, turf/T, fluid_level, requested_type)
-	if(M.stat != DEAD && ishuman(M) && FALSE)
+	if(M.stat != DEAD && ishuman(M) && breath)
 		return "drowning"
 
 	switch(fluid_level)
@@ -512,7 +513,7 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
 			siemens_coeff = 1
 
 		if(!target.throwing)
-			target.electrocute_act(T, adjusted, def_zone, siemens_coeff, spread = TRUE)
+			target.electrocute_act(T, adjusted, def_zone, siemens_coeff)
 
 	return TRUE
 
@@ -595,7 +596,7 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
 
 		var/amount = T.cell.fluid_volume[fluid]
 		liquid_amounts[fluid] = amount
-		temp_holder.add_reagent(fluid.reagent, amount, safety = 1)
+		temp_holder.add_reagent(fluid.reagent, amount)
 
 	// Process reactions in the temporary holder
 	var/reactions_occurred = 0

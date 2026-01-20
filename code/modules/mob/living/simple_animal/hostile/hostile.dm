@@ -376,7 +376,7 @@
 		if(search_objects)//Turn off item searching and ignore whatever item we were looking at, we're more concerned with fight or flight
 			target = null
 			LoseSearchObjects()
-		if(AIStatus != AI_ON && AIStatus != NPC_AI_OFF)
+		if(AIStatus != AI_ON && AIStatus != AI_OFF)
 			toggle_ai(AI_ON)
 			FindTarget()
 		else if(target != null && prob(40))//No more pulling a mob forever and having a second player attack it, it can switch targets now if it finds a more suitable one
@@ -438,12 +438,10 @@
 	playsound(loc, 'sound/blank.ogg', 50, TRUE, -1)
 	for(var/mob/living/simple_animal/hostile/M in oview(distance, targets_from))
 		if(faction_check_mob(M, TRUE))
-			if(M.AIStatus == NPC_AI_OFF)
+			if(M.AIStatus == AI_OFF)
 				return
 			if(M.ai_root)
 				M.set_ai_path_to(src)
-			else
-				M.Goto(src,M.move_to_delay,M.minimum_distance)
 
 /mob/living/simple_animal/hostile/proc/CheckFriendlyFire(atom/A)
 	if(check_friendly_fire)

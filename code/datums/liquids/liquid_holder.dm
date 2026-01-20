@@ -1,5 +1,5 @@
 GLOBAL_LIST_EMPTY(liquid_types)
-cell
+/cell
 	parent_type = /datum
 
 	// Turf variables that are always initialized
