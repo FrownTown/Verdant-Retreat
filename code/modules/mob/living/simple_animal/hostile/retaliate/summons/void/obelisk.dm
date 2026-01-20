@@ -168,7 +168,7 @@
 
 	if (!fire_laser())
 		var/static/list/fail_emotes = list("tremors.", "creaks.", "emits green steam as it fails to fire.")
-		src.manual_emote(pick(fail_emotes))
+		emote(pick(fail_emotes))
 		return TRUE
 
 	do_after(src, delay = beam_duration, target = src)

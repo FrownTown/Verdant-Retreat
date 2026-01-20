@@ -74,6 +74,68 @@
 			turfs += T
 	return turfs
 
+/// returns TRUE if there exists a way for caller to (safely) move from src to T. non-z-aware
+/turf/proc/reachableTurftest(caller, turf/T, ID)
+	if(T && !T.density && T.can_traverse_safely(caller) && !LinkBlockedWithAccess(T,caller, ID))
+		return TRUE
+
+/// returns TRUE if there exists a way for caller to (safely) move from src to T. z-aware
+/turf/proc/reachableTurftest3d(caller, turf/T, ID, recursive_call = 0)
+	if(!T || T.density)
+		return FALSE
+	if(!T.can_traverse_safely(caller)) // dangerous turf! lava or openspace (or others in the future)
+		// If we can jump, jump over it!
+		if(!ishuman(caller)) // sorry, only humanmobs can jump atm
+			return FALSE
+		var/mob/living/carbon/human/human_caller = caller
+		if(!human_caller.npc_jump_chance) // If we can't jump at all, don't bother.
+			return FALSE
+		var/turf/landing_turf = get_step_away(T, src) // this is the turf we'd want to land on
+		// currently we'll only try to jump 2-tile gaps
+		if(recursive_call < 2 && T.reachableTurftest3d(caller, landing_turf, ID, recursive_call + 1))
+			return TRUE // jumpable
+		return FALSE
+	var/z_distance = abs(T.z - z)
+	if(!z_distance) // standard check for same-z pathing
+		return !LinkBlockedWithAccess(T, caller, ID)
+	if(z_distance != 1) // no single movement lets you move more than one z-level at a time (currently; update if this changes)
+		return FALSE
+	var/obj/structure/stairs/source_stairs = locate(/obj/structure/stairs) in src
+	var/mob/mob_caller = caller
+	if(ismob(caller) && HAS_TRAIT(mob_caller, TRAIT_ZJUMP)) // where we're going, we don't need stairs!
+		return TRUE
+	if(T.z < z) // going down
+		if(source_stairs?.get_target_loc(GLOB.reverse_dir[source_stairs.dir]) == T)
+			return TRUE
+	else // heading DOWN stairs was handled earlier, so now handle going UP stairs
+		if(source_stairs?.get_target_loc(source_stairs.dir) == T)
+			return TRUE
+	return FALSE
+
+/turf/proc/LinkBlockedWithAccess(turf/T, caller, ID)
+	var/adir = get_dir(src, T)
+	var/rdir = GLOB.reverse_dir[adir]
+	for(var/obj/O in T)
+		if(!O.CanAStarPass(ID, rdir, caller))
+			return TRUE
+	for(var/mob/living/M in T)
+		if(!M.CanPass(caller, src))
+			return TRUE
+	return FALSE
+
+
+/proc/get_dist_3d(atom/source, atom/target)
+	var/turf/source_turf = get_turf(source)
+	return source_turf.Distance3D(get_turf(target))
+
+/turf/proc/Distance3D(turf/T)
+	if (!T || !istype(T))
+		return 0
+	var/dx = abs(x - T.x)
+	var/dy = abs(y - T.y)
+	var/dz = abs(z - T.z) * 5 // Weight z-level differences higher
+	return (dx + dy + dz)
+
 /proc/circleviewturfs(center=usr,radius=3)		//Is there even a diffrence between this proc and circlerangeturfs()?
 
 	var/turf/centerturf = get_turf(center)
@@ -229,7 +291,7 @@
 			while(Y1!=Y2)
 				last_turf = current_turf
 				current_turf = locate(X1,Y1,Z)
-				if(current_turf.density || last_turf.LinkBlockedWithAccess(current_turf, traveler))
+				if(current_turf.density || last_turf.LinkBlockedWithAccess(current_turf, traveler, null))
 					return FALSE
 				Y1+=s
 	else
@@ -246,7 +308,7 @@
 				X1+=signX //Line exits tile horizontally
 			last_turf = current_turf
 			current_turf = locate(X1,Y1,Z)
-			if(current_turf.density || last_turf.LinkBlockedWithAccess(current_turf, traveler))
+			if(current_turf.density || last_turf.LinkBlockedWithAccess(current_turf, traveler, null))
 				return FALSE
 	return TRUE
 

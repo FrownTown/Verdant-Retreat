@@ -52,23 +52,24 @@
             var/mob/living/simple_animal/minion = other_mob
 
             if ((faction_ordering && caster.faction_check_mob(minion)) || (!faction_ordering && faction_tag && (faction_tag in minion.faction)))
+                if(!minion.ai_root)
+                    continue
 
-                minion.ai_controller.clear_blackboard_key(BB_FOLLOW_TARGET)
-                minion.ai_controller.clear_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET)
-                minion.ai_controller.clear_blackboard_key(BB_TRAVEL_DESTINATION)
-                minion.ai_controller.clear_blackboard_key(BB_BASIC_MOB_RETALIATE_LIST)
+                minion.ai_root.blackboard.Remove(BB_FOLLOW_TARGET)
+                minion.ai_root.target = null
                 count += 1
                 switch (order_type)
                     if ("goto")
-                        minion.ai_controller.set_blackboard_key(BB_TRAVEL_DESTINATION, target_location)
+                        minion.ai_root.target = target_location
                         msg = "go to [target_location]"
                     if ("follow")
-                        minion.ai_controller.set_blackboard_key(BB_FOLLOW_TARGET, target)
+                        minion.ai_root.blackboard[BB_FOLLOW_TARGET] = target
                         msg = "follow you."
                     if ("aggressive")
+                        minion.ai_root.blackboard[AIBLK_AGGRESSION] = AIBLK_AGGRESSION_AGGRESSIVE
                         msg = "roam free."
                     if ("attack")
-                        minion.ai_controller.set_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET, target)
+                        minion.ai_root.target = target
                         msg = "attack [target.name]"
     if(count>0)
         to_chat(caster, "Ordered [count] minions to " + msg)

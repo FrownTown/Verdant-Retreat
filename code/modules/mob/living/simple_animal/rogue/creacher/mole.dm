@@ -63,9 +63,8 @@
 	
 
 //new ai, old ai off
-	AIStatus = AI_OFF
+	AIStatus = AI_ON
 	can_have_ai = FALSE
-	ai_controller = /datum/ai_controller/mole
 
 /obj/effect/decal/remains/mole
 	name = "remains"
@@ -76,11 +75,14 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/mole/Initialize()
 	. = ..()
 	gender = MALE
-	AddElement(/datum/element/ai_retaliate)
 	if(prob(33))
 		gender = FEMALE
 	update_icon()
-	ai_controller.set_blackboard_key(BB_BASIC_FOODS, food_type)
+	
+	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = MOLE_ATTACK_SPEED
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/mole/death(gibbed)
 	..()

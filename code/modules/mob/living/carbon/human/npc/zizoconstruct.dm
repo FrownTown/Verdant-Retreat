@@ -8,7 +8,6 @@ GLOBAL_LIST_INIT(zizoconstruct_aggro, world.file2list("strings/rt/zconstructaggr
 	faction = list("dundead")
 	var/zc_outfit = /datum/outfit/job/human/species/construct/metal/zizoconstruct
 	ambushable = FALSE
-	mode = NPC_AI_IDLE
 	wander = FALSE
 	cmode = 1
 	setparrytime = 30
@@ -26,7 +25,7 @@ GLOBAL_LIST_INIT(zizoconstruct_aggro, world.file2list("strings/rt/zconstructaggr
 	.=..()
 	if(prob(5))
 		say(pick(GLOB.zizoconstruct_aggro))
-		pointed(target)
+		pointed(ai_root.target)
 
 /mob/living/carbon/human/species/construct/metal/zizoconstruct/should_target(mob/living/L)
 	if(L.stat != CONSCIOUS)
@@ -62,6 +61,13 @@ GLOBAL_LIST_INIT(zizoconstruct_aggro, world.file2list("strings/rt/zconstructaggr
 		var/datum/outfit/OU = new zc_outfit
 		if(OU)
 			equipOutfit(OU)
+
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
 /datum/outfit/job/human/species/construct/metal/zizoconstruct/pre_equip(mob/living/carbon/human/H)
 	..()

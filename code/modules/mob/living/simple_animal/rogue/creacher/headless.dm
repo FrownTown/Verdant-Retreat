@@ -51,10 +51,6 @@
 	aggressive = 1
 	remains_type = null
 
-	ai_controller = /datum/ai_controller/headless
-	AIStatus = AI_OFF
-	can_have_ai = FALSE
-
 	var/mob/living/swallowed_mob
 	var/health_at_swallow = 1000
 	var/stomach_burn_cooldown = 0
@@ -64,7 +60,13 @@
 
 /mob/living/simple_animal/hostile/retaliate/rogue/headless/Initialize()
 	. = ..()
-	AddElement(/datum/element/ai_flee_while_injured, 0.75, retreat_health)
+
+	// Initialize behavior tree
+	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = 0
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/headless/AttackingTarget()
 	//If its a carbon, your cooldown is up, and your above 30% health you can eat them

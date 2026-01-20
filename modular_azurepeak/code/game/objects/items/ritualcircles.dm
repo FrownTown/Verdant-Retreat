@@ -425,7 +425,6 @@
 		victim.cmode = TRUE
 		victim.aggressive = TRUE
 		victim.rude = TRUE
-		victim.mode = NPC_AI_COMBAT
 		victim.flee_in_pain = FALSE
 		victim.wander = FALSE
 		victim.base_intents = list(INTENT_HARM)

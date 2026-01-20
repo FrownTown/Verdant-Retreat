@@ -297,7 +297,7 @@
 
 	return TRUE
 
-/proc/summon_dreamfiend(mob/living/target, mob/living/user, mob/F = /mob/living/simple_animal/hostile/rogue/dreamfiend, outer_tele_radius = 3, inner_tele_radius = 2, include_dense = FALSE, include_teleport_restricted = FALSE)
+/proc/summon_dreamfiend(mob/living/target, mob/living/user, mob/living/F = /mob/living/simple_animal/hostile/rogue/dreamfiend, outer_tele_radius = 3, inner_tele_radius = 2, include_dense = FALSE, include_teleport_restricted = FALSE)
 	var/turf/target_turf = get_turf(target)
 	var/list/turfs = list()
 
@@ -328,8 +328,8 @@
 	var/turf/spawn_turf = pick(turfs)
 
 	F = new F(spawn_turf)
-	F.ai_controller.set_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET, target)
-	F.ai_controller.set_blackboard_key(BB_MAIN_TARGET, target)
+	if(F.ai_root)
+		F.ai_root.target = target
 
 	F.visible_message(span_notice("A [F] manifests following after [target]... countless teeth bared with hostility!"))
 	return TRUE

@@ -4,6 +4,11 @@
 #define AI_STATUS_OFF		2
 #define AI_STATUS_IDLE		3
 
+// New AI system compat
+#define AI_ON AI_STATUS_ON
+#define NPC_AI_OFF AI_STATUS_OFF
+#define AI_IDLE AI_STATUS_IDLE
+
 ///Carbon checks
 #define SHOULD_RESIST(source) (source.on_fire || source.buckled || HAS_TRAIT(source, TRAIT_RESTRAINED) || (source.pulledby && source.pulledby.grab_state > GRAB_PASSIVE))
 #define IS_DEAD_OR_INCAP(source) (source.incapacitated() || source.stat)

@@ -65,11 +65,11 @@
 	eat_forever = TRUE
 
 //new ai, old ai off
-	AIStatus = AI_OFF
+	AIStatus = AI_ON
 	can_have_ai = FALSE
-	ai_controller = /datum/ai_controller/big_rat
 	melee_cooldown = RAT_ATTACK_SPEED
 	stat_attack = UNCONSCIOUS
+	wander = 0 // Disable simple_animal wandering
 
 /obj/effect/decal/remains/bigrat
 	name = "remains"
@@ -82,7 +82,6 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/bigrat/Initialize()
 	. = ..()
 	gender = MALE
-	AddElement(/datum/element/ai_flee_while_injured, 0.75, 0.3)
 	if(prob(33))
 		gender = FEMALE
 	if(gender == FEMALE)
@@ -90,7 +89,12 @@
 		icon_living = "Frat"
 		icon_dead = "Frat1"
 	update_icon()
-	ai_controller.set_blackboard_key(BB_BASIC_FOODS, food_type)
+	
+	// NEW AI SYSTEM
+	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	ai_root.next_move_delay = 5
+	ai_root.next_attack_delay = RAT_ATTACK_SPEED
+	SSai.Register(src)
 
 
 /mob/living/simple_animal/hostile/retaliate/rogue/bigrat/death(gibbed)

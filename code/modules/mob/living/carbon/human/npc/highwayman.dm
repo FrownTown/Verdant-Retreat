@@ -3,7 +3,6 @@ GLOBAL_LIST_INIT(highwayman_aggro, world.file2list("strings/rt/highwaymanaggroli
 /mob/living/carbon/human/species/human/northern/highwayman
 	aggressive=1
 	rude = TRUE
-	mode = NPC_AI_IDLE
 	faction = list("viking", "station")
 	ambushable = FALSE
 	dodgetime = 30
@@ -14,7 +13,6 @@ GLOBAL_LIST_INIT(highwayman_aggro, world.file2list("strings/rt/highwaymanaggroli
 
 /mob/living/carbon/human/species/human/northern/highwayman/ambush
 	aggressive = 1
-	mode = NPC_AI_IDLE
 	wander = FALSE
 
 /mob/living/carbon/human/species/human/northern/highwayman/retaliate(mob/living/L)
@@ -55,27 +53,14 @@ GLOBAL_LIST_INIT(highwayman_aggro, world.file2list("strings/rt/highwaymanaggroli
 	var/obj/item/bodypart/head/head = get_bodypart(BODY_ZONE_HEAD)
 	head.sellprice = 30 // 50% More than goblin
 
-/mob/living/carbon/human/species/human/northern/highwayman/npc_idle()
-	if(m_intent == MOVE_INTENT_SNEAK)
-		return
-	if(world.time < next_idle)
-		return
-	next_idle = world.time + rand(30, 70)
-	if((mobility_flags & MOBILITY_MOVE) && isturf(loc) && wander)
-		if(prob(20))
-			var/turf/T = get_step(loc,pick(GLOB.cardinals))
-			if(!istype(T, /turf/open/transparent/openspace))
-				Move(T)
-		else
-			face_atom(get_step(src,pick(GLOB.cardinals)))
-	if(!wander && prob(10))
-		face_atom(get_step(src,pick(GLOB.cardinals)))
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
-/mob/living/carbon/human/species/human/northern/highwayman/handle_combat()
-	if(mode == NPC_AI_HUNT)
-		if(prob(2)) // do not make this big or else they NEVER SHUT UP
-			emote("laugh")
-	. = ..()
+// Combat is now handled by behavior trees
 
 /datum/outfit/job/human/species/human/northern/highwayman/pre_equip(mob/living/carbon/human/H)
 	wrists = /obj/item/clothing/wrists/roguetown/bracers/leather

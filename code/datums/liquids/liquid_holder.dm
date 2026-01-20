@@ -35,138 +35,138 @@ cell
 	var/fire_flags = 0 // Bitflags for fire states
 	var/last_fire_level = 0 // Previous fire level for optimization (following liquid pattern)
 
-	New(turf/target_turf)
-		..()
-		coords = new(target_turf.x, target_turf.y, target_turf.z) // This way we can avoid circular references.
+/cell/New(turf/target_turf)
+	..()
+	coords = new(target_turf.x, target_turf.y, target_turf.z) // This way we can avoid circular references.
 
-	proc/InitLiquids()
-		fluid_volume = list()
-		new_volume = list()
-		fluid_flags = 0
-		for(var/fluid in GLOB.liquid_types)
-			var/datum/liquid/newfluid = new fluid
-			if(newfluid.reagent)
-				newfluid.color = initial(newfluid.reagent:color)
-			fluid_volume[newfluid] = 0
-			new_volume[newfluid] = 0
+/cell/proc/InitLiquids()
+	fluid_volume = list()
+	new_volume = list()
+	fluid_flags = 0
+	for(var/fluid in GLOB.liquid_types)
+		var/datum/liquid/newfluid = new fluid
+		if(newfluid.reagent)
+			newfluid.color = initial(newfluid.reagent:color)
+		fluid_volume[newfluid] = 0
+		new_volume[newfluid] = 0
 
-	proc/InitFireSmoke()
-		// Initialize fire and smoke variables with default values
-		fire_level = 0
-		fire_fuel = 0
-		fire_temperature = T20C
-		smoke_density = 0
-		smoke_type = SMOKE_TYPE_FIRE
-		oxygen_level = DEFAULT_OXYGEN_LEVEL
-		has_air = TRUE
-		air_flow_vector = null
-		backdraft_potential = 0
-		is_enclosed = FALSE
-		fire_flags = 0
-		last_fire_level = 0
+/cell/proc/InitFireSmoke()
+	// Initialize fire and smoke variables with default values
+	fire_level = 0
+	fire_fuel = 0
+	fire_temperature = T20C
+	smoke_density = 0
+	smoke_type = SMOKE_TYPE_FIRE
+	oxygen_level = DEFAULT_OXYGEN_LEVEL
+	has_air = TRUE
+	air_flow_vector = null
+	backdraft_potential = 0
+	is_enclosed = FALSE
+	fire_flags = 0
+	last_fire_level = 0
 
 	// Note: InitExtraLiquids() was removed as it was not intended for production use
 
 	// Cell API methods for safe fluid manipulation
-	proc/add_fluid_safe(datum/liquid/fluid_type, amount)
-		return GLOB.liquid_manager.add_fluid(get_turf_from_cell(), fluid_type, amount)
+/cell/proc/add_fluid_safe(datum/liquid/fluid_type, amount)
+	return GLOB.liquid_manager.add_fluid(get_turf_from_cell(), fluid_type, amount)
 
-	proc/remove_fluid_safe(datum/liquid/fluid_type, amount)
-		return GLOB.liquid_manager.remove_fluid(get_turf_from_cell(), fluid_type, amount)
+/cell/proc/remove_fluid_safe(datum/liquid/fluid_type, amount)
+	return GLOB.liquid_manager.remove_fluid(get_turf_from_cell(), fluid_type, amount)
 
-	proc/get_fluid_amount_safe(datum/liquid/fluid_type)
-		return GET_FLUID_AMOUNT(get_turf_from_cell(), fluid_type)
+/cell/proc/get_fluid_amount_safe(datum/liquid/fluid_type)
+	return GET_FLUID_AMOUNT(get_turf_from_cell(), fluid_type)
 
-	proc/get_total_fluid_safe()
-		return GET_TOTAL_FLUID(get_turf_from_cell())
+/cell/proc/get_total_fluid_safe()
+	return GET_TOTAL_FLUID(get_turf_from_cell())
 
-	proc/get_dominant_fluid_safe()
-		return GET_DOMINANT_FLUID(get_turf_from_cell())
+/cell/proc/get_dominant_fluid_safe()
+	return GET_DOMINANT_FLUID(get_turf_from_cell())
 
-	proc/has_fluid_type_safe(datum/liquid/fluid_type)
-		return HAS_FLUID_TYPE(get_turf_from_cell(), fluid_type)
+/cell/proc/has_fluid_type_safe(datum/liquid/fluid_type)
+	return HAS_FLUID_TYPE(get_turf_from_cell(), fluid_type)
 
-	proc/get_all_fluids_safe()
-		return GET_ALL_FLUIDS(get_turf_from_cell())
+/cell/proc/get_all_fluids_safe()
+	return GET_ALL_FLUIDS(get_turf_from_cell())
 
-	proc/clear_all_fluids_safe()
-		return CLEAR_ALL_FLUIDS(get_turf_from_cell())
+/cell/proc/clear_all_fluids_safe()
+	return CLEAR_ALL_FLUIDS(get_turf_from_cell())
 
-	proc/get_turf_from_cell()
-		return locate(coords.x_pos, coords.y_pos, coords.z_pos)
+/cell/proc/get_turf_from_cell()
+	return locate(coords.x_pos, coords.y_pos, coords.z_pos)
 
 	// Helper to get existing fluid datum by type - eliminates verbose locate() calls!
-	proc/get_fluid_datum(fluid_type)
-		return locate(fluid_type) in fluid_volume
+/cell/proc/get_fluid_datum(fluid_type)
+	return locate(fluid_type) in fluid_volume
 
 	// Fluid flag management methods
-	proc/set_fluid_flag(flag)
-		fluid_flags |= flag
+/cell/proc/set_fluid_flag(flag)
+	fluid_flags |= flag
 
-	proc/clear_fluid_flag(flag)
-		fluid_flags &= ~flag
+/cell/proc/clear_fluid_flag(flag)
+	fluid_flags &= ~flag
 
-	proc/has_fluid_flag(flag)
-		return (fluid_flags & flag) != 0
+/cell/proc/has_fluid_flag(flag)
+	return (fluid_flags & flag) != 0
 
-	proc/toggle_fluid_flag(flag)
-		fluid_flags ^= flag
+/cell/proc/toggle_fluid_flag(flag)
+	fluid_flags ^= flag
 
 	// Pool management methods
-	proc/set_pool_id(new_id)
-		pool_id = new_id
+/cell/proc/set_pool_id(new_id)
+	pool_id = new_id
 
-	proc/get_pool_id()
-		return pool_id
+/cell/proc/get_pool_id()
+	return pool_id
 
-	proc/clear_pool_id()
-		pool_id = 0
+/cell/proc/clear_pool_id()
+	pool_id = 0
 
 	// Flow vector methods
-	proc/set_flow_vector_modification(vector/new_vector)
-		flow_vector_modification = new_vector
+/cell/proc/set_flow_vector_modification(vector/new_vector)
+	flow_vector_modification = new_vector
 
-	proc/clear_flow_vector_modification()
-		flow_vector_modification = null
+/cell/proc/clear_flow_vector_modification()
+	flow_vector_modification = null
 
-	proc/has_flow_modification()
-		return flow_vector_modification != null
+/cell/proc/has_flow_modification()
+	return flow_vector_modification != null
 
 	// Source/sink management
-	proc/make_liquid_source(rate = 1)
-		is_liquid_source = TRUE
-		production_rate = rate
-		if(get_turf_from_cell())
-			SSliquid.liquid_sources += get_turf_from_cell()
+/cell/proc/make_liquid_source(rate = 1)
+	is_liquid_source = TRUE
+	production_rate = rate
+	if(get_turf_from_cell())
+		SSliquid.liquid_sources += get_turf_from_cell()
 
-	proc/make_liquid_sink(rate = 1)
-		is_liquid_sink = TRUE
-		absorption_rate = rate
-		if(get_turf_from_cell())
-			SSliquid.liquid_sinks += get_turf_from_cell()
+/cell/proc/make_liquid_sink(rate = 1)
+	is_liquid_sink = TRUE
+	absorption_rate = rate
+	if(get_turf_from_cell())
+		SSliquid.liquid_sinks += get_turf_from_cell()
 
-	proc/remove_liquid_source()
-		is_liquid_source = FALSE
-		production_rate = 0
-		if(get_turf_from_cell())
-			SSliquid.liquid_sources -= get_turf_from_cell()
+/cell/proc/remove_liquid_source()
+	is_liquid_source = FALSE
+	production_rate = 0
+	if(get_turf_from_cell())
+		SSliquid.liquid_sources -= get_turf_from_cell()
 
-	proc/remove_liquid_sink()
-		is_liquid_sink = FALSE
-		absorption_rate = 0
-		if(get_turf_from_cell())
-			SSliquid.liquid_sinks -= get_turf_from_cell()
+/cell/proc/remove_liquid_sink()
+	is_liquid_sink = FALSE
+	absorption_rate = 0
+	if(get_turf_from_cell())
+		SSliquid.liquid_sinks -= get_turf_from_cell()
 
 	// Fluid level tracking
-	proc/update_last_fluid_level()
-		last_fluid_level = SSliquid.get_fluid_level(get_turf_from_cell())
+/cell/proc/update_last_fluid_level()
+	last_fluid_level = SSliquid.get_fluid_level(get_turf_from_cell())
 
-	proc/get_last_fluid_level()
-		return last_fluid_level
+/cell/proc/get_last_fluid_level()
+	return last_fluid_level
 
 	// Direct access discouraged methods
-	proc/get_raw_fluid_volume()
-		return fluid_volume
+/cell/proc/get_raw_fluid_volume()
+	return fluid_volume
 
-	proc/get_raw_new_volume()
-		return new_volume
+/cell/proc/get_raw_new_volume()
+	return new_volume

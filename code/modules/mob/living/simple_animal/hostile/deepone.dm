@@ -35,11 +35,20 @@
 	faction = list("deepone")
 	footstep_type = FOOTSTEP_MOB_BAREFOOT
 
-	can_have_ai = FALSE 
-	AIStatus = AI_OFF
+	can_have_ai = TRUE 
+	AIStatus = AI_ON
 
-	ai_controller = /datum/ai_controller/deepone
 
+
+/mob/living/simple_animal/hostile/rogue/deepone/Initialize()
+	. = ..()
+	ai_root = new /datum/behavior_tree/node/selector/deepone_melee_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
+	SSai.Register(src)
+
+/mob/living/simple_animal/hostile/rogue/deepone/Life()
+	..()
 
 /mob/living/simple_animal/hostile/rogue/deepone/arm
 	name = "Deep One"
@@ -68,7 +77,14 @@
 	minimum_distance = 5
 	ranged_cooldown_time = 40
 	check_friendly_fire = 1
-	ai_controller = /datum/ai_controller/deepone_ranged
+
+
+/mob/living/simple_animal/hostile/rogue/deepone/spit/Initialize()
+	. = ..()
+	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/rogue/deepone/wiz
 	name = "Deep One Devout"
@@ -84,8 +100,15 @@
 	minimum_distance = 5
 	ranged_cooldown_time = 70
 	check_friendly_fire = 1
-	ai_controller = /datum/ai_controller/deepone_ranged
+
 	var/allowed_projectile_types = list(/obj/projectile/magic/frostbolt, /obj/projectile/energy/rogue3, /obj/projectile/magic/repel)	
+
+/mob/living/simple_animal/hostile/rogue/deepone/wiz/Initialize()
+	. = ..()
+	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED	
+	SSai.Register(src)
 
 
 /mob/living/simple_animal/hostile/rogue/deepone/wiz/Shoot()

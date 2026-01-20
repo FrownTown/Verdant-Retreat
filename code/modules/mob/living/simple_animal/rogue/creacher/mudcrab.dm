@@ -33,25 +33,16 @@
 	gold_core_spawnable = FRIENDLY_SPAWN
 	
 
-	can_have_ai = FALSE //disable native ai
-	AIStatus = AI_OFF
-	ai_controller = /datum/ai_controller/mudcrab
+	AIStatus = AI_ON
 	
 /mob/living/simple_animal/hostile/retaliate/rogue/mudcrab/Initialize()
 	..()
-	AddElement(/datum/element/ai_retaliate)
-	ai_controller.set_blackboard_key(BB_BASIC_FOODS, food_type)
+	ai_root = new /datum/behavior_tree/node/selector/generic_friendly_tree()
+	ai_root.next_move_delay = move_to_delay
+	SSai.Register(src)
 	
-/mob/living/simple_animal/mudcrabcrab/Life()
+/mob/living/simple_animal/hostile/retaliate/rogue/mudcrab/Life()
 	..()
-	//CRAB movement
-	if(!ckey && !stat)
-		if(isturf(loc) && !resting && !buckled)		//This is so it only moves if it's not inside a closet, gentics machine, etc.
-			turns_since_move++
-			if(turns_since_move >= turns_per_move)
-				var/east_vs_west = pick(4,8)
-				if(Process_Spacemove(east_vs_west))
-					Move(get_step(src,east_vs_west), east_vs_west)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/mudcrab/get_sound(input)
 	switch(input)

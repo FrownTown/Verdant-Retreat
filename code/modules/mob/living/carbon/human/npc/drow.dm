@@ -3,7 +3,6 @@ GLOBAL_LIST_INIT(drowraider_aggro, world.file2list("strings/rt/drowaggrolines.tx
 /mob/living/carbon/human/species/elf/dark/drowraider
 	aggressive=1
 	rude = TRUE
-	mode = NPC_AI_IDLE
 	faction = list("drow")
 	ambushable = FALSE
 	dodgetime = 30
@@ -13,18 +12,17 @@ GLOBAL_LIST_INIT(drowraider_aggro, world.file2list("strings/rt/drowaggrolines.tx
 
 /mob/living/carbon/human/species/elf/dark/drowraider/ambush
 	aggressive = 1
-	mode = NPC_AI_IDLE
 	wander = FALSE
 
 /mob/living/carbon/human/species/elf/dark/drowraider/retaliate(mob/living/L)
-	var/newtarg = target
+	var/newtarg = ai_root.target
 	.=..()
-	if(target)
+	if(ai_root.target)
 		aggressive=1
 		wander = TRUE
-	if(!is_silent && target != newtarg)
+	if(!is_silent && ai_root.target != newtarg)
 		say(pick(GLOB.drowraider_aggro))
-		pointed(target)
+		pointed(ai_root.target)
 
 /mob/living/carbon/human/species/elf/dark/drowraider/should_target(mob/living/L)
 	if(L.stat != CONSCIOUS)
@@ -93,21 +91,14 @@ GLOBAL_LIST_INIT(drowraider_aggro, world.file2list("strings/rt/drowaggrolines.tx
 	update_hair()
 	update_body()
 
-/mob/living/carbon/human/species/elf/dark/drowraider/npc_idle()
-	if(m_intent == MOVE_INTENT_SNEAK)
-		return
-	if(world.time < next_idle)
-		return
-	next_idle = world.time + rand(30, 70)
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
-	if(prob(10))
-		face_atom(get_step(src, pick(GLOB.cardinals)))
-
-/mob/living/carbon/human/species/elf/dark/drowraider/handle_combat()
-	if(mode == NPC_AI_HUNT)
-		if(prob(5))
-			emote("laugh")
-	. = ..()
+// Combat is now handled by behavior trees
 
 /datum/outfit/job/human/species/elf/dark/drowraider/pre_equip(mob/living/carbon/human/H)
 	armor = /obj/item/clothing/suit/roguetown/armor/plate/half/iron

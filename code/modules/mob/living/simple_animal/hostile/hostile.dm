@@ -3,7 +3,6 @@
 	stop_automated_movement_when_pulled = 0
 	obj_damage = 40
 	environment_smash = ENVIRONMENT_SMASH_STRUCTURES //Bitflags. Set to ENVIRONMENT_SMASH_STRUCTURES to break closets,tables,racks, etc; ENVIRONMENT_SMASH_WALLS for walls; ENVIRONMENT_SMASH_RWALLS for rwalls
-	var/atom/target
 	var/ranged = FALSE
 	var/rapid = 0 //How many shots per volley.
 	var/rapid_fire_delay = 2 //Time between rapid fire shots
@@ -52,9 +51,6 @@
 	var/lose_patience_timer_id //id for a timer to call LoseTarget(), used to stop mobs fixating on a target they can't reach
 	var/lose_patience_timeout = 300 //30 seconds by default, so there's no major changes to AI behaviour, beyond actually bailing if stuck forever
 
-	var/del_on_deaggro = 0 //seconds to delete after losing aggro
-	var/last_aggro_loss = null
-
 	var/retreat_health
 
 	var/next_seek
@@ -85,7 +81,9 @@
 		return 0
 
 /mob/living/simple_animal/hostile/handle_automated_action()
-	if(AIStatus == NPC_AI_OFF)
+	if(ai_root)
+		return RunAI()
+	if(!ai_root)
 		return 0
 	if(del_on_deaggro && last_aggro_loss && (world.time >= last_aggro_loss + del_on_deaggro))
 		if(deaggrodel())
@@ -157,15 +155,18 @@
 		face_atom(target) //Looks better if they keep looking at you when dodging
 
 /mob/living/simple_animal/hostile/attacked_by(obj/item/I, mob/living/user)
-	if(stat == CONSCIOUS && !target && AIStatus != NPC_AI_OFF && !client && user)
-		FindTarget(list(user), 1)
+	if(stat == CONSCIOUS && !target && ai_root && !client && user)
+		if(ai_root)
+			ai_root.target = user
 	return ..()
 
 /mob/living/simple_animal/hostile/bullet_act(obj/projectile/P)
-	if(stat == CONSCIOUS && !target && AIStatus != NPC_AI_OFF && !client)
+	if(stat == CONSCIOUS && !target && ai_root && !client)
 		if(P.firer && get_dist(src, P.firer) <= aggro_vision_range)
-			FindTarget(list(P.firer), 1)
-		Goto(P.starting, move_to_delay, 3)
+			if(ai_root)
+				ai_root.target = P.firer
+		if(ai_root)
+			set_ai_path_to(P.starting)
 	return ..()
 
 //////////////HOSTILE MOB TARGETTING AND AGGRESSION////////////
@@ -275,8 +276,9 @@
 	return FALSE
 
 /mob/living/simple_animal/hostile/proc/GiveTarget(new_target)//Step 4, give us our selected target
+	if(ai_root)
+		ai_root.target = new_target
 
-	target = new_target
 	LosePatience()
 	if(target != null)
 		GainPatience()
@@ -290,7 +292,7 @@
 		return FALSE
 	if(rapid_melee > 1)
 		var/datum/callback/cb = CALLBACK(src, PROC_REF(CheckAndAttack))
-		var/delay = SSnpcpool.wait / rapid_melee
+		var/delay = SSai.wait / rapid_melee
 		for(var/i in 1 to rapid_melee)
 			addtimer(cb, (i - 1)*delay)
 	else
@@ -404,6 +406,9 @@
 	taunt_chance = initial(taunt_chance)
 
 /mob/living/simple_animal/hostile/proc/LoseTarget()
+	if(ai_root)
+		ai_root.target = null
+
 	if(target)
 		last_aggro_loss = world.time
 	target = null
@@ -435,6 +440,8 @@
 		if(faction_check_mob(M, TRUE))
 			if(M.AIStatus == NPC_AI_OFF)
 				return
+			if(M.ai_root)
+				M.set_ai_path_to(src)
 			else
 				M.Goto(src,M.move_to_delay,M.minimum_distance)
 

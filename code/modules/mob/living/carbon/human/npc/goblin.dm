@@ -18,7 +18,6 @@
 
 /mob/living/carbon/human/species/goblin/npc
 	aggressive=1
-	mode = NPC_AI_IDLE
 	dodgetime = 30 //they can dodge easily, but have a cooldown on it
 	flee_in_pain = TRUE
 	npc_jump_chance = 60
@@ -26,11 +25,24 @@
 	rude = TRUE
 	wander = FALSE
 
+/mob/living/carbon/human/species/goblin/npc/Initialize()
+	. = ..()
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
+
 /mob/living/carbon/human/species/goblin/npc/ambush
 	aggressive = 1
-	mode = NPC_AI_IDLE
 	wander = FALSE
-	attack_speed = 2
+
+/mob/living/carbon/human/species/goblin/npc/ambush/Initialize()
+	. = ..()
+	// ADAPT: Faster attack speed for ambush goblins using behavior tree delay
+	if(ai_root)
+		ai_root.next_attack_delay = 2
 
 /mob/living/carbon/human/species/goblin/hell
 	name = "hell goblin"
@@ -204,11 +216,7 @@
 	. = ..()
 	addtimer(CALLBACK(src, PROC_REF(after_creation)), 1 SECONDS)
 
-/mob/living/carbon/human/species/goblin/handle_combat()
-	if(mode == NPC_AI_HUNT)
-		if(prob(2))
-			emote("laugh")
-	. = ..()
+// Combat is now handled by behavior trees
 
 /mob/living/carbon/human/species/goblin/after_creation()
 	..()

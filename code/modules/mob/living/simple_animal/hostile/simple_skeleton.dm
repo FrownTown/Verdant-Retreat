@@ -36,13 +36,33 @@
 	footstep_type = FOOTSTEP_MOB_BAREFOOT
 	del_on_death = TRUE
 
-	can_have_ai = FALSE //disable native ai
-	AIStatus = AI_OFF
-	ai_controller = /datum/ai_controller/simple_skeleton
+	can_have_ai = TRUE //disable native ai
+	AIStatus = AI_ON
+
 	melee_cooldown = SKELETON_ATTACK_SPEED
 
-/mob/living/simple_animal/hostile/rogue/skeleton/Initialize(mapload, mob/user, cabal_affine, is_summoned)
+/mob/living/simple_animal/hostile/rogue/skeleton/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
 	. = ..()
+	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
+	SSai.Register(src)
+
+	if(user)
+		if(user.mind && user.mind.current)
+			summoner = user.mind.current.real_name
+		else
+			summoner = user.name
+	if (is_summoned || cabal_affine)
+		faction |= "cabal"
+	// adds the name of the summoner to the faction, to avoid the hooded "Unknown" bug with Skeleton IDs
+	if(user && user.mind && user.mind.current)
+		faction |= "[user.mind.current.real_name]_faction"
+		// lich also gets to have friendlies, as a treat
+		var/datum/antagonist/lich/lich_antag = user.mind.has_antag_datum(/datum/antagonist/lich)
+		if(lich_antag && user.real_name)
+			faction |= "[user.real_name]_faction"
+	
 	ADD_TRAIT(src, TRAIT_SILVER_WEAK, TRAIT_GENERIC)
 
 /mob/living/simple_animal/hostile/rogue/skeleton/axe
@@ -65,7 +85,7 @@
 	icon_dead = ""
 	attack_sound = 'sound/foley/pierce.ogg'
 	loot = list(/obj/item/natural/bone,	/obj/item/natural/bone, /obj/item/natural/bone,	/obj/item/rogueweapon/spear, /obj/item/skull)
-	ai_controller = /datum/ai_controller/skeleton_spear
+
 
 /mob/living/simple_animal/hostile/rogue/skeleton/guard
 	name = "Skeleton"
@@ -103,7 +123,14 @@
 			/obj/item/ammo_casing/caseless/rogue/arrow/iron,
 			/obj/item/ammo_casing/caseless/rogue/arrow/iron,
 			)
-	ai_controller = /datum/ai_controller/skeleton_ranged
+
+
+/mob/living/simple_animal/hostile/rogue/skeleton/bow/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
+	. = ..(mapload, user, cabal_affine, is_summoned)
+	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/rogue/skeleton/get_sound(input)
 	switch(input)
@@ -116,23 +143,6 @@
 		if("idle")
 			return pick('sound/vo/mobs/skel/skeleton_idle (1).ogg','sound/vo/mobs/skel/skeleton_idle (2).ogg','sound/vo/mobs/skel/skeleton_idle (3).ogg')
 
-
-/mob/living/simple_animal/hostile/rogue/skeleton/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
-	. = ..()
-	if(user)
-		if(user.mind && user.mind.current)
-			summoner = user.mind.current.real_name
-		else
-			summoner = user.name
-	if (is_summoned || cabal_affine)
-		faction |= "cabal"
-	// adds the name of the summoner to the faction, to avoid the hooded "Unknown" bug with Skeleton IDs
-	if(user && user.mind && user.mind.current)
-		faction |= "[user.mind.current.real_name]_faction"
-		// lich also gets to have friendlies, as a treat
-		var/datum/antagonist/lich/lich_antag = user.mind.has_antag_datum(/datum/antagonist/lich)
-		if(lich_antag && user.real_name)
-			faction |= "[user.real_name]_faction"
 
 /mob/living/simple_animal/hostile/rogue/skeleton/Life()
 	. = ..()
@@ -203,13 +213,13 @@
 
 
 /mob/living/simple_animal/hostile/rogue/skeleton/axe/event
-	ai_controller = /datum/ai_controller/simple_skeleton/event
+	// Uses behavior tree from parent
 /mob/living/simple_animal/hostile/rogue/skeleton/spear/event
-	ai_controller = /datum/ai_controller/skeleton_spear/event
+	// Uses behavior tree from parent
 /mob/living/simple_animal/hostile/rogue/skeleton/guard/event
-	ai_controller = /datum/ai_controller/simple_skeleton/event
+	// Uses behavior tree from parent
 /mob/living/simple_animal/hostile/rogue/skeleton/bow/event
-	ai_controller = /datum/ai_controller/skeleton_ranged/event
+	// Uses behavior tree from parent
 
 /mob/living/simple_animal/hostile/rogue/skeleton/axe/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
     . = ..(mapload, user, cabal_affine, is_summoned)

@@ -2,6 +2,9 @@
 	//used by the basic ai controller /datum/ai_behavior/basic_melee_attack to determine how fast a mob can attack
 	var/melee_cooldown = CLICK_CD_MELEE
 
+/mob/living/proc/get_preferred_squad_type()
+	return /ai_squad // Default generic squad type
+
 /mob/living/Initialize()
 	. = ..()
 	update_a_intents()

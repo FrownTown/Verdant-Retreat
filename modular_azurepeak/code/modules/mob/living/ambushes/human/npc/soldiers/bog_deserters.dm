@@ -87,7 +87,6 @@
 /mob/living/carbon/human/species/human/northern/bog_deserters
 	aggressive=1
 	rude = TRUE
-	mode = NPC_AI_IDLE
 	faction = list("viking", "station")
 	ambushable = FALSE
 	cmode = 1
@@ -112,14 +111,14 @@
 	wander = TRUE
 
 /mob/living/carbon/human/species/human/northern/bog_deserters/retaliate(mob/living/L)
-	var/newtarg = target
+	var/newtarg = ai_root.target
 	.=..()
-	if(target)
+	if(ai_root.target)
 		aggressive=1
 		wander = TRUE
-		if(!is_silent && target != newtarg)
+		if(!is_silent && ai_root.target != newtarg)
 			say(pick(GLOB.highwayman_aggro))
-			pointed(target)
+			pointed(ai_root.target)
 
 /mob/living/carbon/human/species/human/northern/bog_deserters/should_target(mob/living/L)
 	if(L.stat != CONSCIOUS)
@@ -151,27 +150,12 @@
 	var/obj/item/bodypart/head/head = get_bodypart(BODY_ZONE_HEAD)
 	head.sellprice = 50 // Big sellprice for these guys since they're deserters
 
-/mob/living/carbon/human/species/human/northern/bog_deserters/npc_idle()
-	if(m_intent == MOVE_INTENT_SNEAK)
-		return
-	if(world.time < next_idle)
-		return
-	next_idle = world.time + rand(30, 70)
-	if((mobility_flags & MOBILITY_MOVE) && isturf(loc) && wander)
-		if(prob(20))
-			var/turf/T = get_step(loc,pick(GLOB.cardinals))
-			if(!istype(T, /turf/open/transparent/openspace))
-				Move(T)
-		else
-			face_atom(get_step(src,pick(GLOB.cardinals)))
-	if(!wander && prob(10))
-		face_atom(get_step(src,pick(GLOB.cardinals)))
-
-/mob/living/carbon/human/species/human/northern/bog_deserters/handle_combat()
-	if(mode == NPC_AI_HUNT)
-		if(prob(2)) // do not make this big or else they NEVER SHUT UP
-			emote("laugh")
-	. = ..()
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
 /datum/outfit/job/roguetown/human/northern/bog_deserters/pre_equip(mob/living/carbon/human/H)
 	..()
@@ -224,7 +208,6 @@
 /mob/living/carbon/human/species/human/northern/bog_deserters/better_gear
 	aggressive=1
 	rude = TRUE
-	mode = NPC_AI_IDLE
 	faction = list("viking", "station")
 	ambushable = FALSE
 	cmode = 1

@@ -108,12 +108,10 @@
 		if(!(M.faction.Find(faction))) // Skip mobs not in selected faction
 			continue
 		
-		var/datum/ai_controller/ai = M.ai_controller
-		if(!ai)
+		if(!M.ai_root)
 			continue
 		
-		ai.clear_blackboard_key(BB_TRAVEL_DESTINATION)
-		ai.set_blackboard_key(BB_TRAVEL_DESTINATION, T)
+		M.set_ai_path_to(T)
 		count++
 	
 	to_chat(user, span_notice("Directed [count] [faction] mobs towards ([T.x], [T.y], [T.z])."))

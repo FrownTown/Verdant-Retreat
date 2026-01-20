@@ -65,26 +65,29 @@
 	retreat_health = 0
 	attack_sound = list('sound/vo/mobs/vw/attack (1).ogg','sound/vo/mobs/vw/attack (2).ogg','sound/vo/mobs/vw/attack (3).ogg','sound/vo/mobs/vw/attack (4).ogg')
 
-	AIStatus = AI_OFF
-	can_have_ai = FALSE
-	ai_controller = /datum/ai_controller/wolf_undead
-
 /mob/living/simple_animal/hostile/retaliate/rogue/wolf_undead/Initialize()
 	. = ..()
 	REMOVE_TRAIT(src, TRAIT_SIMPLE_WOUNDS, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_RIGIDMOVEMENT, TRAIT_GENERIC)
 	src.AddComponent(/datum/component/infection_spreader)
 
+	// Initialize behavior tree
+	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = 0
+	SSai.Register(src)
+
 /mob/living/simple_animal/hostile/retaliate/rogue/wolf_undead/death()
 	if(is_downed)
 		visible_message(span_danger("[src] has their head smashed to pulp!"))
 		. = ..()
 		update_icon()
-		ai_controller.set_ai_status(AI_STATUS_OFF)
 	else
 		visible_message(span_notice("[src] falls down, body brutally battered, yet its head continues that unending stare."))
 		is_downed = TRUE
-		ai_controller.movement_delay = 100
+		if(ai_root)
+			ai_root.next_move_delay = 100
 		icon_state = icon_downed
 		icon_living = icon_downed
 		adjustBruteLoss(-250)
@@ -103,7 +106,8 @@
 		legs_broken = FALSE
 		icon_state = "wolf"
 		icon_living = "wolf"
-		ai_controller.movement_delay = initial(ai_controller.movement_delay)
+		if(ai_root)
+			ai_root.next_move_delay = move_to_delay
 		is_downed = FALSE
 		stat = CONSCIOUS
 		update_icon()
@@ -126,7 +130,8 @@
 		if(leg_health <= 0 && !legs_broken)
 			leg_health = 0
 			legs_broken = TRUE
-			ai_controller.movement_delay += 10
+			if(ai_root)
+				ai_root.next_move_delay += 10
 			visible_message(span_notice("[src] slows down, its broken legs dragging."))
 
 /mob/living/simple_animal/hostile/retaliate/rogue/wolf_undead/get_sound(input)

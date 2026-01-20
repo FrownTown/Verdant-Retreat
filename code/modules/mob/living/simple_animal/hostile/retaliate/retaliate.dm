@@ -14,7 +14,7 @@
 	var/aggressive = 0
 
 /mob/living/simple_animal/hostile/retaliate/ListTargets()
-	if(!(AIStatus == NPC_AI_OFF))
+	if(!(!ai_root))
 		if(aggressive)
 			return ..()
 		else

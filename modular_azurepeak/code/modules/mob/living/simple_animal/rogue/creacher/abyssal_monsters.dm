@@ -16,10 +16,6 @@
 	melee_damage_lower = 25
 	melee_damage_upper = 40
 
-	AIStatus = AI_OFF
-	can_have_ai = FALSE
-
-	ai_controller = /datum/ai_controller/assassin
 	melee_cooldown = MINOR_DREAMFIEND_ATTACK_SPEED
 	var/next_blink = 0
 	var/blink_cooldown = 5 SECONDS
@@ -67,7 +63,6 @@
 	STASTR = 20
 	STAPER = 20
 
-	ai_controller = /datum/ai_controller/assassin/ancient
 	attack_sound = list('modular_azurepeak/sound/mobs/abyssal/abyssal_attack.ogg','modular_azurepeak/sound/mobs/abyssal/abyssal_attack2.ogg')
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/get_sound(input)
@@ -82,10 +77,17 @@
             return pick('modular_azurepeak/sound/mobs/abyssal/abyssal_idle.ogg')
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/Initialize()
-	AddElement(/datum/element/ai_retaliate)
 	ADD_TRAIT(src, TRAIT_NOBREATH, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOPAIN, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_KNEESTINGER_IMMUNITY, INNATE_TRAIT)
+
+	// Initialize behavior tree
+	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = 0
+	SSai.Register(src)
+
 	. = ..()
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/ancient/Initialize()
@@ -163,13 +165,14 @@
 	if(prob(1))
 		new /obj/item/rogueweapon/greataxe/dreamscape(loc)
 	new /obj/effect/decal/cleanable/dreamfiend_ichor/large(loc)
-	var/main_target = ai_controller.blackboard[BB_MAIN_TARGET]
-	for(var/i in 1 to 2)
-		var/mob/living/simple_animal/hostile/rogue/dreamfiend/F = new(loc)
-		F.ai_controller.set_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET, main_target)
-		F.ai_controller.set_blackboard_key(BB_MAIN_TARGET, main_target)
+	var/main_target = null
+	if(ai_root && ai_root.blackboard)
+		for(var/i in 1 to 2)
+			var/mob/living/simple_animal/hostile/rogue/dreamfiend/F = new(loc)
+			if(F.ai_root && F.ai_root.blackboard && main_target)
+				F.GiveTarget(main_target)
 	if(main_target)
-		src.visible_message(span_notice("some dreamfiends split forth front the body of the [src] following after [main_target]... countless teeth bared with hostility!"))
+		src.visible_message(span_notice("some dreamfiends split forth from the body of the [src] following after [main_target]... countless teeth bared with hostility!"))
 	qdel(src)
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/ancient/death()
@@ -211,11 +214,9 @@
 // EVENT mobs and mappable mobs. (USE SPARINGLY)
 /mob/living/simple_animal/hostile/rogue/dreamfiend/unbound
 	attack_sound = list('modular_azurepeak/sound/mobs/abyssal/abyssal_attack.ogg','modular_azurepeak/sound/mobs/abyssal/abyssal_attack2.ogg')
-	ai_controller = /datum/ai_controller/dreamfiend_unbound
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/major/unbound
 	attack_sound = list('modular_azurepeak/sound/mobs/abyssal/abyssal_attack.ogg','modular_azurepeak/sound/mobs/abyssal/abyssal_attack2.ogg')
-	ai_controller = /datum/ai_controller/dreamfiend_unbound
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/major/unbound/death()
 	if(prob(1))
@@ -228,4 +229,3 @@
 
 /mob/living/simple_animal/hostile/rogue/dreamfiend/ancient/unbound
 	attack_sound = list('modular_azurepeak/sound/mobs/abyssal/abyssal_attack.ogg','modular_azurepeak/sound/mobs/abyssal/abyssal_attack2.ogg')
-	ai_controller = /datum/ai_controller/dreamfiend_unbound_ancient

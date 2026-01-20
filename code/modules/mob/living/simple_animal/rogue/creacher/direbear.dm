@@ -59,9 +59,8 @@
 	eat_forever = TRUE
 
 //new ai, old ai off
-	AIStatus = AI_OFF
-	can_have_ai = FALSE
-	ai_controller = /datum/ai_controller/direbear
+	AIStatus = AI_ON
+	can_have_ai = TRUE
 
 /mob/living/simple_animal/hostile/retaliate/rogue/direbear/get_sound(input)
 	switch(input)
@@ -85,5 +84,14 @@
 	. = ..()
 	var/datum/action/cooldown/mob_cooldown/bear_swipe/swipe = new(src)
 	swipe.Grant(src)
-	ai_controller.set_blackboard_key(BB_TARGETED_ACTION, swipe)
+	
+	// NEW AI SYSTEM
+	ai_root = new /datum/behavior_tree/node/selector/direbear_tree()
+	ai_root.blackboard["targeted_action"] = swipe
+	ai_root.next_move_delay = 5
+	ai_root.next_attack_delay = RAT_ATTACK_SPEED
+	SSai.Register(src)
+
+/mob/living/simple_animal/hostile/retaliate/rogue/direbear/Life()
+	..()
 

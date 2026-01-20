@@ -93,7 +93,8 @@
 	if(SSticker.current_state != GAME_STATE_FINISHED)
 		return
 	status_flags |= GODMODE
-	ai_controller?.set_ai_status(AI_STATUS_OFF)
+	if(ai_root)
+		SSai.Unregister(src)
 	if(client)
 		client.verbs |= /client/proc/lobbyooc
 		client.verbs |= /client/proc/view_stats
@@ -113,7 +114,7 @@
 		H.LoseTarget()
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
-		H.mode = NPC_AI_OFF
+		H.back_to_idle()
 
 /client/proc/show_game_over()
 	var/atom/movable/screen/splash/credits/S = new(src, FALSE)

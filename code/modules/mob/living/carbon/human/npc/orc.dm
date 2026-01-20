@@ -19,9 +19,17 @@
 	possible_rmb_intents = list()
 	aggressive = 1
 	rude = TRUE
-	mode = NPC_AI_IDLE
 	wander = FALSE
 	cmode_music = FALSE
+
+/mob/living/carbon/human/species/orc/npc/Initialize()
+	. = ..()
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
 /datum/outfit/job/orc/npc/pre_equip(mob/living/carbon/human/H) //gives some default skills and equipment for player controlled orcs
 	..()

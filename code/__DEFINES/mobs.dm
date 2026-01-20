@@ -248,16 +248,6 @@
 #define AI_OFF		3
 #define AI_Z_OFF	4
 
-// these are exclusively for hostile humantype mobs
-#define NPC_AI_OFF		0
-#define NPC_AI_IDLE		1
-#define NPC_AI_COMBAT	2
-#define NPC_AI_RETREAT	3
-#define NPC_AI_HUNT		4
-#define NPC_AI_FLEE		5
-/// Sleep mode (NPC is not processing, excluded from mob subsystem). Remember that NPC_AI_OFF is different from this and supposes *removed* AI (aka player-controlled mob)
-#define NPC_AI_SLEEP    6
-
 //determines if a mob can smash through it
 #define ENVIRONMENT_SMASH_NONE			0
 #define ENVIRONMENT_SMASH_STRUCTURES	(1<<0) 	//crates, lockers, ect

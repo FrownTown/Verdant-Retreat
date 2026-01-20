@@ -46,6 +46,12 @@
 		return null
 	return get_step_multiz(T, DOWN)
 
+// Get the turf above this one
+/proc/GetAbove(turf/T)
+	if(!T)
+		return null
+	return get_step_multiz(T, UP)
+
 // Check if there's a barrier between two turfs (windows, doors, etc.)
 /turf/proc/LinkBlocked(turf/T, turf/neighbor)
 	if(!neighbor)

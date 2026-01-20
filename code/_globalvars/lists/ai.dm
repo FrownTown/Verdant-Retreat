@@ -10,3 +10,6 @@ GLOBAL_LIST_INIT(ai_controllers_by_status, alist(
 
 ///basic ai controllers based on their z level
 GLOBAL_LIST_EMPTY(ai_controllers_by_zlevel)
+
+///list of all NPCs with ai_root (used by quadtree subsystem)
+GLOBAL_LIST_EMPTY(npc_list)

@@ -45,9 +45,8 @@
 	var/obj/structure/bonepile/slavepile
 
 	food_type = list(/obj/item/reagent_containers/food/snacks, /obj/item/bodypart)	
-	can_have_ai = FALSE //disable native ai
-	AIStatus = AI_OFF
-	ai_controller = /datum/ai_controller/haunt
+	can_have_ai = TRUE //disable native ai
+	AIStatus = AI_ON
 
 /mob/living/simple_animal/hostile/rogue/haunt/electrocute_act(shock_damage, source, siemens_coeff = 1, flags = NONE)
 	return FALSE
@@ -182,6 +181,10 @@
 	set_light(2, 2, 2, l_color = "#c0523f")
 	ADD_TRAIT(src, TRAIT_IGNOREDAMAGESLOWDOWN, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC)
+	ai_root = new /datum/behavior_tree/node/selector/haunt_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = HAUNT_ATTACK_SPEED
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/rogue/haunt/Destroy()
 	set_light(0)

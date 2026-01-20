@@ -44,9 +44,8 @@
 	STASTR = 15
 	STASPD = 5
 
-	ai_controller = /datum/ai_controller/mimic
-	AIStatus = AI_OFF
-	can_have_ai = FALSE
+	AIStatus = AI_ON
+	can_have_ai = TRUE
 	/// The typepath of the chest this mimic is mimicking.
 	var/obj/structure/closet/crate/chest/mimicking_chest = /obj/structure/closet/crate/chest
 
@@ -59,6 +58,11 @@
 	icon = mimicking_chest::icon
 	icon_state = mimicking_chest::icon_state
 	AddComponent(/datum/component/anti_magic, TRUE, TRUE, TRUE, null, null, FALSE)
+	
+	ai_root = new /datum/behavior_tree/node/selector/mimic_tree()
+	ai_root.next_move_delay = 5
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/mimic/examine(mob/user)
 	if(aggressive)

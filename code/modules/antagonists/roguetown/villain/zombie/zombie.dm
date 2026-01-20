@@ -159,7 +159,6 @@
 		zombie.base_intents = base_intents
 		zombie.update_a_intents()
 		zombie.aggressive = FALSE
-		zombie.mode = NPC_AI_OFF
 		zombie.npc_jump_chance = initial(zombie.npc_jump_chance)
 		zombie.rude = initial(zombie.rude)
 		zombie.tree_climber = initial(zombie.tree_climber)
@@ -241,8 +240,6 @@
 	zombie.base_intents = list(INTENT_HELP, INTENT_DISARM, INTENT_GRAB, /datum/intent/unarmed/claw)
 	zombie.update_a_intents()
 	zombie.aggressive = TRUE
-	zombie.mode = NPC_AI_IDLE
-	zombie.handle_ai()
 	ambushable = zombie.ambushable
 	zombie.ambushable = FALSE
 

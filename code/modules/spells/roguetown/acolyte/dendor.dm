@@ -61,10 +61,10 @@
 		if(faction_check(animal.faction, beast_tameable_factions))
 			animal.tamed(TRUE)
 			animal.aggressive = FALSE
-			if(animal.ai_controller)
-				animal.ai_controller.clear_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET)
-				animal.ai_controller.clear_blackboard_key(BB_BASIC_MOB_RETALIATE_LIST)
-				animal.ai_controller.set_blackboard_key(BB_BASIC_MOB_TAMED, TRUE)
+			if(animal.ai_root)
+				animal.ai_root.target = null
+				
+				animal.ai_root.blackboard[BB_BASIC_MOB_TAMED] = TRUE
 			to_chat(usr, "With the Treefather's aide, you soothe [animal] of their anger.")
 	return tamed
 

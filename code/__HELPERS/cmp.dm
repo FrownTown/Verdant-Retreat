@@ -120,4 +120,6 @@ GLOBAL_VAR_INIT(cmp_field, "name")
 	
 /proc/cmp_filter_priority_desc(list/A, list/B) // Compares two lists by their 'priority' key. Used for filters.
     return (A["priority"] || 0) - (B["priority"] || 0)
-	
+
+/proc/cmp_dist_list_asc(list/A, list/B)
+	return A["dist"] - B["dist"]

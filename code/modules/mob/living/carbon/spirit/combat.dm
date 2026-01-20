@@ -5,10 +5,8 @@
 	var/frustration=0
 	var/pickupTimer=0
 	var/list/enemies = list()
-	var/mob/living/target
 	var/obj/item/pickupTarget
 	var/mode = MONKEY_IDLE
-	var/list/myPath = list()
 	var/list/blacklistItems = list()
 	var/maxStepsTick = 6
 	var/best_force = 0
@@ -25,30 +23,7 @@
 
 // blocks
 // taken from /mob/living/carbon/human/interactive/
-/mob/living/carbon/spirit/proc/walk2derpless(target)
-	if(!target || IsStandingStill())
-		return 0
 
-	if(myPath.len <= 0)
-		myPath = get_path_to(src, get_turf(target), /turf/proc/Distance, MAX_RANGE_FIND + 1, 250,1)
-
-	if(myPath)
-		if(myPath.len > 0)
-			for(var/i = 0; i < maxStepsTick; ++i)
-				if(!IsDeadOrIncap())
-					if(myPath.len >= 1)
-						walk_to(src,myPath[1],0,5)
-						myPath -= myPath[1]
-			return 1
-
-	// failed to path correctly so just try to head straight for a bit
-	walk_to(src,get_turf(target),0,5)
-	sleep(1)
-	walk_to(src,0)
-
-	return 0
-
-// taken from /mob/living/carbon/human/interactive/
 /mob/living/carbon/spirit/proc/IsDeadOrIncap(checkDead = TRUE)
 	if(!(mobility_flags & MOBILITY_FLAGS_INTERACTION))
 		return 1

@@ -1,10 +1,9 @@
 /mob/living/carbon/human/species/npc/deadite
 	aggressive = TRUE
-	mode = NPC_AI_IDLE
 	npc_jump_chance = 0
 	rude = FALSE // don't taunt people as a deadite
 	tree_climber = FALSE // or climb trees
-	dodgetime = 8 
+	dodgetime = 8
 	flee_in_pain = FALSE
 	ambushable = FALSE
 	wander = TRUE
@@ -38,6 +37,13 @@
 	//Make sure deadite NPCs don't show up in the antag listings
 	GLOB.antagonists -= zombie_antag
 	update_body()
+
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
 /datum/outfit/job/deadite/pre_equip(mob/living/carbon/human/H)
 	..()
@@ -79,10 +85,6 @@
 	if(do_deadite_attack(victim))
 		return TRUE
 	return ..() // use grabs and such
-
-/mob/living/carbon/human/species/npc/deadite/handle_ai()
-	. = ..()
-	try_do_deadite_idle() // sort of a misnomer, just handles zombie noises
 
 // This proc exists because non-converted deadites don't have minds and can't have the antag datum
 // So we need two separate entry points for this logic

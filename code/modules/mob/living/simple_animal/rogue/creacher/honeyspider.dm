@@ -50,9 +50,8 @@
 	
 
 	//new ai, old ai off
-	AIStatus = AI_OFF
+	AIStatus = AI_ON
 	can_have_ai = FALSE
-	ai_controller = /datum/ai_controller/spider
 	melee_cooldown = HONEYSPIDER_ATTACK_SPEED
 	stat_attack = UNCONSCIOUS
 
@@ -74,8 +73,10 @@
 	if(prob(33))
 		gender = FEMALE
 	update_icon()
-	ai_controller.set_blackboard_key(BB_BASIC_FOODS, food_type)
-	AddElement(/datum/element/ai_retaliate)
+	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = HONEYSPIDER_ATTACK_SPEED
+	SSai.Register(src)
 	ADD_TRAIT(src, TRAIT_KNEESTINGER_IMMUNITY, INNATE_TRAIT)
 
 

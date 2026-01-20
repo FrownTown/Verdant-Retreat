@@ -50,10 +50,16 @@
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/rogue/meat/steak = 3,
 						/obj/item/natural/hide = 2, /obj/item/natural/bundle/bone/full = 1)
 	aggressive = 1
-	can_have_ai = FALSE //disable native ai
-	AIStatus = AI_OFF
-	ai_controller = /datum/ai_controller/orc_ranged
 
+/mob/living/simple_animal/hostile/retaliate/rogue/goblin/Initialize()
+	. = ..()
+
+	// Initialize behavior tree for ranged combat
+	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = move_to_delay
+	ai_root.next_attack_delay = 0
+	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/goblin/cave
 	icon_state = "goblinarcher2"

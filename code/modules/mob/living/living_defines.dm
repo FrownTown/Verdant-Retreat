@@ -198,3 +198,6 @@
 
 	/// Parry timer for projectiles post-attack. Hooks into the attack animation, so is fairly clunky.
 	var/projectile_parry_timer
+
+	var/del_on_deaggro = 0 //seconds to delete after losing aggro
+	var/last_aggro_loss = null

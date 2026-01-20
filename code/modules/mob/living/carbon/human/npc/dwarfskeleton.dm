@@ -7,7 +7,6 @@ GLOBAL_LIST_INIT(dwarfskeleton_aggro, world.file2list("strings/rt/dskeletonaggro
 	faction = list("dundead")
 	var/skel_outfit = /datum/outfit/job/dwarfskeleton
 	ambushable = FALSE
-	mode = NPC_AI_IDLE
 	wander = FALSE
 	cmode = 1
 	setparrytime = 30
@@ -19,14 +18,13 @@ GLOBAL_LIST_INIT(dwarfskeleton_aggro, world.file2list("strings/rt/dskeletonaggro
 
 /mob/living/carbon/human/species/dwarfskeleton/ambush
 	aggressive = 1
-	mode = NPC_AI_IDLE
 	wander = FALSE
 
 /mob/living/carbon/human/species/dwarfskeleton/retaliate(mob/living/L)
 	.=..()
 	if(prob(5))
 		say(pick(GLOB.dwarfskeleton_aggro))
-		pointed(target)
+		pointed(ai_root.target)
 
 /mob/living/carbon/human/species/dwarfskeleton/Initialize()
 	. = ..()
@@ -68,6 +66,13 @@ GLOBAL_LIST_INIT(dwarfskeleton_aggro, world.file2list("strings/rt/dskeletonaggro
 		var/datum/outfit/OU = new skel_outfit
 		if(OU)
 			equipOutfit(OU)
+
+	// Initialize behavior tree AI
+	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
+	ai_root.blackboard = list()
+	ai_root.next_move_delay = 3
+	ai_root.next_attack_delay = 10
+	SSai.Register(src)
 
 /datum/outfit/job/dwarfskeleton/pre_equip(mob/living/carbon/human/H)
 	..()
