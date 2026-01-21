@@ -31,10 +31,41 @@
 		/datum/behavior_tree/node/action/carbon_move_to_target
 	)
 
+// ------------------------------------------------------------------------------
+// GOBLIN TREE
+// ------------------------------------------------------------------------------
+
+/datum/behavior_tree/node/selector/goblin_tree
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/goblin_combat,
+		/datum/behavior_tree/node/sequence/humanoid_idle
+	)
+
+/datum/behavior_tree/node/sequence/goblin_combat
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/humanoid_acquire_target,
+		/datum/behavior_tree/node/selector/goblin_handle_combat
+	)
+
+/datum/behavior_tree/node/selector/goblin_handle_combat
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/humanoid_flee_sequence,
+		/datum/behavior_tree/node/sequence/humanoid_subdue_sequence,
+		/datum/behavior_tree/node/sequence/humanoid_attack_sequence,
+		/datum/behavior_tree/node/action/carbon_move_to_target
+	)
+
 /datum/behavior_tree/node/sequence/humanoid_flee_sequence
 	my_nodes = list(
 		/datum/behavior_tree/node/action/carbon_should_flee,
 		/datum/behavior_tree/node/action/carbon_flee
+	)
+
+/datum/behavior_tree/node/sequence/humanoid_subdue_sequence
+	my_nodes = list(
+		/datum/behavior_tree/node/action/carbon_check_monster_bait,
+		/datum/behavior_tree/node/action/carbon_subdue_target,
+		/datum/behavior_tree/node/action/carbon_violate_target
 	)
 
 /datum/behavior_tree/node/sequence/humanoid_attack_sequence
@@ -85,3 +116,12 @@
 
 /datum/behavior_tree/node/action/carbon_flee
 	my_action = /bt_action/carbon_flee
+
+/datum/behavior_tree/node/action/carbon_check_monster_bait
+	my_action = /bt_action/carbon_check_monster_bait
+
+/datum/behavior_tree/node/action/carbon_subdue_target
+	my_action = /bt_action/carbon_subdue_target
+
+/datum/behavior_tree/node/action/carbon_violate_target
+	my_action = /bt_action/carbon_violate_target

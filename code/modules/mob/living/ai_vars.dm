@@ -34,6 +34,8 @@
 		return FALSE
 	if(!ai_root.path || !length(ai_root.path))
 		return FALSE
+	if(doing)
+		return FALSE
 
 	var/turf/next_step = ai_root.path[1]
 	if(get_turf(src) == next_step)
@@ -70,7 +72,7 @@
 		return TRUE
 
 	if(ai_root.target)
-		if(get_dist(src, ai_root.target <= 1))
+		if(get_dist(src, ai_root.target) <= 1)
 			ai_root.path = null
 			ai_root.move_destination = null
 			return FALSE

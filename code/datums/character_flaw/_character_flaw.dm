@@ -16,6 +16,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	"Junkie"=/datum/charflaw/addiction/junkie,
 	"Lawless"=/datum/charflaw/lawless,
 	"Masochist"=/datum/charflaw/masochist,
+	"Monster Pheromones"=/datum/charflaw/monsterbait,
 	"Mute"=/datum/charflaw/mute,
 	"Narcoleptic"=/datum/charflaw/narcoleptic,
 	"Nymphomaniac"=/datum/charflaw/addiction/lovefiend,

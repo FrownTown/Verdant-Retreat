@@ -239,6 +239,7 @@
 #define TRAIT_MASTER_MASON "Master Masonry"
 #define TRAIT_FOOD_STIPEND "Vomitorium-known"
 #define TRAIT_ROYALSERVANT "Household Insight" // Let's you see the royals liked/hated food/drink
+#define TRAIT_MONSTERBAIT "Monster Bait" // NPCs will try to subdue you instead of killing you.
 
 
 GLOBAL_LIST_INIT(roguetraits, list(

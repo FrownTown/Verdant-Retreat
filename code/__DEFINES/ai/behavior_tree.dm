@@ -109,6 +109,7 @@
 #define AIBLK_HARVEST_LIST "harvest_list"
 #define AIBLK_DAMAGE_OVERLAY "damage_overlay"
 #define AIBLK_OVERLAY_UPDATED "overlay_updated"
+#define AIBLK_S_ACTION "s_action"
 
 #define AIBLK_AGGRESSION "aggression"
 #define AIBLK_AGGRESSION_PACIFIST 0
@@ -144,6 +145,7 @@
 #define AIBLK_SQUAD_SHOULD_REGROUP "squad_should_regroup"
 #define AIBLK_SQUAD_PATROL_TARGET "squad_patrol_target"
 #define AIBLK_SQUAD_HUNT_LOCATION "squad_hunt_location"
+#define AIBLK_MONSTER_BAIT "monster_bait"
 
-#define SS_PRIORITY_AI 90
+#define SS_PRIORITY_AI 67
 #define INIT_ORDER_AI 8

@@ -207,9 +207,8 @@
 			target = null
 			LoseSearchObjects()
 			SSai.WakeUp(src)
-			FindTarget()
 		else if(target != null && prob(40))//No more pulling a mob forever and having a second player attack it, it can switch targets now if it finds a more suitable one
-			FindTarget()
+			SSai.WakeUp(src)
 
 
 /mob/living/simple_animal/hostile/proc/AttackingTarget()
@@ -424,11 +423,8 @@
 		if(search_objects)//Turn off item searching and ignore whatever item we were looking at, we're more concerned with fight or flight
 			target = null
 			LoseSearchObjects()
-		// Legacy logic removed
-		if(target != null && prob(40))//No more pulling a mob forever and having a second player attack it, it can switch targets now if it finds a more suitable one
-			// Legacy FindTarget removed
-			// This logic is now up to the behavior tree
-			return
+		
+	SSai.WakeUp(src)
 
 /mob/living/simple_animal/hostile/proc/GainPatience()
 	if ((lose_patience_timeout) && !QDELETED(src))

@@ -27,7 +27,7 @@
 
 	for(var/turf/neighbor as anything in orange(1, T))
 		// First, check if the NPC can just walk there normally.
-		if(T.CanPass(mover, neighbor))
+		if(T.CanPass(mover, neighbor) && neighbor.can_traverse_safely(mover))
 			neighbors += neighbor
 		// If the path is blocked by density, check if it's an obstacle we can smash.
 		else if(neighbor.density && mover.ai_root?.ai_flags & AI_FLAG_SMASH_OBSTACLES)

@@ -4,6 +4,8 @@
 
 #define AI_SQUADS // Enable AI squad functionality. Comment out to disable.
 
+GLOBAL_LIST_EMPTY(ai_init_queue)
+
 PROCESSING_SUBSYSTEM_DEF(ai)
 	name = "AI"
 	priority = SS_PRIORITY_AI
@@ -33,9 +35,20 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	squads = list()
 	squads_to_remove = list()
 	// Register movement tracking for player mobs - this will be set up as players log in/spawn
+	
+	for(var/mob/living/M in GLOB.ai_init_queue)
+		Register(M)
+	
+	GLOB.ai_init_queue.len = 0
 
 /datum/controller/subsystem/processing/ai/proc/Register(mob/living/M)
+	if(!can_fire || !initialized)
+		GLOB.ai_init_queue += M
+		return
+		
 	if(M && M.ai_root && !sleeping_mobs[M]) // Only register if it's not already sleeping.
+		if(!M.ai_root.blackboard)
+			M.ai_root.blackboard = new
 		active_mobs[M] = TRUE
 		M.ai_root.next_think_tick = world.time + M.ai_root.next_think_delay
 		GLOB.npc_list |= M
@@ -43,7 +56,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 /datum/controller/subsystem/processing/ai/proc/Unregister(mob/living/M)
 	if(M)
 		#ifdef AI_SQUADS
-		if(M.ai_root.blackboard[AIBLK_SQUAD_DATUM])
+		if(M.ai_root.blackboard && M.ai_root.blackboard[AIBLK_SQUAD_DATUM])
 			var/ai_squad/squad = M.ai_root.blackboard[AIBLK_SQUAD_DATUM]
 			squad.RemoveMember(M)
 		#endif
@@ -60,7 +73,8 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	else return // Defensive programming, should never hit this condition afaik
 	
 	active_mobs[M] = TRUE
-	M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
+	if(M.ai_root.blackboard)
+		M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
 	M.ai_root.next_think_tick = world.time // Let it think immediately
 	M.ai_root.next_sleep_tick = world.time + M.ai_root.next_sleep_delay
 
@@ -71,16 +85,11 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 		sleeping_mobs[M] = TRUE
 		active_mobs.Remove(M)
 
-/datum/controller/subsystem/processing/ai/proc/on_max_z_changed()
-	// Resize lists if necessary when max Z changes
-	// For now, this is just a placeholder to satisfy the call from World.dm
-	return
-
 // Processing our active mobs
 /datum/controller/subsystem/processing/ai/fire(var/time_delta)
 	var/current_time = world.time
 
-	for(var/mob/living/M as anything in active_mobs)
+	for(var/mob/living/M in active_mobs)
 		if(!M || M.stat == DEAD || M.client)
 			unregister_queue |= M
 			continue
@@ -90,7 +99,10 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 			unregister_queue |= M
 			continue
 
-		M.RunMovement()
+		if(M.ai_root.next_move_tick <= current_time)
+			M.RunMovement()
+			M.ai_root.next_move_tick = current_time + M.ai_root.next_move_delay
+
 
 		// Check if enough time has passed for the mob to think again.
 		if(current_time >= M.ai_root.next_think_tick)
@@ -100,24 +112,26 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 
 
 				if(!length(nearby_players))
+					if(M.ai_root.blackboard)
+						if(!M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
+							M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER] = current_time + AI_HIBERNATION_DELAY
 
-					if(!M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
-						M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER] = current_time + AI_HIBERNATION_DELAY
-
-					if(current_time >= M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
-						sleep_queue |= M
-						continue
+						if(current_time >= M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
+							sleep_queue |= M
+							continue
 				else
-					M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
+					if(M.ai_root.blackboard && M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
+						M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
 
 			M.RunAI()
 			M.ai_root.next_think_tick = current_time + M.ai_root.next_think_delay
 
 	for(var/mob/living/M as anything in unregister_queue)
 #ifdef AI_SQUADS
-		var/ai_squad/squad = M.ai_root.blackboard[AIBLK_SQUAD_DATUM]
-		if(squad)
-			squad.RemoveMember(M)
+		if(M.ai_root.blackboard)
+			var/ai_squad/squad = M.ai_root.blackboard[AIBLK_SQUAD_DATUM]
+			if(squad)
+				squad.RemoveMember(M)
 #endif
 		Unregister(M)
 

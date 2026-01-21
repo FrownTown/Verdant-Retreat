@@ -55,6 +55,10 @@
 	if(ranged_ability)
 		ranged_ability.deactivate()
 
+	var/turf/T = get_turf(src)
+	if (isturf(T))
+		update_z(T.z)
+
 	set_ssd_indicator(FALSE)
 	
 	return TRUE

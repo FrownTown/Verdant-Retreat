@@ -60,6 +60,28 @@
 
 /datum/sex_controller/New(mob/living/carbon/human/owner)
 	user = owner
+	if(user && !user.client && !isdummy(user))
+		addtimer(CALLBACK(src, PROC_REF(init_npc_organs), owner), 1 SECONDS)
+
+// NPCs often lack these organs because they are commented out in species definitions.
+// We initialize them here to ensure the sex system works for them.
+
+/datum/sex_controller/proc/init_npc_organs(mob/living/carbon/human/owner)
+	if(!user.getorganslot(ORGAN_SLOT_PENIS) && !user.getorganslot(ORGAN_SLOT_VAGINA))
+		if(user.gender == MALE)
+			var/obj/item/organ/penis/P = new(user)
+			P.Insert(user)
+		else if(user.gender == FEMALE)
+			var/obj/item/organ/vagina/V = new(user)
+			V.Insert(user)
+	
+	if(!user.getorganslot(ORGAN_SLOT_TESTICLES) && user.gender == MALE)
+		var/obj/item/organ/testicles/T = new(user)
+		T.Insert(user)
+	
+	if(!user.getorganslot(ORGAN_SLOT_BREASTS) && user.gender == FEMALE)
+		var/obj/item/organ/breasts/B = new(user)
+		B.Insert(user)
 
 /datum/sex_controller/Destroy()
 	//remove_from_target_receiving()

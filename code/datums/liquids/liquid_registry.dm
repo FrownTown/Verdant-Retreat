@@ -635,7 +635,6 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
  */
 /datum/liquid_registry/proc/enable_dynamic_liquids()
 	allow_dynamic_liquids = TRUE
-	log_admin("Dynamic liquids and floor reactions have been enabled.")
 
 /**
  * Disables dynamic liquid creation and floor reactions.
@@ -643,7 +642,6 @@ GLOBAL_DATUM_INIT(liquid_registry, /datum/liquid_registry, new)
  */
 /datum/liquid_registry/proc/disable_dynamic_liquids()
 	allow_dynamic_liquids = FALSE
-	log_admin("Dynamic liquids and floor reactions have been disabled.")
 
 /**
  * Checks if dynamic liquids are currently enabled.

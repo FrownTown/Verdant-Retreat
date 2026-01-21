@@ -1,6 +1,7 @@
 // ==============================================================================
 // QUADTREE SUBSYSTEM
 // ==============================================================================
+GLOBAL_LIST_EMPTY(qt_init_queue)
 
 PROCESSING_SUBSYSTEM_DEF(quadtree)
 	name = "Quadtree"
@@ -26,7 +27,7 @@ PROCESSING_SUBSYSTEM_DEF(quadtree)
 	var/list/new_hearable_quadtrees
 	var/list/hearable_feed
 
-	var/list/unregister_queue
+	var/list/unregister_queue = list()
 
 
 /datum/controller/subsystem/processing/quadtree/Initialize()
@@ -40,10 +41,10 @@ PROCESSING_SUBSYSTEM_DEF(quadtree)
 	new_npc_simple_quadtrees = new/list(world.maxz)
 	cur_hearable_quadtrees = new/list(world.maxz)
 	new_hearable_quadtrees = new/list(world.maxz)
+	player_feed = list()
 	npc_carbon_feed = list()
 	npc_simple_feed = list()
 	hearable_feed = list()
-	unregister_queue = list()
 
 	var/datum/shape/rectangle/R
 	for(var/i in 1 to world.maxz)
@@ -52,19 +53,29 @@ PROCESSING_SUBSYSTEM_DEF(quadtree)
 		new_npc_carbon_quadtrees[i] = QTREE(R, i)
 		new_npc_simple_quadtrees[i] = QTREE(R, i)
 		new_hearable_quadtrees[i] = QTREE(R, i)
+	
+	for(var/mob/living/M in GLOB.qt_init_queue)
+		RegisterMob(M)
+	GLOB.qt_init_queue.len = 0
 
 /datum/controller/subsystem/processing/quadtree/fire(resumed = FALSE)
 	if(!resumed)
+		var/list/remove_from_queue = list()
 		if(length(unregister_queue))
 			for(var/mob/M as anything in unregister_queue)
+				if(isnull(M))
+					remove_from_queue += M
+					continue
 				if(M.client)
 					player_feed -= M
-
 				else if(iscarbon(M))
 					npc_carbon_feed -= M
 
 				else if(issimple(M))
 					npc_simple_feed -= M
+			
+			for(var/mob/M as anything in remove_from_queue)
+				unregister_queue.Remove(M)
 
 			
 		// --- Reset Player Trees ---
@@ -93,9 +104,6 @@ PROCESSING_SUBSYSTEM_DEF(quadtree)
 
 		// --- Reset NPC Simple Trees ---
 		npc_simple_feed = simple_feed
-		for(var/i in 1 to 4)
-			for(var/mob/living/simple_animal/M as anything in GLOB.simple_animals[i])
-				npc_simple_feed += M
 
 		cur_npc_simple_quadtrees = new_npc_simple_quadtrees
 		new_npc_simple_quadtrees = new/list(world.maxz)
@@ -202,6 +210,10 @@ PROCESSING_SUBSYSTEM_DEF(quadtree)
 				SSai.WakeUp(M)
 
 /datum/controller/subsystem/processing/quadtree/proc/RegisterMob(mob/living/M)
+	if(!can_fire || !initialized)
+		GLOB.qt_init_queue += M
+		return
+		
 	RegisterSignal(M, COMSIG_MOB_MOVED, PROC_REF(OnMobMoved))
 	if(M.client)
 		player_feed += M

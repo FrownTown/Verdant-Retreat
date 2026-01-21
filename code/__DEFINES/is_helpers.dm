@@ -155,6 +155,8 @@ GLOBAL_LIST_INIT(our_forest_sex, typecacheof(list(
 
 #define isnewplayer(A) (istype(A, /mob/dead/new_player))
 
+#define isdummy(A) (istype(A, /mob/living/carbon/human/dummy))
+
 #define isovermind(A) (istype(A, /mob/camera/blob))
 
 #define iscameramob(A) (istype(A, /mob/camera))

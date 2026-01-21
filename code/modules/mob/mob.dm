@@ -89,8 +89,10 @@ GLOBAL_VAR_INIT(mobids, 1)
 	become_hearing_sensitive()
 	update_config_movespeed()
 	update_movespeed(TRUE)
-	qt_range = RECT(x, y, AI_HIBERNATION_RANGE, AI_HIBERNATION_RANGE)
-	SSquadtree.RegisterMob(src)
+	// By putting this here, we can track even ghosts for a variety of shenanigans
+	if(!isdead(src) && !isobserver(src)) // Yes I know this sucks, but overriding the entire initialize chain is too much of a hassle
+		qt_range = RECT(x, y, AI_HIBERNATION_RANGE, AI_HIBERNATION_RANGE)
+		SSquadtree.RegisterMob(src)
 
 /**
  * Generate the tag for this mob

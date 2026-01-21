@@ -42,8 +42,8 @@
 			I.plane = HUD_PLANE
 			I.layer = ABOVE_ALL_MOB_LAYER
 			I.maptext_width = 128
-			I.maptext_x = -64
-			I.maptext_y = 32
+			I.maptext_x = -32
+			I.maptext_y = 4
 			ai_debug_images[M] = I
 			src << I
 			
