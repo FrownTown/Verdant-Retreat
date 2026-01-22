@@ -57,10 +57,8 @@
 
 /mob/living/simple_animal/hostile/retaliate/rogue/elemental/colossus/Initialize()
 	. = ..()
-	ai_root = new /datum/behavior_tree/node/selector/colossus_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/colossus_tree)
 	ai_root.next_move_delay = move_to_delay
-	SSai.Register(src) // Ensure updated tree is registered
 
 /mob/living/simple_animal/hostile/retaliate/rogue/elemental/colossus/death(gibbed)
 	..()

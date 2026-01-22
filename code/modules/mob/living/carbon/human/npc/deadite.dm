@@ -39,8 +39,7 @@
 	update_body()
 
 	// Initialize behavior tree AI
-	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
 	ai_root.next_attack_delay = 10
 	SSai.Register(src)

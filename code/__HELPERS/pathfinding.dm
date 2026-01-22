@@ -25,9 +25,9 @@
 /proc/get_neighbors_3d(mob/living/mover, turf/T) as /list
 	var/list/neighbors = list()
 
-	for(var/turf/neighbor as anything in orange(1, T))
+	for(var/turf/neighbor in orange(1, T))
 		// First, check if the NPC can just walk there normally.
-		if(T.CanPass(mover, neighbor) && neighbor.can_traverse_safely(mover))
+		if(neighbor.CanPass(mover, T) && neighbor.can_traverse_safely(mover))
 			neighbors += neighbor
 		// If the path is blocked by density, check if it's an obstacle we can smash.
 		else if(neighbor.density && mover.ai_root?.ai_flags & AI_FLAG_SMASH_OBSTACLES)
@@ -74,8 +74,11 @@
 	if(mover.STASTR) // Safety check - STASTR might not exist on all mob types
 		strength_bonus = mover.STASTR * 2
 
+	if(!to_turf.CanPass(mover, from_turf))
+		return 10000
+
 	for(var/atom/movable/AM in to_turf)
-		if(AM.density)
+		if(AM.density && !AM.CanPass(mover, from_turf))
 			if(istype(AM, /obj/structure/mineral_door))
 				var/obj/structure/mineral_door/D = AM
 				if(D.locked)
@@ -111,6 +114,9 @@
 				// Cost to break a window based on strength
 				obstacle_cost = max(5, 50 - strength_bonus)
 				break
+
+			// If it's a dense object we don't know how to handle, it's an impassable obstacle
+			return 10000
 
 	// Calculate final cost based on Z-level change or standard movement
 	if(from_turf.z != to_turf.z)

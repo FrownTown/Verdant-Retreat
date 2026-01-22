@@ -5,11 +5,8 @@
 	ADD_TRAIT(src, TRAIT_TOXIMMUNE, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC)
 	
-	ai_root = new /datum/behavior_tree/node/selector/leyline_tree()
-	
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/leyline_tree)
 	ai_root.next_move_delay = move_to_delay
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/leylinelycan
 	icon = 'icons/mob/summonable/32x32.dmi'

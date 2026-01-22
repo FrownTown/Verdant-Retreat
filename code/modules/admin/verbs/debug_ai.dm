@@ -2,11 +2,11 @@
 /client/var/list/ai_debug_images
 
 /client/proc/debug_ai_tree()
-	set name = "Debug AI Tree"
+	set name = "Show Current AI Node"
 	set category = "Debug"
 
 	debug_ai_tree_active = !debug_ai_tree_active
-	to_chat(src, "<span class='notice'>AI Tree Debug: [debug_ai_tree_active ? "ON" : "OFF"]</span>")
+	to_chat(src, "<span class='notice'>AI Tree Node View: [debug_ai_tree_active ? "ON" : "OFF"]</span>")
 
 	if(debug_ai_tree_active)
 		start_ai_debug_loop()

@@ -183,10 +183,7 @@
 	. = ..()
 	status_flags |= GODMODE //Slightly easier to maintain.
 	
-	ai_root = new /datum/behavior_tree/node/selector/insane_clown_tree()
-	
-	ai_root.blackboard = new
-	SSai.Register(src)
+	init_ai_root(/datum/behavior_tree/node/selector/insane_clown_tree)
 
 /mob/living/simple_animal/hostile/clown_insane/Destroy()
 	timer = null

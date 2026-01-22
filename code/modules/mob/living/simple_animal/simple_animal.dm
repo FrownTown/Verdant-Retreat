@@ -202,10 +202,7 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 	if(is_flying_animal)
 		ADD_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
 
-	if(!ai_root)
-		ai_root = new /datum/behavior_tree/node/selector/generic_friendly_tree()
-		ai_root.blackboard = new
-	SSai.Register(src)
+	init_ai_root(/datum/behavior_tree/node/selector/generic_friendly_tree)
 	
 /mob/living/simple_animal/Destroy()
 	SSai.Unregister(src)

@@ -46,11 +46,9 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/orc/Initialize()
 	. = ..()
 	// Initialize behavior tree
-	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = 10
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/orc/orc2
 	icon_state = "savageorc2"
@@ -227,31 +225,11 @@
 /mob/living/simple_animal/hostile/retaliate/rogue/orc/ranged/Initialize()
 	. = ..()
 
-	// Initialize behavior tree for ranged combat
-	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
-	ai_root.blackboard = new
+	// Reuse deepone behavior tree for ranged combat
+	init_ai_root(/datum/behavior_tree/node/selector/deepone_ranged_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 0
-	SSai.Register(src)
+	ai_root.next_attack_delay = 10
 
 /mob/living/simple_animal/hostile/retaliate/orc/death(gibbed)
 	..()
 	update_icon()
-
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/event
-	// Uses behavior tree from parent
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/orc2/event
-	// Uses behavior tree from parent
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/orc_marauder/event
-	// Uses behavior tree from parent
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/orc_marauder/spear/event
-	// Uses behavior tree from parent
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/orc_marauder/ravager/event
-	// Uses behavior tree from parent
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/spear/event
-	// Uses behavior tree from parent
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/spear2/event
-	// Uses behavior tree from parent
-
-/mob/living/simple_animal/hostile/retaliate/rogue/orc/ranged/event
-	// Uses behavior tree from parent

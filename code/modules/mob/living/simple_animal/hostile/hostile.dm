@@ -70,9 +70,8 @@
 	wanted_objects = typecacheof(wanted_objects)
 	
 	// If we still have the default idiot tree from simple_animal, upgrade to generic hostile
-	if(istype(ai_root, /datum/behavior_tree/node/selector/generic_friendly_tree))
-		ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
-		ai_root.blackboard = new
+	if(istype(ai_root, /datum/behavior_tree/node/selector/generic_friendly_tree) || !ai_root)
+		init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 		// Initialize the new tree properties if needed
 		ai_root.next_move_delay = move_to_delay
 

@@ -77,12 +77,9 @@
 		gender = FEMALE
 	update_icon()
 	
-	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
-	
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = MOLE_ATTACK_SPEED
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/mole/death(gibbed)
 	..()

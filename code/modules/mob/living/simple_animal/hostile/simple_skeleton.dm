@@ -43,11 +43,9 @@
 
 /mob/living/simple_animal/hostile/rogue/skeleton/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
 	. = ..()
-	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
-	SSai.Register(src)
 
 	if(user)
 		if(user.mind && user.mind.current)
@@ -128,11 +126,9 @@
 
 /mob/living/simple_animal/hostile/rogue/skeleton/bow/Initialize(mapload, mob/user, cabal_affine = FALSE, is_summoned = FALSE)
 	. = ..(mapload, user, cabal_affine, is_summoned)
-	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/deepone_ranged_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/rogue/skeleton/get_sound(input)
 	switch(input)

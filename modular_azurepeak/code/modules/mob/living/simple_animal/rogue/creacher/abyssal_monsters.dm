@@ -82,11 +82,9 @@
 	ADD_TRAIT(src, TRAIT_KNEESTINGER_IMMUNITY, INNATE_TRAIT)
 
 	// Initialize behavior tree
-	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 0
-	SSai.Register(src)
+	ai_root.next_attack_delay = 10
 
 	. = ..()
 

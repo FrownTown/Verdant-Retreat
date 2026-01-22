@@ -91,7 +91,7 @@
 
 	// Simple random wander: pick a nearby tile and path to it
 	if(user.ai_root && (!user.ai_root.path || !length(user.ai_root.path)))
-		var/turf/T = get_ranged_target_turf(user, pick(GLOB.cardinals), 3)
+		var/turf/T = get_ranged_target_turf(user, pick(GLOB.alldirs), 3)
 		if(T && T.can_traverse_safely(user) && user.set_ai_path_to(T))
 			return NODE_RUNNING
 
@@ -229,15 +229,15 @@
 			
 			if(!found_blunt_mode)
 				// Current weapon has no blunt mode. Stow or drop it.
-				if(!user.equip_to_appropriate_slot(W))
+				if(!user.place_in_inventory(W))
 					user.dropItemToGround(W)
 				W = null
 		
 		// 2. If no weapon (or we just stowed it), check inventory for blunt weapon
 		if(!W)
 			var/obj/item/best_blunt = null
-			for(var/obj/item/I in user.contents)
-				if(istype(I, /obj/item/clothing)) continue
+			for(var/obj/item/I in user.held_items + user.get_equipped_items(TRUE))
+				if(!I || istype(I, /obj/item/clothing)) continue
 				
 				if(I.possible_item_intents)
 					for(var/intent_path in I.possible_item_intents)
@@ -248,13 +248,13 @@
 				if(best_blunt) break
 			
 			if(best_blunt)
-				user.put_in_hands(best_blunt)
-				W = best_blunt
-				for(var/datum/intent/I in user.possible_a_intents)
-					if(I.blade_class == BCLASS_BLUNT || I.blade_class == BCLASS_SMASH)
-						user.a_intent_change(I)
-						found_blunt_mode = TRUE
-						break
+				if(user.ensure_in_active_hand(best_blunt))
+					W = best_blunt
+					for(var/datum/intent/I in user.possible_a_intents)
+						if(I.blade_class == BCLASS_BLUNT || I.blade_class == BCLASS_SMASH)
+							user.a_intent_change(I)
+							found_blunt_mode = TRUE
+							break
 		
 		// 3. If still no weapon, use unarmed (Fists)
 		if(!W)
@@ -357,32 +357,20 @@
 			return NODE_FAILURE
 
 	// 5. Restrain them.
-	var/obj/item/rope/R = locate(/obj/item/rope) in user.contents
+	var/obj/item/rope/R = user.find_item_in_inventory(/obj/item/rope)
 
 	if(!R)
 		R = new /obj/item/rope(user)
-		user.put_in_hands(R)
-		
-		// If we couldn't put it in hands (e.g. hands full with grab and something else)
-		if(user.get_active_held_item() != R && user.get_inactive_held_item() != R)
-			// Try to put in other hand
-			var/obj/item/offhand = user.get_inactive_held_item()
-			if(offhand && !istype(offhand, /obj/item/grabbing)) // Don't drop the grab!
-				user.dropItemToGround(offhand)
-			user.put_in_hands(R)
+		if(!user.ensure_in_active_hand(R))
+			user.dropItemToGround(R) // Should not happen but safety first
+	else
+		user.ensure_in_active_hand(R)
 	
 	// Apply restraints
-	if(R)
-		if(user.get_active_held_item() != R)
-			if(user.get_inactive_held_item() == R)
-				user.swap_hand()
-			else
-				user.put_in_hands(R)
-		
-		if(user.get_active_held_item() == R)
-			if(user.doing) return NODE_RUNNING
-			R.try_cuff_arms(victim, user)
-			return NODE_RUNNING
+	if(R && user.get_active_held_item() == R)
+		if(user.doing) return NODE_RUNNING
+		R.try_cuff_arms(victim, user)
+		return NODE_RUNNING
 
 	return NODE_RUNNING
 
@@ -391,7 +379,7 @@
 /bt_action/carbon_violate_target/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	if(user.doing) return NODE_RUNNING
 
-	var/mob/living/carbon/human/victim = target
+	var/mob/living/carbon/human/victim = target ? target : user.ai_root.blackboard[AIBLK_MONSTER_BAIT]
 
 	if(!ishuman(user) || !victim || !victim.sexcon)
 		return NODE_FAILURE
@@ -480,6 +468,10 @@
 				else
 					return NODE_FAILURE
 			return NODE_RUNNING
+
+		if(get_turf(user) != get_turf(victim) && user.Adjacent(victim))
+			user.Move(get_turf(victim), get_dir(user, victim))
+			user.dir = victim.dir
 
 		// 3. Start/Continue action
 		if(!user.ai_root.blackboard[AIBLK_S_ACTION])

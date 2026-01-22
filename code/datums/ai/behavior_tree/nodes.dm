@@ -7,14 +7,22 @@
 
 /datum/behavior_tree/node
 	var/node_state = NODE_FAILURE
+	var/active_node_text // Debug text showing the currently running node
 
+	#ifdef BT_DEBUG
+	var/next_log_tick = 0
+	var/next_log_delay = 5 SECONDS
+	#endif
+
+/datum/behavior_tree/node/parallel/root
 	var/list/path // This should always be instantiated if we're creating a mob that has one of these anyways, but still do it in InitAI, not in a node definition.
 	var/atom/move_destination // This is where we're going.
 	var/atom/target // And this is who we're KILLING.
 	var/atom/obj_target // And if we're targeting an object, we'll cast it here.
-	var/datum/behavior_tree/node/action/move_node // Reference to the node that handles processing the mob's movement.
+	var/datum/behavior_tree/node/main_node // Reference to the node that handles the main behavior tree
+	var/datum/behavior_tree/node/move_node // Reference to the node that handles processing the mob's movement.
 
-	var/alist/blackboard // This should only be initialized on the root node!
+	var/alist/blackboard
 
 	// These are timestamp variables to track when commonly-done things should happen. Very lightweight compared to a timer datum. These can get randomized later.
 	// Anything that needs to be checked every tick should be stored here, rather than in the blackboard, to minimize list operations.
@@ -47,13 +55,22 @@
 	var/list/goap_goals_cache
 	var/list/goap_actions_cache
 
-	var/active_node_text // Debug text showing the currently running node
+/mob/living/proc/init_ai_root(typepath)
+	if(ai_root) return
 
-	#ifdef BT_DEBUG
-	var/next_log_tick = 0
-	var/next_log_delay = 5 SECONDS
-	#endif
+	ai_root = new /datum/behavior_tree/node/parallel/root(typepath, src)
+	ai_root.blackboard = new
+	SSai.Register(src)
 
+
+// =============================================================================
+// UNUSED GOAP STUFF
+// =============================================================================
+// This comes from the GOAP implementation I wrote for IS12 Reborn. This is not
+// currently used on this codebase, but may be useful in the future. If you're
+// interested in GOAP, you will need to refactor these helpers to run on the
+// parallel/root node.
+/*
 /datum/behavior_tree/node/proc/build_bt_action_index()
 	if(!bt_action_cache)
 		bt_action_cache = list()
@@ -85,21 +102,21 @@
 	if(!ispath(action_path))
 		return null
 	return bt_action_cache[action_path]
-
+*/
 
 /datum/behavior_tree/node/proc/evaluate(mob/living/npc, atom/target, list/blackboard)
 	return NODE_FAILURE
 
 // This is a helper to check the timeout for special actions, like climbing ladders etc. It should only ever be called on a mob's root node.
-/datum/behavior_tree/node/proc/check_action_timeout(duration = 2 SECONDS)
-	if(!blackboard)
+/datum/behavior_tree/node/proc/check_action_timeout(mob/living/user, duration = 2 SECONDS)
+	if(!user.ai_root.blackboard)
 		CRASH("check_action_timeout got called on a non-root node! Stop that!")
 
-	if(!blackboard[AIBLK_ACTION_TIMEOUT])
-		blackboard[AIBLK_ACTION_TIMEOUT] = world.time + duration
+	if(!user.ai_root.blackboard[AIBLK_ACTION_TIMEOUT])
+		user.ai_root.blackboard[AIBLK_ACTION_TIMEOUT] = world.time + duration
 		return AI_ACTION_FIRST_ATTEMPT
 
-	if(world.time > blackboard[AIBLK_ACTION_TIMEOUT])
+	if(world.time > user.ai_root.blackboard[AIBLK_ACTION_TIMEOUT])
 		return AI_ACTION_TIMED_OUT
 
 	return AI_ACTION_WAITING
@@ -226,6 +243,44 @@
 
 /datum/behavior_tree/node/sequence/Destroy()
 	// When a sequence is deleted, it tells all its children to delete themselves.
+	for(var/datum/D as anything in my_nodes)
+		D.Destroy()
+	my_nodes.len = 0
+	. = ..()
+
+// PARALLEL
+// Special node for situations where it is desirable to always run multiple nodes regardless of their state or return value.
+// This is primarily used for separating thinking and movement trees, but could also have other applications.
+// Always runs all children. Returns NODE_FAILURE if any fail; NODE_RUNNING if any are running and none failed; NODE_SUCCESS otherwise.
+/datum/behavior_tree/node/parallel
+	var/list/my_nodes = list()
+
+/datum/behavior_tree/node/parallel/New()
+	..()
+	var/list/created = list()
+	for (var/type in my_nodes)
+		created += new type()
+	my_nodes = created
+
+/datum/behavior_tree/node/parallel/evaluate(mob/living/npc, atom/target, list/blackboard)
+	var/any_running = FALSE
+	var/any_failed = FALSE
+	for(var/datum/behavior_tree/node/L as anything in my_nodes)
+		var/result = L.evaluate(npc, target, blackboard)
+		if(result == NODE_FAILURE)
+			any_failed = TRUE
+		else if(result == NODE_RUNNING)
+			any_running = TRUE
+	
+	if(any_failed)
+		node_state = NODE_FAILURE
+	else if(any_running)
+		node_state = NODE_RUNNING
+	else
+		node_state = NODE_SUCCESS
+	return node_state
+
+/datum/behavior_tree/node/parallel/Destroy()
 	for(var/datum/D as anything in my_nodes)
 		D.Destroy()
 	my_nodes.len = 0

@@ -86,11 +86,8 @@
 	update_icon()
 	
 	// NEW AI SYSTEM
-	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = 3
-	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
-	ai_root.blackboard = new
-	SSai.Register(src)
 
 
 /mob/living/simple_animal/hostile/retaliate/rogue/wolf/death(gibbed)

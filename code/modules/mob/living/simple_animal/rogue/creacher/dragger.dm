@@ -109,12 +109,9 @@
 	ADD_TRAIT(src, TRAIT_IGNOREDAMAGESLOWDOWN, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC)
 	
-	ai_root = new /datum/behavior_tree/node/selector/generic_hostile_tree()
-	
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DRAGGER_ATTACK_SPEED
-	SSai.Register(src)
 
 
 /mob/living/simple_animal/hostile/rogue/dragger/death(gibbed)

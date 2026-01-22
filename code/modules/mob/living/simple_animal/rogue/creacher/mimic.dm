@@ -59,12 +59,9 @@
 	icon_state = mimicking_chest::icon_state
 	AddComponent(/datum/component/anti_magic, TRUE, TRUE, TRUE, null, null, FALSE)
 	
-	ai_root = new /datum/behavior_tree/node/selector/mimic_tree()
-	
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/mimic_tree)
 	ai_root.next_move_delay = 5
 	ai_root.next_attack_delay = 10
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/mimic/examine(mob/user)
 	if(aggressive)

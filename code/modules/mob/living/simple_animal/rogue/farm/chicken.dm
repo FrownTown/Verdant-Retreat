@@ -118,9 +118,8 @@
 	pixel_y = rand(0, 10)
 	++chicken_count
 	
-	ai_root = new /datum/behavior_tree/node/selector/chicken_tree()
+	init_ai_root(/datum/behavior_tree/node/selector/chicken_tree)
 	ai_root.next_move_delay = move_to_delay
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/chicken/Destroy()
 	--chicken_count

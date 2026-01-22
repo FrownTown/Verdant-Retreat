@@ -38,10 +38,8 @@
 	
 /mob/living/simple_animal/hostile/retaliate/rogue/mudcrab/Initialize()
 	..()
-	ai_root = new /datum/behavior_tree/node/selector/generic_friendly_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_friendly_tree)
 	ai_root.next_move_delay = move_to_delay
-	SSai.Register(src)
 	
 /mob/living/simple_animal/hostile/retaliate/rogue/mudcrab/Life()
 	..()

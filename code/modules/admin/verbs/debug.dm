@@ -475,3 +475,15 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 		return
 	if(alert(usr, "Are you absolutely sure you want to reload the configuration from the default path on the disk, wiping any in-round modificatoins?", "Really reset?", "No", "Yes") == "Yes")
 		config.admin_reload()
+
+/client/proc/debug_behavior_tree(mob/living/M in GLOB.mob_list)
+	set category = "Debug"
+	set name = "Debug Behavior Tree"
+	if(!check_rights(R_DEBUG))
+		return
+
+	if(!M)
+		return
+
+	var/datum/behavior_tree_view/BTV = new(M)
+	BTV.ui_interact(mob)

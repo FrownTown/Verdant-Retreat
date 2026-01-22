@@ -54,11 +54,9 @@ GLOBAL_LIST_INIT(highwayman_aggro, world.file2list("strings/rt/highwaymanaggroli
 	head.sellprice = 30 // 50% More than goblin
 
 	// Initialize behavior tree AI
-	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
 	ai_root.next_attack_delay = 10
-	SSai.Register(src)
 
 // Combat is now handled by behavior trees
 

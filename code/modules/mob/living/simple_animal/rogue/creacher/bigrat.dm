@@ -89,11 +89,9 @@
 	update_icon()
 	
 	// NEW AI SYSTEM
-	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = 5
 	ai_root.next_attack_delay = RAT_ATTACK_SPEED
-	SSai.Register(src)
 
 
 /mob/living/simple_animal/hostile/retaliate/rogue/bigrat/death(gibbed)

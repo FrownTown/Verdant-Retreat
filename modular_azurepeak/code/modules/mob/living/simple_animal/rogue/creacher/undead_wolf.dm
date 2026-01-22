@@ -72,11 +72,9 @@
 	src.AddComponent(/datum/component/infection_spreader)
 
 	// Initialize behavior tree
-	ai_root = new /datum/behavior_tree/node/selector/generic_hungry_hostile_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 0
-	SSai.Register(src)
+	ai_root.next_attack_delay = 10
 
 /mob/living/simple_animal/hostile/retaliate/rogue/wolf_undead/death()
 	if(is_downed)

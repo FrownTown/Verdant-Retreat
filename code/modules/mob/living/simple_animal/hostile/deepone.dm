@@ -39,11 +39,9 @@
 
 /mob/living/simple_animal/hostile/rogue/deepone/Initialize()
 	. = ..()
-	ai_root = new /datum/behavior_tree/node/selector/deepone_melee_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/deepone_melee_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/rogue/deepone/Life()
 	..()
@@ -79,11 +77,9 @@
 
 /mob/living/simple_animal/hostile/rogue/deepone/spit/Initialize()
 	. = ..()
-	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/deepone_ranged_tree)
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/rogue/deepone/wiz
 	name = "Deep One Devout"
@@ -104,11 +100,9 @@
 
 /mob/living/simple_animal/hostile/rogue/deepone/wiz/Initialize()
 	. = ..()
-	ai_root = new /datum/behavior_tree/node/selector/deepone_ranged_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/deepone_ranged_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED	
-	SSai.Register(src)
+	ai_root.next_attack_delay = DEEPONE_ATTACK_SPEED
 
 
 /mob/living/simple_animal/hostile/rogue/deepone/wiz/Shoot()

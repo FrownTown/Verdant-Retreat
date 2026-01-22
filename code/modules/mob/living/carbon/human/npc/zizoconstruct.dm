@@ -63,11 +63,9 @@ GLOBAL_LIST_INIT(zizoconstruct_aggro, world.file2list("strings/rt/zconstructaggr
 			equipOutfit(OU)
 
 	// Initialize behavior tree AI
-	ai_root = new /datum/behavior_tree/node/selector/hostile_humanoid_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
 	ai_root.next_attack_delay = 10
-	SSai.Register(src)
 
 /datum/outfit/job/human/species/construct/metal/zizoconstruct/pre_equip(mob/living/carbon/human/H)
 	..()

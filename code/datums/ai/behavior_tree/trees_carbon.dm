@@ -43,6 +43,7 @@
 
 /datum/behavior_tree/node/sequence/goblin_combat
 	my_nodes = list(
+		/datum/behavior_tree/node/action/goblin_squad_coordination,
 		/datum/behavior_tree/node/selector/humanoid_acquire_target,
 		/datum/behavior_tree/node/selector/goblin_handle_combat
 	)
@@ -50,9 +51,19 @@
 /datum/behavior_tree/node/selector/goblin_handle_combat
 	my_nodes = list(
 		/datum/behavior_tree/node/sequence/humanoid_flee_sequence,
-		/datum/behavior_tree/node/sequence/humanoid_subdue_sequence,
+		/datum/behavior_tree/node/sequence/goblin_subdue_sequence,
 		/datum/behavior_tree/node/sequence/humanoid_attack_sequence,
 		/datum/behavior_tree/node/action/carbon_move_to_target
+	)
+
+/datum/behavior_tree/node/sequence/goblin_subdue_sequence
+	my_nodes = list(
+		/datum/behavior_tree/node/action/carbon_check_monster_bait,
+		/datum/behavior_tree/node/action/carbon_subdue_target,
+		/datum/behavior_tree/node/action/goblin_disarm,
+		/datum/behavior_tree/node/action/goblin_drag_away,
+		/datum/behavior_tree/node/action/carbon_violate_target,
+		/datum/behavior_tree/node/action/goblin_post_violate
 	)
 
 /datum/behavior_tree/node/sequence/humanoid_flee_sequence
@@ -125,3 +136,15 @@
 
 /datum/behavior_tree/node/action/carbon_violate_target
 	my_action = /bt_action/carbon_violate_target
+
+/datum/behavior_tree/node/action/goblin_squad_coordination
+	my_action = /bt_action/goblin_squad_coordination
+
+/datum/behavior_tree/node/action/goblin_drag_away
+	my_action = /bt_action/goblin_drag_away
+
+/datum/behavior_tree/node/action/goblin_post_violate
+	my_action = /bt_action/goblin_post_violate
+
+/datum/behavior_tree/node/action/goblin_disarm
+	my_action = /bt_action/goblin_disarm

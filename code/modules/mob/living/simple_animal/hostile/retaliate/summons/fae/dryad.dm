@@ -49,10 +49,8 @@
 
 /mob/living/simple_animal/hostile/retaliate/rogue/fae/dryad/Initialize()
 	. = ..()
-	ai_root = new /datum/behavior_tree/node/selector/dryad_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/dryad_tree)
 	ai_root.next_move_delay = move_to_delay
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/fae/dryad/simple_add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE)	//no wounding the watcher
 	return

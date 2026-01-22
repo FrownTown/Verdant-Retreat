@@ -7,11 +7,8 @@
 	ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_SHOCKIMMUNE, TRAIT_GENERIC)
 	
-	ai_root = new /datum/behavior_tree/node/selector/obelisk_tree()
-	
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/obelisk_tree)
 	ai_root.next_move_delay = move_to_delay
-	SSai.Register(src)
 
 /mob/living/simple_animal/hostile/retaliate/rogue/voidstoneobelisk/simple_add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE)	//no wounding the obelisk
 	return

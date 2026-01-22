@@ -99,17 +99,11 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 			unregister_queue |= M
 			continue
 
-		if(M.ai_root.next_move_tick <= current_time)
-			M.RunMovement()
-			M.ai_root.next_move_tick = current_time + M.ai_root.next_move_delay
-
-
-		// Check if enough time has passed for the mob to think again.
-		if(current_time >= M.ai_root.next_think_tick)
+		// Check if enough time has passed for the mob to think/move again.
+		if(current_time >= M.ai_root.next_think_tick || current_time >= M.ai_root.next_move_tick)
 			if(!(M.ai_root.ai_flags & (AI_FLAG_PERSISTENT|AI_FLAG_ASSUMEDIRECTCONTROL|AI_FLAG_FORCESLEEP)))
 
 				var/list/nearby_players = SSquadtree.players_in_range(M.qt_range, T.z, QTREE_SCAN_MOBS|QTREE_EXCLUDE_OBSERVER)
-
 
 				if(!length(nearby_players))
 					if(M.ai_root.blackboard)

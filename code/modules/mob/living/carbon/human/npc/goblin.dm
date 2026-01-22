@@ -25,11 +25,13 @@
 	rude = TRUE
 	wander = FALSE
 
+/mob/living/carbon/human/species/goblin/npc/get_preferred_squad_type()
+	return /ai_squad/goblin
+
 /mob/living/carbon/human/species/goblin/npc/Initialize()
 	. = ..()
 	// Initialize behavior tree AI
-	ai_root = new /datum/behavior_tree/node/selector/goblin_tree()
-	ai_root.blackboard = new
+	init_ai_root(/datum/behavior_tree/node/selector/goblin_tree)
 	ai_root.next_move_delay = 3
 	ai_root.next_attack_delay = 10
 	SSai.Register(src)
