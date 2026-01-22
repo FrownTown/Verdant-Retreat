@@ -838,8 +838,7 @@
 
 	// Logic to move towards follow_target
 	if(user.ai_root.move_destination != follow_target || !length(user.ai_root.path))
-		user.ai_root.path = A_Star(user, get_turf(user), get_turf(follow_target))
-		user.ai_root.move_destination = follow_target
+		user.set_ai_path_to(follow_target)
 	
 	if(length(user.ai_root.path))
 		return NODE_RUNNING
@@ -965,10 +964,6 @@
 		step(user, move_dir)
 		return NODE_SUCCESS
 	return NODE_FAILURE
-
-// ------------------------------------------------------------------------------
-// NEW/PORTED ACTIONS (SUBTREE COMPLETION)
-// ------------------------------------------------------------------------------
 
 /bt_action/minion_follow
 	var/distance = 12
@@ -1180,10 +1175,6 @@
 		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
 		return NODE_SUCCESS
 	return NODE_RUNNING
-
-// ------------------------------------------------------------------------------
-// EVENT ACTIONS
-// ------------------------------------------------------------------------------
 
 /bt_action/deadite_migrate
 	var/path_key = "deadite_migration_path"

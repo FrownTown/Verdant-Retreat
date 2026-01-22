@@ -86,9 +86,9 @@
 		walk(src, 0) //stops walking
 		return 0
 
+// Legacy function, currently only called by legacy logic and unsupported.
+// Any similar functionality should be migrated to the new behavior tree.
 /mob/living/simple_animal/hostile/proc/deaggrodel()
-	// Legacy function, might need porting if used outside legacy loop
-	// Currently only called by legacy logic.
 	return
 
 /mob/living/simple_animal/hostile/proc/sidestep()

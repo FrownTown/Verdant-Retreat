@@ -74,7 +74,7 @@
 	// Initialize behavior tree
 	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = WOLF_ATTACK_SPEED
 
 /mob/living/simple_animal/hostile/retaliate/rogue/wolf_undead/death()
 	if(is_downed)

@@ -33,7 +33,7 @@
 	// Initialize behavior tree AI
 	init_ai_root(/datum/behavior_tree/node/selector/goblin_tree)
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 	SSai.Register(src)
 
 /mob/living/carbon/human/species/goblin/npc/ambush
@@ -44,7 +44,7 @@
 	. = ..()
 	// ADAPT: Faster attack speed for ambush goblins using behavior tree delay
 	if(ai_root)
-		ai_root.next_attack_delay = 2
+		ai_root.next_attack_delay = CLICK_CD_RAPID
 
 /mob/living/carbon/human/species/goblin/hell
 	name = "hell goblin"

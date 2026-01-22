@@ -84,7 +84,7 @@
 	// Initialize behavior tree
 	init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 
 	. = ..()
 

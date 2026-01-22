@@ -48,5 +48,5 @@ GLOBAL_LIST_INIT(bum_aggro, world.file2list("strings/rt/bumaggrolines.txt"))
 	// Initialize behavior tree AI
 	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 	SSai.Register(src)

@@ -56,7 +56,7 @@ GLOBAL_LIST_INIT(highwayman_aggro, world.file2list("strings/rt/highwaymanaggroli
 	// Initialize behavior tree AI
 	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 
 // Combat is now handled by behavior trees
 

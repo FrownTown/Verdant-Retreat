@@ -93,7 +93,7 @@
 	// Initialize behavior tree AI
 	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 
 /datum/outfit/job/human/species/human/northern/thief/pre_equip(mob/living/carbon/human/H)
 	cloak = /obj/item/clothing/cloak/raincloak/mortus

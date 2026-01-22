@@ -27,7 +27,7 @@
 	// Initialize behavior tree AI
 	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = ORC_ATTACK_SPEED
 	SSai.Register(src)
 
 /datum/outfit/job/orc/npc/pre_equip(mob/living/carbon/human/H) //gives some default skills and equipment for player controlled orcs

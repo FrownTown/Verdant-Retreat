@@ -91,7 +91,7 @@
 		init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 		SSai.Register(src)
 		ai_root.next_move_delay = 3
-		ai_root.next_attack_delay = 10
+		ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
 
 /datum/outfit/job/npc/skeleton/pre_equip(mob/living/carbon/human/H)
 	..()

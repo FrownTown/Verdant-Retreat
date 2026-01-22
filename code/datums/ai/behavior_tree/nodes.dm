@@ -107,11 +107,8 @@
 /datum/behavior_tree/node/proc/evaluate(mob/living/npc, atom/target, list/blackboard)
 	return NODE_FAILURE
 
-// This is a helper to check the timeout for special actions, like climbing ladders etc. It should only ever be called on a mob's root node.
-/datum/behavior_tree/node/proc/check_action_timeout(mob/living/user, duration = 2 SECONDS)
-	if(!user.ai_root.blackboard)
-		CRASH("check_action_timeout got called on a non-root node! Stop that!")
-
+// This is a helper to check the timeout for special actions, like climbing ladders etc. It should only ever be called on a mob's ai_root node.
+/datum/behavior_tree/node/parallel/root/proc/check_action_timeout(mob/living/user, duration = 2 SECONDS)
 	if(!user.ai_root.blackboard[AIBLK_ACTION_TIMEOUT])
 		user.ai_root.blackboard[AIBLK_ACTION_TIMEOUT] = world.time + duration
 		return AI_ACTION_FIRST_ATTEMPT
@@ -252,6 +249,7 @@
 // Special node for situations where it is desirable to always run multiple nodes regardless of their state or return value.
 // This is primarily used for separating thinking and movement trees, but could also have other applications.
 // Always runs all children. Returns NODE_FAILURE if any fail; NODE_RUNNING if any are running and none failed; NODE_SUCCESS otherwise.
+// Currently, the return values are not used for anything, but this may change in the future.
 /datum/behavior_tree/node/parallel
 	var/list/my_nodes = list()
 

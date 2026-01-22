@@ -64,7 +64,7 @@
 	// Initialize behavior tree
 	init_ai_root(/datum/behavior_tree/node/selector/generic_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 0
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 
 /mob/living/simple_animal/hostile/retaliate/rogue/headless/AttackingTarget()
 	//If its a carbon, your cooldown is up, and your above 30% health you can eat them

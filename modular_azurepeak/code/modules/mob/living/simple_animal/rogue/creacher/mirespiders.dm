@@ -56,7 +56,7 @@
 	// Initialize behavior tree
 	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = MIRESPIDER_ATTACK_SPEED
 
 	addtimer(CALLBACK(src, PROC_REF(find_lurker_to_follow)), 10)
 
@@ -199,7 +199,7 @@
 	// Initialize behavior tree for ranged combat
 	init_ai_root(/datum/behavior_tree/node/selector/deepone_ranged_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = MIRESPIDER_LURKER_ATTACK_SPEED
 	// I'll replace this with something better later. Stopgap for now to make killing them more than just a nuisance.
 
 /mob/living/simple_animal/hostile/rogue/mirespider_lurker/death(gibbed)
@@ -272,7 +272,7 @@
 	// Initialize behavior tree
 	init_ai_root(/datum/behavior_tree/node/selector/generic_hungry_hostile_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = ARAGN_ATTACK_SPEED
 
 /datum/intent/simple/bite/mirespider_paralytic
 	clickcd = ARAGN_ATTACK_SPEED

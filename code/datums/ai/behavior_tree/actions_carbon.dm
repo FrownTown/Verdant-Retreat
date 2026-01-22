@@ -111,7 +111,7 @@
 	if(user.ai_root && world.time >= user.ai_root.next_attack_tick)
 		user.face_atom(target)
 		user.monkey_attack(target)
-		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
+		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 12)
 		return NODE_SUCCESS
 
 	return NODE_RUNNING

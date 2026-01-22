@@ -57,7 +57,7 @@
 	// Reuse deepone behavior tree for ranged combat
 	init_ai_root(/datum/behavior_tree/node/selector/deepone_ranged_tree)
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = CLICK_CD_MELEE
 
 /mob/living/simple_animal/hostile/retaliate/rogue/goblin/cave
 	icon_state = "goblinarcher2"

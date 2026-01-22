@@ -97,7 +97,7 @@
 	init_ai_root(/datum/behavior_tree/node/selector/direbear_tree)
 	ai_root.blackboard["targeted_action"] = leap
 	ai_root.next_move_delay = move_to_delay
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = DRAGON_ATTACK_SPEED
 	
 	//ADD_TRAIT(src, TRAIT_NOPAINSTUN, TRAIT_GENERIC) // Need a weakness
 

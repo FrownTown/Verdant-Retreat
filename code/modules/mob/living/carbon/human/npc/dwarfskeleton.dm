@@ -70,7 +70,8 @@ GLOBAL_LIST_INIT(dwarfskeleton_aggro, world.file2list("strings/rt/dskeletonaggro
 	// Initialize behavior tree AI
 	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 	ai_root.next_move_delay = 3
-	ai_root.next_attack_delay = 10
+	ai_root.next_attack_delay = SKELETON_ATTACK_SPEED
+	SSai.Register(src)
 
 /datum/outfit/job/dwarfskeleton/pre_equip(mob/living/carbon/human/H)
 	..()
