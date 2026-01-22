@@ -175,6 +175,9 @@
 // ------------------------------------------------------------------------------
 
 /bt_action/carbon_check_monster_bait/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(user.ai_root.blackboard[AIBLK_S_ACTION] && !length(user.sexcon.using_zones))
+		user.ai_root.blackboard.Remove(AIBLK_S_ACTION)
+
 	if(!target)
 		return NODE_FAILURE
 	
@@ -185,7 +188,7 @@
 	if(HAS_TRAIT(target, TRAIT_MONSTERBAIT))
 		user.ai_root.blackboard[AIBLK_MONSTER_BAIT] = target
 		return NODE_SUCCESS
-	
+
 	user.ai_root.blackboard.Remove(AIBLK_MONSTER_BAIT)
 	return NODE_FAILURE
 
@@ -196,6 +199,9 @@
 	if(user.doing) return NODE_RUNNING
 
 	var/mob/living/carbon/victim = user.ai_root.blackboard[blackboard_key]
+
+	if(!victim.getorganslot(ORGAN_SLOT_VAGINA))
+		return NODE_FAILURE // Unviable for goblin reproduction. This is a placeholder for the future
 
 	if(!ishuman(user) || !victim)
 		return NODE_FAILURE
@@ -384,8 +390,8 @@
 	if(!ishuman(user) || !victim || !victim.sexcon)
 		return NODE_FAILURE
 
-	// Only violate if they are restrained
-	if(!victim.restrained() && !victim.IsUnconscious() && !victim.IsKnockdown())
+	// Only violate if they are not resisting or if they are restrained or incapacitated
+	if(!victim.restrained() && !victim.IsUnconscious() && !victim.IsKnockdown() && !victim.IsSleeping() && !target.compliance && !target.surrendering)
 		return NODE_FAILURE
 
 	if(!user.sexcon)
@@ -395,10 +401,6 @@
 		user.sexcon.stop_current_action()
 		return NODE_SUCCESS
 
-	var/datum/sex_action/action = SEX_ACTION(/datum/sex_action/vaginal_sex)
-	if(!action)
-		return NODE_FAILURE
-	
 	if(user.getorganslot(ORGAN_SLOT_PENIS) && !user.sexcon.is_spent())
 		user.sexcon.set_target(victim)
 		user.sexcon.update_all_accessible_body_zones()
@@ -406,28 +408,37 @@
 
 		// Determine preferred action
 		var/action_path = /datum/sex_action/vaginal_sex
-		if(!victim.getorganslot(ORGAN_SLOT_VAGINA))
-			action_path = /datum/sex_action/anal_sex
-		
-		action = SEX_ACTION(action_path)
+		if(length(victim.sexcon.using_zones) && !length(user.sexcon.using_zones))
+			if(BODY_ZONE_PRECISE_GROIN in victim.sexcon.using_zones)
+				action_path = /datum/sex_action/force_blowjob
+			if(BODY_ZONE_PRECISE_MOUTH in user.sexcon.using_zones)
+				action_path = /datum/sex_action/anal_sex
+			else
+				return NODE_FAILURE // Uh oh
+				
+		var/datum/sex_action/action = SEX_ACTION(action_path)
 		if(!action)
 			return NODE_FAILURE
+
+		var/used_zone = action_path == /datum/sex_action/force_blowjob ? BODY_ZONE_PRECISE_MOUTH : BODY_ZONE_PRECISE_GROIN
+		var/used_bitflag = used_zone == BODY_ZONE_PRECISE_MOUTH ? MOUTH : GROIN
 			
 		// 1. Check if USER is accessible
-		if(!action.check_location_accessible(user, user, BODY_ZONE_PRECISE_GROIN))
+		if(!action.check_location_accessible(user, user, used_zone))
 			user.visible_message(span_warning("[user] starts stripping [user.p_their()] own clothing!"))
 			if(do_mob(user, user, 30))
 				var/stripped = FALSE
-				if(user.wear_shirt && (user.wear_shirt.body_parts_covered_dynamic & GROIN))
-					user.dropItemToGround(user.wear_shirt, TRUE, TRUE)
-					stripped = TRUE
-				else if(user.wear_armor && (user.wear_armor.body_parts_covered_dynamic & GROIN))
-					user.dropItemToGround(user.wear_armor, TRUE, TRUE)
-					stripped = TRUE
-				else if(user.wear_pants && (user.wear_pants.body_parts_covered_dynamic & GROIN))
-					user.dropItemToGround(user.wear_pants, TRUE, TRUE)
-					stripped = TRUE
-				else if(user.underwear)
+				var/list/stripping_candidates = list()
+				// Strip self
+				for(var/obj/I as anything in user.get_blocking_equipment(used_bitflag))
+					stripping_candidates += I
+
+				for(var/obj/item/I in stripping_candidates)
+					if(user.dropItemToGround(I, TRUE, TRUE))
+						stripped = TRUE
+						break
+				
+				if(!stripped && user.underwear)
 					var/obj/item/bodypart/chest = user.get_bodypart(BODY_ZONE_CHEST)
 					if(chest)
 						chest.remove_bodypart_feature(user.underwear.undies_feature)
@@ -441,20 +452,23 @@
 			return NODE_RUNNING
 
 		// 2. Check if VICTIM is accessible
-		if(!action.check_location_accessible(user, victim, BODY_ZONE_PRECISE_GROIN))
+		if(!action.check_location_accessible(user, victim, used_zone))
 			user.visible_message(span_warning("[user] starts stripping the clothing off of [victim]!"))
 			if(do_mob(user, victim, 50))
 				var/stripped = FALSE
-				if(victim.wear_shirt && (victim.wear_shirt.body_parts_covered_dynamic & GROIN))
-					victim.dropItemToGround(victim.wear_shirt, TRUE, TRUE)
-					stripped = TRUE
-				else if(victim.wear_armor && (victim.wear_armor.body_parts_covered_dynamic & GROIN))
-					victim.dropItemToGround(victim.wear_armor, TRUE, TRUE)
-					stripped = TRUE
-				else if(victim.wear_pants && (victim.wear_pants.body_parts_covered_dynamic & GROIN))
-					victim.dropItemToGround(victim.wear_pants, TRUE, TRUE)
-					stripped = TRUE
-				else if(victim.underwear)
+				// Robust strip logic for victim
+				var/list/stripping_candidates = list()
+				
+				// Prioritize outer layers
+				for(var/obj/item/I in victim.get_blocking_equipment(used_bitflag))
+					stripping_candidates += I
+
+				for(var/obj/item/I in stripping_candidates)
+					if(victim.dropItemToGround(I, TRUE, TRUE))
+						stripped = TRUE
+						break
+				
+				if(!stripped && victim.underwear)
 					var/obj/item/bodypart/chest = victim.get_bodypart(BODY_ZONE_CHEST)
 					if(chest)
 						chest.remove_bodypart_feature(victim.underwear.undies_feature)

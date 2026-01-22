@@ -476,14 +476,16 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 	if(alert(usr, "Are you absolutely sure you want to reload the configuration from the default path on the disk, wiping any in-round modificatoins?", "Really reset?", "No", "Yes") == "Yes")
 		config.admin_reload()
 
-/client/proc/debug_behavior_tree(mob/living/M in GLOB.mob_list)
+/client/proc/debug_behavior_tree()
 	set category = "Debug"
 	set name = "Debug Behavior Tree"
 	if(!check_rights(R_DEBUG))
 		return
 
-	if(!M)
-		return
-
-	var/datum/behavior_tree_view/BTV = new(M)
+	var/datum/behavior_tree_view/BTV = new(src)
 	BTV.ui_interact(mob)
+
+	// Automatically start in selection mode
+	src.click_intercept = BTV
+	src.mouse_pointer_icon = 'icons/effects/supplypod_target.dmi'
+	to_chat(mob, span_notice("Click on a mob to debug their behavior tree. Right click to cancel."))

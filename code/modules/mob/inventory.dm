@@ -402,6 +402,20 @@
 			items += s_store
 	return items
 
+/mob/living/carbon/human/proc/get_blocking_equipment(slotflag)
+	var/list/items = list()
+	if(wear_armor && (wear_armor.body_parts_covered_dynamic & slotflag))
+		items += wear_armor
+	if(wear_pants && (wear_pants.body_parts_covered_dynamic & slotflag))
+		items += wear_pants
+	if(cloak && (cloak.body_parts_covered_dynamic & slotflag))
+		items += cloak
+	if(mouth && (mouth.body_parts_covered_dynamic & slotflag))
+		items += mouth
+	if(wear_shirt && (wear_shirt.body_parts_covered_dynamic & slotflag))
+		items += wear_shirt
+	return items
+
 /mob/living/proc/unequip_everything()
 	var/list/items = list()
 	items |= get_equipped_items(TRUE)

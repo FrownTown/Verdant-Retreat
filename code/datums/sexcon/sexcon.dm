@@ -63,7 +63,7 @@
 	if(user && !user.client && !isdummy(user))
 		addtimer(CALLBACK(src, PROC_REF(init_npc_organs), owner), 1 SECONDS)
 
-// NPCs often lack these organs because they are commented out in species definitions.
+// NPCs often lack these organs because they are commented out in species definitions in favor of customization for players.
 // We initialize them here to ensure the sex system works for them.
 
 /datum/sex_controller/proc/init_npc_organs(mob/living/carbon/human/owner)

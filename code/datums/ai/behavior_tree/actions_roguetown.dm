@@ -890,37 +890,10 @@
 	if(pawn.health >= pawn.maxHealth)
 		return NODE_SUCCESS // Fully healed
 
-	// This action simulates the long do_after. In a BT, we would typically return RUNNING while waiting.
-	// However, simple animals might not support async waiting easily in this framework without a state.
-	// We'll simulate it by checking if we are already resting.
-	
-	if(!user.ai_root.blackboard["recuperating"])
-		pawn.visible_message(span_danger("[pawn] tends to their wounds..."))
-		user.ai_root.blackboard["recuperating"] = world.time
+	if(user.doing)
 		return NODE_RUNNING
-	
-	if(world.time - user.ai_root.blackboard["recuperating"] >= 80) // 8 seconds
-		var/max_hp = pawn.maxHealth
-		// Default values from old behavior
-		var/bleed_clot = 0.02
-		var/brute_heal = 0.10
-		var/fire_heal = 1
-		var/blood_recovery = 5
-		
-		if(pawn.bleed_rate)
-			pawn.bleed_rate = pawn.bleed_rate - (max_hp * bleed_clot)
-			pawn.bleed_rate = clamp(pawn.bleed_rate, 0, max_hp)
-		
-		pawn.adjustBruteLoss( (max_hp * -brute_heal) )
-		pawn.health = clamp(pawn.health, 0, max_hp)
-		pawn.adjust_fire_stacks(-fire_heal)
-		if(pawn.blood_volume)
-			pawn.blood_volume += blood_recovery
-			pawn.blood_volume = clamp(pawn.blood_volume, 0, BLOOD_VOLUME_NORMAL)
-		
-		user.ai_root.blackboard.Remove("recuperating")
-		return NODE_SUCCESS
-		
+
+	INVOKE_ASYNC(pawn, TYPE_PROC_REF(/mob/living/simple_animal, recuperate))
 	return NODE_RUNNING
 
 /bt_action/resist/evaluate(mob/living/user, mob/living/target, list/blackboard)

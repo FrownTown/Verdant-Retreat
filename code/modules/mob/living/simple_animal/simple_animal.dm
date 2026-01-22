@@ -879,6 +879,29 @@ GLOBAL_VAR_INIT(farm_animals, FALSE)
 				pooprog = 0
 				poop()
 
+/mob/living/simple_animal/proc/recuperate()
+	if(health >= maxHealth)
+		return
+
+	visible_message(span_danger("[src] tends to their wounds..."))
+	if(do_after(src, 8 SECONDS, target = src))
+		var/max_hp = maxHealth
+		var/bleed_clot = 0.02
+		var/brute_heal = 0.10
+		var/fire_heal = 1
+		var/blood_recovery = 5
+
+		if(bleed_rate)
+			bleed_rate = bleed_rate - (max_hp * bleed_clot)
+			bleed_rate = clamp(bleed_rate, 0, max_hp)
+
+		adjustBruteLoss( (max_hp * -brute_heal) )
+		health = clamp(health, 0, max_hp)
+		adjust_fire_stacks(-fire_heal)
+		if(blood_volume)
+			blood_volume += blood_recovery
+			blood_volume = clamp(blood_volume, 0, BLOOD_VOLUME_NORMAL)
+
 /mob/living/simple_animal/proc/poop()
 	if(pooptype)
 		if(isturf(loc))

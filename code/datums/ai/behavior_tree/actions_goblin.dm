@@ -38,7 +38,7 @@
 // ------------------------------------------------------------------------------
 
 /bt_action/goblin_drag_away
-	var/min_drag_dist = 7
+	var/min_drag_dist = 10
 	var/blackboard_key = "drag_start_loc"
 
 /bt_action/goblin_drag_away/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
@@ -238,3 +238,19 @@
 			return NODE_RUNNING
 			
 	return NODE_SUCCESS // No weapons found, move on
+
+// ------------------------------------------------------------------------------
+// CAPTIVE HANDLING
+// ------------------------------------------------------------------------------
+
+/bt_action/goblin_attack_check/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(target))
+		return NODE_SUCCESS
+	if(target && (target.restrained()))
+		return NODE_FAILURE
+
+	var/list/ignored = user.ai_root.blackboard["ignored_targets"]
+	if(ignored && ignored[target])
+		return NODE_FAILURE
+
+	return NODE_SUCCESS

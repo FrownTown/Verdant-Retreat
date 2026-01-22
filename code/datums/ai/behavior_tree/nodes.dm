@@ -390,3 +390,150 @@
 	if(child)
 		child.Destroy()
 	. = ..(QDEL_HINT_IWILLGC)
+
+// TIMEOUT DECORATOR
+// Interrupts the child node if it runs longer than the specified limit.
+/datum/behavior_tree/node/decorator/timeout
+	var/start_time = 0
+	var/limit = 10 SECONDS
+
+/datum/behavior_tree/node/decorator/timeout/New(new_limit)
+	..()
+	if(new_limit)
+		limit = new_limit
+
+/datum/behavior_tree/node/decorator/timeout/evaluate(mob/living/npc, atom/target, list/blackboard)
+	// If we weren't running before, start the timer
+	if(node_state != NODE_RUNNING)
+		start_time = world.time
+
+	// Check timeout
+	if((world.time - start_time) > limit)
+		node_state = NODE_FAILURE
+		return node_state
+
+	var/result = child.evaluate(npc, target, blackboard)
+	node_state = result
+	return result
+
+// PROGRESS VALIDATOR DECORATOR
+// Validates progress between ticks using a custom check.
+// Override check_progress to implement specific logic.
+/datum/behavior_tree/node/decorator/progress_validator
+	var/last_state = null // Store generic state here
+
+/datum/behavior_tree/node/decorator/progress_validator/evaluate(mob/living/npc, atom/target, list/blackboard)
+	var/result = child.evaluate(npc, target, blackboard)
+	
+	if(result == NODE_RUNNING)
+		if(!check_progress(npc, blackboard))
+			node_state = NODE_FAILURE
+			return node_state
+	
+	node_state = result
+	return result
+
+/datum/behavior_tree/node/decorator/progress_validator/proc/check_progress(mob/living/npc, list/blackboard)
+	// Override me
+	return TRUE
+
+// STUCK SENSOR DECORATOR
+// Checks if the mob has been stuck in the same location for too long.
+// If so, clears the path (forcing a repath) and returns FAILURE.
+/datum/behavior_tree/node/decorator/progress_validator/stuck_sensor
+	var/turf/last_loc
+	var/stuck_since = 0
+	var/stuck_limit = 5 SECONDS
+
+/datum/behavior_tree/node/decorator/progress_validator/stuck_sensor/New(limit)
+	..()
+	if(limit)
+		stuck_limit = limit
+
+/datum/behavior_tree/node/decorator/progress_validator/stuck_sensor/check_progress(mob/living/npc, list/blackboard)
+	var/turf/T = get_turf(npc)
+	if(T != last_loc)
+		last_loc = T
+		stuck_since = 0
+		return TRUE
+	
+	if(stuck_since == 0)
+		stuck_since = world.time
+	
+	if((world.time - stuck_since) > stuck_limit)
+		// Stuck! Force repath.
+		if(npc.ai_root) // Just in case, but should never happen
+			npc.set_ai_path_to(null)
+		
+		// Reset timer to give the new path a chance
+		stuck_since = 0 
+		last_loc = null
+		return FALSE // Forces failure
+	
+	return TRUE
+
+
+// PARALLEL (FAIL EARLY)
+// Like parallel, but returns NODE_FAILURE immediately if ANY child fails.
+/datum/behavior_tree/node/parallel/fail_early
+
+/datum/behavior_tree/node/parallel/fail_early/evaluate(mob/living/npc, atom/target, list/blackboard)
+	var/any_running = FALSE
+	var/any_failed = FALSE
+	
+	for(var/datum/behavior_tree/node/L as anything in my_nodes)
+		var/result = L.evaluate(npc, target, blackboard)
+		if(result == NODE_FAILURE)
+			any_failed = TRUE
+			break
+		else if(result == NODE_RUNNING)
+			any_running = TRUE
+	
+	if(any_failed)
+		node_state = NODE_FAILURE
+	else if(any_running)
+		node_state = NODE_RUNNING
+	else
+		node_state = NODE_SUCCESS
+	return node_state
+
+// RETRY DECORATOR (COOLDOWN ON FAILURE)
+// If the child returns FAILURE, it tracks the failure.
+// After 'max_failures' consecutive failures, it enforces a cooldown ('wait')
+// during which it forces the parent selector to proceed (by returning FAILURE immediately).
+/datum/behavior_tree/node/decorator/retry
+	var/cooldown = 5 SECONDS
+	var/max_failures = 1
+	var/failure_count = 0
+	var/last_fail_time = 0
+
+/datum/behavior_tree/node/decorator/retry/New(new_cooldown, new_max_failures)
+	..()
+	if(new_cooldown)
+		cooldown = new_cooldown
+	if(new_max_failures)
+		max_failures = new_max_failures
+
+/datum/behavior_tree/node/decorator/retry/evaluate(mob/living/npc, atom/target, list/blackboard)
+	// Check if we are on cooldown
+	if(last_fail_time > 0 && (world.time - last_fail_time) < cooldown)
+		node_state = NODE_FAILURE
+		return node_state
+
+	var/result = child.evaluate(npc, target, blackboard)
+
+	if(result == NODE_FAILURE)
+		failure_count++
+		if(failure_count >= max_failures)
+			last_fail_time = world.time
+			failure_count = 0 // Reset count so we can try again after cooldown
+			// We return FAILURE, effectively "forcing parent selector to proceed" for the duration of the cooldown
+	else
+		// If success or running, reset failure count?
+		// Usually yes, a success breaks the streak of failures.
+		failure_count = 0
+		// last_fail_time = 0 // Do not reset cooldown on success, it's a cooldown *on failure*.
+
+	node_state = result
+	return result
+

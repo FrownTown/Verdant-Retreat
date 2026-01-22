@@ -52,6 +52,7 @@
 	my_nodes = list(
 		/datum/behavior_tree/node/sequence/humanoid_flee_sequence,
 		/datum/behavior_tree/node/sequence/goblin_subdue_sequence,
+		/datum/behavior_tree/node/action/goblin_attack_check{invert = TRUE},
 		/datum/behavior_tree/node/sequence/humanoid_attack_sequence,
 		/datum/behavior_tree/node/action/carbon_move_to_target
 	)
@@ -136,6 +137,9 @@
 
 /datum/behavior_tree/node/action/carbon_violate_target
 	my_action = /bt_action/carbon_violate_target
+
+/datum/behavior_tree/node/action/goblin_attack_check
+	my_action = /bt_action/goblin_attack_check
 
 /datum/behavior_tree/node/action/goblin_squad_coordination
 	my_action = /bt_action/goblin_squad_coordination
