@@ -22,7 +22,9 @@
 	charging_slowdown = 3
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/blood
+	is_offensive = TRUE
 	cost = 3
+	damage_variance = SPELL_VARIANCE_LOW
 
 /obj/projectile/magic/bloodlightning
 	name = "blood bolt"
@@ -39,6 +41,7 @@
 	flag = "magic"
 	light_color = "#802121"
 	light_outer_range = 7
+	woundclass = BCLASS_ELECTRICAL
 
 /obj/projectile/magic/bloodlightning/on_hit(target)
 	. = ..()

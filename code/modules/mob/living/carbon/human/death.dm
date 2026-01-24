@@ -10,6 +10,9 @@
 	else
 		new /obj/effect/gibspawner/human/bodypartless(drop_location(), src)
 
+/mob/living/proc/spawn_limbgore()
+	new /obj/effect/gibspawner/part(drop_location(), src)
+
 /mob/living/carbon/human/spawn_dust(just_ash = FALSE)
 	if(just_ash)
 		for(var/i in 1 to 5)

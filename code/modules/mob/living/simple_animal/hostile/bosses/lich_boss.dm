@@ -158,6 +158,8 @@
 	speed = 0.3
 	flag = "magic"
 	light_color = "#ffffff"
+	woundclass = BCLASS_ELECTRICAL
+	
 /obj/projectile/magic/lich/lightning/on_hit(target)
 	. = ..()
 	if(ismob(target))

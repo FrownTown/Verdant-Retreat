@@ -15,6 +15,7 @@
 	charging_slowdown = 2
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane
+	is_offensive = TRUE
 	overlay_state = "blade_burst"
 	spell_tier = 2 // AOE, but this is essential for PVE
 	invocation = "Erumpere Gladios!"
@@ -60,16 +61,20 @@
 		new /obj/effect/temp_visual/trap(affected_turf)
 	playsound(T, 'sound/magic/blade_burst.ogg', 80, TRUE, soundping = TRUE)
 
-	sleep(delay)
+	var/list/turfs = view(area_of_effect, T)
+	addtimer(CALLBACK(src, PROC_REF(burst), turfs, source_turf, user, T), delay)
+
+/obj/effect/proc_holder/spell/invoked/blade_burst/proc/burst(list/turfs, turf/source_turf, mob/living/user, turf/T)
 	var/play_cleave = FALSE
 
-	for(var/turf/affected_turf in view(area_of_effect, T))
+	for(var/turf/affected_turf in turfs)
 		new /obj/effect/temp_visual/blade_burst(affected_turf)
 		if(!(affected_turf in view(source_turf)))
 			continue
 		for(var/mob/living/L in affected_turf.contents)
 			play_cleave = TRUE
-			L.adjustBruteLoss(damage)
+			var/adjusted_damage = get_varied_damage(damage, user)
+			L.adjustBruteLoss(adjusted_damage, bclass = BCLASS_CUT)
 			playsound(affected_turf, "genslash", 80, TRUE)
 			to_chat(L, "<span class='userdanger'>You're cut by arcyne force!</span>")
 

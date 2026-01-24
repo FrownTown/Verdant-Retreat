@@ -173,6 +173,8 @@
 	recharge_time = 10 SECONDS
 	miracle = TRUE
 	devotion_cost = 50
+	damage_variance = SPELL_VARIANCE_MID
+	is_offensive = TRUE
 
 /obj/effect/proc_holder/spell/invoked/abyssheal/cast(list/targets, mob/living/user)
 	. = ..()
@@ -185,7 +187,8 @@
 			return FALSE
 		if(user.patron?.undead_hater && (target.mob_biotypes & MOB_UNDEAD)) //THE DEEP CALLS- sorry, the pressure of the deep falls upon those of the undead ilk
 			target.visible_message(span_danger("[target] is crushed by divine pressure!"), span_userdanger("I'm crushed by divine pressure!"))
-			target.adjustBruteLoss(30)
+			var/adjusted_damage = get_varied_damage(30, user)
+			target.adjustBruteLoss(adjusted_damage)
 			return TRUE
 		var/conditional_buff = FALSE
 		var/situational_bonus = 1

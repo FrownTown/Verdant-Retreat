@@ -57,6 +57,7 @@
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	sewrepair = TRUE
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/spellcasterhat/light
 	name = "tattered spellsinger hat"	//meant to be a weaker version you can spawn with in the loadout menu
@@ -95,6 +96,7 @@
 	max_integrity = 100
 	sewrepair = TRUE
 	block2add = FOV_BEHIND
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/roguehood/ComponentInitialize()
 	. = ..()
@@ -135,7 +137,7 @@
 	alternate_worn_layer  = 8.9 //On top of helmet
 	body_parts_covered = HEAD|HAIR|EARS|NECK|MOUTH|NOSE
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK
-	armor = list("blunt" = 20, "slash" = 20, "stab" = 15, "piercing" = 1, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 20, "slash" = 20, "stab" = 15, "piercing" = 1, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	dynamic_hair_suffix = ""
 	edelay_type = 1
 	adjustable = CAN_CADJUST
@@ -224,7 +226,7 @@
 	mob_overlay_icon = 'icons/roguetown/clothing/onmob/head.dmi' //Overrides slot icon behavior
 	alternate_worn_layer  = 8.9 //On top of helmet
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK|ITEM_SLOT_MOUTH|ITEM_SLOT_NECK
-	armor = list("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 0, "slash" = 0, "stab" = 0, "piercing" = 0, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	dynamic_hair_suffix = ""
 	edelay_type = 1
 	blocksound = SOFTHIT
@@ -635,6 +637,7 @@
 	sewrepair = TRUE
 	salvage_result = /obj/item/natural/hide/cured
 	//dropshrink = 0.75
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/knitcap
 	name = "knit cap"
@@ -665,6 +668,7 @@
 	armor = ARMOR_SPELLSINGER // spellsinger hat stats
 	resistance_flags = FIRE_PROOF // leather typically doesn't burn
 	sewrepair = TRUE
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/headband/red
 	color = CLOTHING_RED
@@ -699,6 +703,7 @@
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	sellprice = 50
 	anvilrepair = /datum/skill/craft/armorsmithing
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/nyle
 	name = "jewel of nyle"
@@ -709,6 +714,7 @@
 	sellprice = 100
 	resistance_flags = FIRE_PROOF
 	anvilrepair = /datum/skill/craft/armorsmithing
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/nyle/consortcrown
 	name = "gem-encrusted crown"
@@ -789,6 +795,7 @@
 	icon_state = "reqhat"
 	sellprice = 100
 	anvilrepair = /datum/skill/craft/armorsmithing
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/headdress
 	name = "nemes"
@@ -831,6 +838,7 @@
 	max_integrity = 75
 	color = "#463C2B"
 	sewrepair = TRUE
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/helmet
 	icon = 'icons/roguetown/clothing/head.dmi'
@@ -856,6 +864,7 @@
 	grid_width = 64
 	experimental_onhip = TRUE
 	experimental_inhand = TRUE
+	integ_armor_mod = ARMOR_CLASS_HEAVY
 
 /obj/item/clothing/head/roguetown/helmet/MiddleClick(mob/user)
 	if(!ishuman(user))
@@ -1215,7 +1224,6 @@
 	adjustable = CAN_CADJUST
 	icon_state = "zizobarbute"
 	max_integrity = 600
-	peel_threshold = 4
 	var/frogstyle = FALSE
 
 /obj/item/clothing/head/roguetown/helmet/heavy/zizo/MiddleClick(mob/user)
@@ -1575,7 +1583,7 @@
 			if(user.is_holding(src))
 				user.dropItemToGround(src)
 				user.put_in_hands(P)
-			P.obj_integrity = src.obj_integrity
+			P.copy_zone_integrity(src)
 			qdel(src)
 			qdel(W)
 		else
@@ -1883,6 +1891,7 @@
 	sewrepair = TRUE
 	blocksound = SOFTHIT
 	salvage_result = /obj/item/natural/hide/cured
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/helmet/leather/volfhelm
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_HIP
@@ -2063,6 +2072,7 @@
 	color = "#262927"
 	detail_color = "#FFFFFF"
 	altdetail_color = "#9c2525"
+	integ_armor_mod = ARMOR_CLASS_LIGHT
 
 /obj/item/clothing/head/roguetown/grenzelhofthat/attack_right(mob/user)
 	..()
@@ -2193,7 +2203,7 @@
 		if(user.is_holding(src))
 			user.dropItemToGround(src)
 			user.put_in_hands(P)
-		P.obj_integrity = src.obj_integrity
+		P.copy_zone_integrity(src)
 		user.adjustBruteLoss(25)
 		qdel(src)
 	else
@@ -2342,7 +2352,7 @@
 	name = "woad elven helm"
 	desc = "An assembly of woven trunk, kept alive by ancient song, now twisted and warped for battle and scorn."
 	body_parts_covered = FULL_HEAD | NECK
-	armor = list("blunt" = 100, "slash" = 20, "stab" = 110, "piercing" = 40, "fire" = 0, "acid" = 0)//Resistant to blunt & stab, but very weak to slash.
+	armor = list("blunt" = 100, "slash" = 20, "stab" = 110, "piercing" = 40, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)//Resistant to blunt & stab, but very weak to slash.
 	prevent_crits = list(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST, BCLASS_PICK)
 	icon = 'icons/roguetown/clothing/special/race_armor.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/race_armor.dmi'
@@ -2363,7 +2373,7 @@
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_HIP
 	name = "elven barbute"
 	desc = "It fits snugly on one's elven head, with special slots for their pointier ears."
-	body_parts_covered = FULL_HEAD
+	// body_parts_covered = FULL_HEAD
 	body_parts_covered = HEAD|HAIR|NOSE
 	flags_inv = HIDEEARS|HIDEFACE|HIDESNOUT
 	flags_cover = HEADCOVERSEYES | HEADCOVERSMOUTH
@@ -2475,7 +2485,7 @@
 	desc = "A reinforced bamboo hat."
 	icon_state = "easthat"
 	item_state = "easthat"
-	armor = list("blunt" = 70, "slash" = 80, "stab" = 65, "piercing" = 40, "fire" = 0, "acid" = 0)
+	armor = list("blunt" = 70, "slash" = 80, "stab" = 65, "piercing" = 40, "fire" = 0, "acid" = 0, "frost" = 0, "electrical" = 0)
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
 	max_integrity = 150
 	blocksound = SOFTHIT
@@ -2584,7 +2594,7 @@
 	body_parts_covered = HEAD|HAIR
 	icon_state = "carapacecap"
 	item_state = "carapacecap"
-	armor = list("blunt" = 60, "slash" = 50, "stab" = 40, "piercing" = 30, "fire" = 10, "acid" = 0) //Around Leather level
+	armor = list("blunt" = 60, "slash" = 50, "stab" = 40, "piercing" = 30, "fire" = 10, "acid" = 0, "frost" = 0, "electrical" = 0) //Around Leather level
 	prevent_crits = list(BCLASS_CUT, BCLASS_CHOP, BCLASS_BLUNT)
 	max_integrity = 150
 	anvilrepair = null
@@ -2603,7 +2613,7 @@
 	block2add = FOV_BEHIND
 	icon_state = "carapacehelm"
 	item_state = "carapacehelm"
-	armor = list("blunt" = 70, "slash" = 70, "stab" = 50, "piercing" = 40, "fire" = 15, "acid" = 0) //Around Hardened Leather level.
+	armor = list("blunt" = 70, "slash" = 70, "stab" = 50, "piercing" = 40, "fire" = 15, "acid" = 0, "frost" = 0, "electrical" = 0) //Around Hardened Leather level.
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST)
 	max_integrity = 200
 	anvilrepair = null
@@ -2726,7 +2736,7 @@
 	icon_state = "psylongest"
 	item_state = "psylongest"
 	emote_environment = 3
-	armor = list("blunt" = 200, "slash" = 200, "stab" = 200, "piercing" = 200, "fire" = 200, "acid" = 200) //ENDVRE, admin shitspawn item..
+	armor = list("blunt" = 200, "slash" = 200, "stab" = 200, "piercing" = 200, "fire" = 200, "acid" = 200, "frost" = 0, "electrical" = 0) //ENDVRE, admin shitspawn item..
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT, BCLASS_SMASH, BCLASS_TWIST)
 	max_integrity = 9999
 	body_parts_covered = FULL_HEAD

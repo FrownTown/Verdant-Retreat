@@ -159,6 +159,13 @@
 			L.visible_message(span_warning("[L] spasms violently upon touching the water!"), span_danger("The water... it burns me!"))
 			L.adjustFireLoss(25)
 			return
+		else if(L.fire_stacks > 0)
+			var/datum/status_effect/fire_handler/fire_stacks/fire_effect = L.has_status_effect(/datum/status_effect/fire_handler/fire_stacks)
+			if(fire_effect)
+				fire_effect.extinguish()
+				fire_effect.adjust_stacks(-L.fire_stacks)
+				L.visible_message(span_notice("[L]'s flames are extinguished by the water!"), span_notice("The water extinguishes the flames!"))
+				playsound(L, 'sound/blank.ogg', 50, TRUE)
 		if(!(L.movement_type & FLYING))
 			if(!(L.mobility_flags & MOBILITY_STAND) || water_level == 3)
 				L.SoakMob(FULL_BODY)

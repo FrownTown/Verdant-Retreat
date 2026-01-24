@@ -73,7 +73,7 @@
 
 /obj/structure/barricade/wood_spike/climb_structure(mob/living/user)
 	var/mob/living/M = user
-	if(prob(70))
+	if(get_stat_roll(M.STACON) >= 15)
 		M.apply_damage(rand(5,20), BRUTE, BP, M.run_armor_check(BP, "stab", damage = rand(10,20)))
 		var/armor = M.run_armor_check(BP, "stab")
 		if(armor < 20)

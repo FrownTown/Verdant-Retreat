@@ -93,7 +93,7 @@
 		if(!isturf(loc))
 			if(isliving(user))
 				var/mob/living/L = user
-				if(prob(L.STASPD * 1.5))
+				if(get_stat_roll(L.STASPD) >= 12)
 					..()
 				else
 					dir = pick(GLOB.cardinals)
@@ -140,7 +140,7 @@
 	if(!dead)
 		if(isliving(user))
 			var/mob/living/L = user
-			if(prob(L.STASPD * 2))
+			if(get_stat_roll(L.STASPD) >= 10)
 				..()
 			else
 				if(isturf(loc))

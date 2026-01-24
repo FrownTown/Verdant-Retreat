@@ -15,6 +15,8 @@
 	chargedloop = /datum/looping_sound/invokelightning
 	associated_skill = /datum/skill/magic/arcane
 	gesture_required = TRUE
+	is_offensive = TRUE
+	damage_variance = SPELL_VARIANCE_LOW
 	spell_tier = 3
 	invocation = "Feri Fulmine Hostem!" // Based on Zeus - Strike the Enemy with Lightning! 
 	invocation_type = "shout"
@@ -37,7 +39,7 @@
 		to_chat(user, span_warning("I can't cast where I can't see!"))
 		return
 	new /obj/effect/temp_visual/trap/thunderstrike(centerpoint) // Setup warning icon
-	addtimer(CALLBACK(src, PROC_REF(thunderstrike_damage), centerpoint, 1), wait = delay1) // Prepare damage proc on a timer, baseline damage
+	addtimer(CALLBACK(src, PROC_REF(thunderstrike_damage), centerpoint, 1, user), wait = delay1) // Prepare damage proc on a timer, baseline damage
 
 	for(var/turf/effect_layer_one in range(1, centerpoint)) // Borrowed from Arcyne Prison for grabbing a hollow square of tiles around a centerpoint
 		if(!(effect_layer_one in view(centerpoint)))
@@ -45,7 +47,7 @@
 		if(get_dist(centerpoint, effect_layer_one) != 1)
 			continue
 		new /obj/effect/temp_visual/trap/thunderstrike/layer_one(effect_layer_one)
-		addtimer(CALLBACK(src, PROC_REF(thunderstrike_damage), effect_layer_one, 0.5), wait = delay2) // Second layer, damage mod for the damage proc is halved
+		addtimer(CALLBACK(src, PROC_REF(thunderstrike_damage), effect_layer_one, 0.5, user), wait = delay2) // Second layer, damage mod for the damage proc is halved
 
 	for(var/turf/effect_layer_two in range(2, centerpoint))
 		if(!(effect_layer_two in view(centerpoint)))
@@ -53,10 +55,10 @@
 		if(get_dist(centerpoint, effect_layer_two) != 2)
 			continue
 		new /obj/effect/temp_visual/trap/thunderstrike/layer_two(effect_layer_two)
-		addtimer(CALLBACK(src, PROC_REF(thunderstrike_damage), effect_layer_two, 0.25), wait = delay3) // Third layer, halved again
+		addtimer(CALLBACK(src, PROC_REF(thunderstrike_damage), effect_layer_two, 0.25, user), wait = delay3) // Third layer, halved again
 	return TRUE
 
-/obj/effect/proc_holder/spell/invoked/thunderstrike/proc/thunderstrike_damage(var/turf/effect_layer, damage_mod)
+/obj/effect/proc_holder/spell/invoked/thunderstrike/proc/thunderstrike_damage(var/turf/effect_layer, damage_mod, mob/user)
 	new /obj/effect/temp_visual/thunderstrike_actual(effect_layer)
 	playsound(effect_layer, 'sound/magic/lightning.ogg', 50)
 	for(var/mob/living/L in effect_layer.contents)
@@ -64,7 +66,8 @@
 			visible_message(span_warning("The magic fades away around you [L] "))
 			playsound(effect_layer, 'sound/magic/magic_nulled.ogg', 100)
 			continue
-		L.electrocute_act(damage * damage_mod, src, 1, SHOCK_NOSTUN) // Hopefully the SHOCK_NOSTUN handles any CC effects this might otherwise cause
+		var/adjusted_damage = get_varied_damage(damage, user)
+		L.electrocute_act(adjusted_damage * damage_mod, src, 1, SHOCK_NOSTUN) // Hopefully the SHOCK_NOSTUN handles any CC effects this might otherwise cause
 		return
 
 /obj/effect/temp_visual/trap/thunderstrike

@@ -25,7 +25,8 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane //can be arcane, druidic, blood, holy
 	cost = 3
-
+	is_offensive = TRUE
+	damage_variance = SPELL_VARIANCE_HIGH
 	xp_gain = TRUE
 	miracle = FALSE
 
@@ -44,6 +45,7 @@
 	range = 10
 	speed = 1
 	nodamage = FALSE
+	woundclass = BCLASS_FROST
 	var/aoe_range = 0
 
 /obj/projectile/magic/frostbolt/on_hit(target)
@@ -66,5 +68,6 @@
 					L.apply_status_effect(/datum/status_effect/buff/frostbite)
 				else
 					L.apply_status_effect(/datum/status_effect/buff/frost)
+
 			new /obj/effect/temp_visual/snap_freeze(get_turf(L))
 	qdel(src)

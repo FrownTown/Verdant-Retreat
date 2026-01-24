@@ -104,6 +104,8 @@
 	
 	/// Cached variable that reflects how much bleeding our wounds are applying to the limb. Handled inside each individual wound.
 	var/bleeding = 0
+	/// Temp var: tracks how much the last attack increased puncture wound bleeding (for embed tracking)
+	var/last_bleed_increase = 0
 
 	/// Is the limb flagged for two-stage death handling? (aka, decaps will instantly kill first, THEN remove the head on second apply)
 	var/two_stage_death = FALSE
@@ -360,10 +362,21 @@
 	if(new_max_damage != old_max_damage)
 		max_damage = new_max_damage
 
+
+/// Applies burn wounds to a bodypart
+/// NOTE: Armor is already applied in receive_damage before this is called
+/obj/item/bodypart/proc/apply_burn_wound(damage, bclass = BCLASS_BURN)
+	if(!owner || (owner.status_flags & GODMODE) || damage <= 0)
+		return
+
+	bodypart_attacked_by(bclass, damage, null, body_zone, FALSE, FALSE, 0, FALSE, damage, 0, null)
+
+
 //Applies brute and burn damage to the organ. Returns 1 if the damage-icon states changed at all.
 //Damage will not exceed max_damage using this proc
 //Cannot apply negative damage
-/obj/item/bodypart/proc/receive_damage(brute = 0, burn = 0, stamina = 0, blocked = 0, updating_health = TRUE, required_status = null)
+
+/obj/item/bodypart/proc/receive_damage(brute = 0, burn = 0, stamina = 0, blocked = 0, updating_health = TRUE, required_status = null, bclass)
 	update_HP()
 	var/hit_percent = (100-blocked)/100
 	if((!brute && !burn && !stamina) || hit_percent <= 0)
@@ -380,12 +393,23 @@
 	stamina = round(max(stamina * dmg_mlt, 0),DAMAGE_PRECISION)
 	brute = max(0, brute - brute_reduction)
 	burn = max(0, burn - burn_reduction)
+
+	// Apply burn armor reduction if not already applied by caller (blocked == 0)
+	// This handles direct receive_damage() calls with bclass parameter
+	if(burn > 0 && bclass && blocked == 0 && ishuman(owner))
+		var/armor_type = bclass_to_armor_type(bclass)
+		var/mob/living/carbon/human/H = owner
+		var/armor_block = H.run_armor_check(body_zone, armor_type, damage = burn)
+		burn = H.get_actual_damage(burn, armor_block, body_zone, armor_type, null)
+
 	//No stamina scaling.. for now..
 
 	if(!brute && !burn && !stamina)
 		return FALSE
 
 	//cap at maxdamage
+	var/was_max_burn = (burn_dam >= max_damage)
+
 	if(brute_dam + brute > max_damage)
 		brute_dam = max_damage
 	else
@@ -397,6 +421,16 @@
 
 	//We've dealt the physical damages, if there's room lets apply the stamina damage.
 	stamina_dam += round(CLAMP(stamina, 0, max_stamina_damage - stamina_dam), DAMAGE_PRECISION)
+
+	// Apply burn wounds if burn damage was dealt
+	if(burn > 0 && owner)
+		if(!bclass)
+			bclass = BCLASS_BURN
+		apply_burn_wound(burn, bclass)
+
+		// Burn dismemberment - now uses centralized formula (requires >50% max_damage in single hit)
+		if(!was_max_burn && owner && should_dismember(bclass, burn, null, body_zone, 0, burn, null))
+			dismember(BURN, bclass)
 
 	if(owner)
 		if((brute + burn) < 10)
@@ -410,7 +444,6 @@
 		owner.updatehealth()
 		if(stamina > DAMAGE_PRECISION)
 			owner.update_stamina()
-			owner.stam_regen_start_time = world.time + STAMINA_REGEN_BLOCK_TIME
 			. = TRUE
 	consider_processing()
 	update_disabled()
@@ -828,6 +861,22 @@
 	dismemberable = 0
 	max_damage = 5000
 	animal_origin = DEVIL_BODYPART
+
+/obj/item/bodypart/chest/bodypart_attacked_by(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, armor, was_blunted = FALSE, raw_damage = 0, armor_block = 0, obj/item/weapon)
+	. = ..()
+	if(owner && dam > 0 && zone_precise == BODY_ZONE_PRECISE_STOMACH)
+		if(bclass == BCLASS_BLUNT)
+			var/stamina_loss = round(dam*0.2)
+			var/owner_con = owner.STACON
+			if(armor_block < raw_damage/2)
+				if(dam > owner_con*2)
+					if(prob(owner_con*5))
+						stamina_loss = round(dam*0.1)
+					else
+						owner.vomit()
+						stamina_loss = round(dam*0.75)
+					
+				owner.stamina_add(-stamina_loss)
 
 /obj/item/bodypart/l_arm
 	name = "left arm"

@@ -5,6 +5,225 @@
 /obj/item/bodypart/proc/can_disable(obj/item/I)
 	return disableable
 
+/// Centralized dismemberment chance calculation for all damage types
+/// Returns TRUE if dismemberment should occur, FALSE otherwise
+/obj/item/bodypart/proc/should_dismember(bclass, damage_dealt, mob/living/user, zone_precise, armor_block = 0, raw_damage = 0, obj/item/weapon)
+	if(!owner || !dismemberable || (owner.status_flags & GODMODE) || HAS_TRAIT(owner, TRAIT_NODISMEMBER))
+		return FALSE
+
+	var/total_dam = get_damage()
+	var/damage_ratio = total_dam / max_damage
+
+	// Trait modifiers
+	var/hard_dismember = HAS_TRAIT(src, TRAIT_HARDDISMEMBER) || HAS_TRAIT(owner, TRAIT_HARDDISMEMBER)
+	var/easy_dismember = rotted || skeletonized || HAS_TRAIT(src, TRAIT_EASYDISMEMBER) || HAS_TRAIT(owner, TRAIT_EASYDISMEMBER)
+	var/easy_decapitation = HAS_TRAIT(owner, TRAIT_EASYDECAPITATION)
+
+	// Damage type flags
+	var/is_sharp = (bclass in GLOB.dismember_bclasses)
+	var/is_blunt = (bclass in GLOB.fracture_bclasses)
+	var/probability = 0
+
+	// ===== PHYSICAL DAMAGE (sharp and blunt, including unarmed) =====
+	if(is_sharp || is_blunt)
+		var/nuforce = damage_dealt
+
+		// Blade integrity check (sharp weapons only)
+		if(is_sharp && weapon && istype(weapon, /obj/item/rogueweapon))
+			var/obj/item/rogueweapon/rw = weapon
+			if(bclass == BCLASS_CHOP)
+				nuforce *= 1.1
+			else
+				if(rw.max_blade_int && rw.dismember_blade_int)
+					var/blade_int_modifier = (rw.blade_int / rw.dismember_blade_int)
+					if(blade_int_modifier <= 0.15)
+						return FALSE
+					var/pristine_blade = (rw.blade_int >= (rw.dismember_blade_int * 0.95))
+					// CUT requires pristine blade and high damage
+					if(!pristine_blade && total_dam < max_damage * 0.8)
+						return FALSE
+
+		// Stance modifiers (applies to both sharp and blunt)
+		if(user)
+			if(istype(user.rmb_intent, /datum/rmb_intent/weak))
+				return FALSE
+			else if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+				nuforce *= 1.1
+
+		if(nuforce < 10)
+			return FALSE
+
+		if(is_sharp)
+			// Sharp: Based on weapon force and limb damage
+			probability = nuforce * damage_ratio
+		else
+			// Blunt: Much harder - requires limb at max damage + massive overkill
+			if(brute_dam < max_damage)
+				return FALSE
+			var/overkill_threshold = max_damage * 0.25
+			if(damage_dealt < overkill_threshold)
+				return FALSE
+			var/overkill_ratio = damage_dealt / max_damage
+			probability = overkill_ratio * 30  // Max 30%
+
+	
+		var/multiplied = FALSE
+
+		// Apply trait modifiers
+		if(is_blunt)
+			if(HAS_TRAIT(src, TRAIT_BRITTLE) || HAS_TRAIT(owner, TRAIT_BRITTLE))
+				multiplied = TRUE
+		else
+			if(easy_decapitation && zone_precise == BODY_ZONE_PRECISE_NECK)
+				multiplied = TRUE
+
+		if(hard_dismember)
+			probability *= 0.25
+		else if(easy_dismember)
+			multiplied = TRUE
+
+		if(multiplied)
+			probability *= 1.5
+
+	// ===== BURN DAMAGE =====
+	else if(bclass in GLOB.charring_bclasses)
+		var/overkill_threshold = max_damage * 0.4
+		if(damage_dealt < overkill_threshold)
+			return FALSE
+		var/overkill_ratio = damage_dealt / max_damage
+		probability = overkill_ratio * 15
+
+		if(damage_dealt < overkill_threshold)
+			return FALSE
+
+		var/required_burn = max_damage
+
+		if(burn_dam < required_burn)
+			return FALSE
+		
+		if(hard_dismember)
+			probability *= 0.25
+		else if(easy_dismember)
+			probability *= 1.5
+
+	// Armor reduces the chances of being dismembered
+	if(armor_block > 0 && raw_damage > 0)
+		if(damage_dealt < armor_block)
+			return FALSE
+		var/absorption_ratio = armor_block / raw_damage
+		var/dismember_multiplier = (1 - absorption_ratio) ** 2
+		probability *= dismember_multiplier
+
+	return prob(probability)
+
+/// Returns the dismemberment probability for testing purposes
+/obj/item/bodypart/proc/get_dismember_probability(bclass, damage_dealt, mob/living/user, zone_precise, armor_block = 0, raw_damage = 0, obj/item/weapon)
+	if(!owner || !dismemberable || (owner.status_flags & GODMODE) || HAS_TRAIT(owner, TRAIT_NODISMEMBER))
+		return 0
+
+	var/total_dam = get_damage()
+	var/damage_ratio = total_dam / max_damage
+
+	// Trait modifiers
+	var/hard_dismember = HAS_TRAIT(src, TRAIT_HARDDISMEMBER) || HAS_TRAIT(owner, TRAIT_HARDDISMEMBER)
+	var/easy_dismember = rotted || skeletonized || HAS_TRAIT(src, TRAIT_EASYDISMEMBER) || HAS_TRAIT(owner, TRAIT_EASYDISMEMBER)
+	var/easy_decapitation = HAS_TRAIT(owner, TRAIT_EASYDECAPITATION)
+
+	// Damage type flags
+	var/is_sharp = (bclass in GLOB.dismember_bclasses)
+	var/is_blunt = (bclass in GLOB.fracture_bclasses)
+	var/probability = 0
+
+	// ===== PHYSICAL DAMAGE (sharp and blunt, including unarmed) =====
+	if(is_sharp || is_blunt)
+		var/nuforce = damage_dealt
+
+		// Blade integrity check (sharp weapons only)
+		if(is_sharp && weapon && istype(weapon, /obj/item/rogueweapon))
+			var/obj/item/rogueweapon/rw = weapon
+			if(bclass == BCLASS_CHOP)
+				nuforce *= 1.1
+			else
+				if(rw.max_blade_int && rw.dismember_blade_int)
+					var/blade_int_modifier = (rw.blade_int / rw.dismember_blade_int)
+					if(blade_int_modifier <= 0.15)
+						return 0
+					var/pristine_blade = (rw.blade_int >= (rw.dismember_blade_int * 0.95))
+					if(!pristine_blade && total_dam < max_damage * 0.8)
+						return 0
+
+		// Stance modifiers
+		if(user)
+			if(istype(user.rmb_intent, /datum/rmb_intent/weak))
+				return 0
+			else if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+				nuforce *= 1.1
+
+		if(nuforce < 10)
+			return 0
+
+		if(is_sharp)
+			probability = nuforce * damage_ratio
+		else
+			// Blunt
+			if(brute_dam < max_damage)
+				return 0
+			var/overkill_threshold = max_damage * 0.5
+			if(damage_dealt < overkill_threshold)
+				return 0
+			var/overkill_ratio = damage_dealt / max_damage
+			probability = overkill_ratio * 30
+
+		// Armor reduction
+		if(armor_block > 0 && raw_damage > 0)
+			if(damage_dealt < armor_block)
+				return 0
+			var/absorption_ratio = armor_block / raw_damage
+			var/dismember_multiplier = (1 - absorption_ratio) ** 2
+			probability *= dismember_multiplier
+
+		var/multiplied = FALSE
+
+		// Apply trait modifiers
+		if(is_blunt)
+			if(HAS_TRAIT(src, TRAIT_BRITTLE) || HAS_TRAIT(owner, TRAIT_BRITTLE))
+				multiplied = TRUE
+		else
+			if(easy_decapitation && zone_precise == BODY_ZONE_PRECISE_NECK)
+				multiplied = TRUE
+
+		if(hard_dismember)
+			probability *= 0.25
+		else if(easy_dismember)
+			multiplied = TRUE
+
+		if(multiplied)
+			probability *= 1.5
+
+		return probability
+
+	// ===== BURN DAMAGE =====
+	else if(bclass in GLOB.charring_bclasses)
+		var/overkill_threshold = max_damage * 0.4
+		if(damage_dealt < overkill_threshold)
+			return 0
+		var/overkill_ratio = damage_dealt / max_damage
+		probability = overkill_ratio * 15
+
+		var/required_burn = max_damage
+
+		if(burn_dam < required_burn)
+			return 0
+
+		if(hard_dismember)
+			probability *= 0.25
+		else if(easy_dismember)
+			probability *= 1.5
+
+		return probability
+
+	return 0
+
 /obj/item/bodypart
 	/// Wound we get when surgically reattached
 	var/attach_wound = /datum/wound/artery/reattachment
@@ -21,6 +240,7 @@
 
 //Dismember a limb
 /obj/item/bodypart/proc/dismember(dam_type = BRUTE, bclass = BCLASS_CUT, mob/living/user, zone_precise = src.body_zone, vorpal = FALSE)
+	var/static/list/no_dismember_zones = list(BODY_ZONE_PRECISE_L_FOOT, BODY_ZONE_PRECISE_R_FOOT, BODY_ZONE_PRECISE_R_HAND, BODY_ZONE_PRECISE_L_HAND)
 	if(!owner)
 		return FALSE
 	var/mob/living/carbon/C = owner
@@ -31,6 +251,8 @@
 			return FALSE
 		if(!HAS_TRAIT(C, TRAIT_CRITICAL_WEAKNESS) && !HAS_TRAIT(C, TRAIT_EASYDISMEMBER))	//People with these traits can be decapped standing, or buckled, or however.
 			if(!isnull(C.mind) && (C.mobility_flags & MOBILITY_STAND) && !C.buckled) //Only allows upright decapitations if it's not a player. Unless they're buckled.
+				if(!(bclass in GLOB.dismember_bclasses))
+					return FALSE
 				return FALSE
 			if(!istype(user.rmb_intent, /datum/rmb_intent/strong))
 				return FALSE //Only allow decapitations on Strong stance, unless they have crit weakness/easy dismemberment.
@@ -39,7 +261,7 @@
 	if(HAS_TRAIT(C, TRAIT_NODISMEMBER))
 		return FALSE
 	if(user)
-		if(zone_precise in list(BODY_ZONE_PRECISE_L_FOOT, BODY_ZONE_PRECISE_R_FOOT, BODY_ZONE_PRECISE_R_HAND, BODY_ZONE_PRECISE_L_HAND))
+		if(zone_precise in no_dismember_zones)
 			return FALSE //No dismemberment on hand/feet.
 
 	if(ishuman(owner))
@@ -88,7 +310,13 @@
 			// we're greviously wounded OR we don't give a shit about two-stage death (guillotines, npcs, etc)
 			C.visible_message(span_danger("<B>[C] is [pick("BRUTALLY","VIOLENTLY","BLOODILY","MESSILY")] DECAPITATED!</B>"))
 	else
-		C.visible_message(span_danger("<B>The [src.name] is [pick("torn off", "sundered", "severed", "separated", "unsewn")]!</B>"))
+		// Different messages based on damage type
+		if(bclass in GLOB.fracture_bclasses)
+			C.visible_message(span_danger("<B>[C]'s [src.name] EXPLODES into [pick("a shower of blood and bone", "a pile of gore", "chunks of minced meat")]!</B>"))
+		if(bclass in GLOB.charring_bclasses)
+			C.visible_message(span_danger("<B>[C]'s [src.name] [pick("burns to ash", "disintegrates", "is vaporized")]!</B>"))
+		else
+			C.visible_message(span_danger("<B>The [src.name] is [pick("torn off", "sundered", "severed", "separated", "unsewn")]!</B>"))
 	if(!HAS_TRAIT(C, TRAIT_NOPAIN))
 		C.emote("painscream")
 	if(!(NOBLOOD in C.dna?.species?.species_traits))
@@ -128,6 +356,15 @@
 		for(var/datum/wound/wound in wounds)
 			remove_wound(wound.type)
 
+	switch(bclass)
+		if(BCLASS_SMASH, BCLASS_BLUNT, BCLASS_PUNCH)
+			owner.spawn_limbgore()
+			drop_limb(destroy = TRUE)
+			var/turf/location = C.loc
+			if(istype(location))
+				C.add_splatter_floor(location) // Shamelessly copypasted
+			return TRUE
+
 	drop_limb()
 	if(dam_type == BURN)
 		burn()
@@ -150,6 +387,8 @@
 	return TRUE
 
 /obj/item/bodypart/chest/dismember(dam_type = BRUTE, bclass = BCLASS_CUT, mob/living/user, zone_precise = src.body_zone, vorpal = FALSE)
+	if(!(bclass in GLOB.disembowel_bclasses))
+		return FALSE
 	if(!owner)
 		return FALSE
 	var/mob/living/carbon/C = owner
@@ -163,7 +402,7 @@
 	return TRUE
 
 //limb removal. The "special" argument is used for swapping a limb with a new one without the effects of losing a limb kicking in.
-/obj/item/bodypart/proc/drop_limb(special)
+/obj/item/bodypart/proc/drop_limb(special, destroy = FALSE)
 	if(!owner)
 		return FALSE
 	testing("begin drop limb")
@@ -220,7 +459,7 @@
 	was_owner.update_mobility()
 
 	// drop_location = null happens when a "dummy human" used for rendering icons on prefs screen gets its limbs replaced.
-	if(!drop_location)
+	if(!drop_location || destroy)
 		qdel(src)
 		return TRUE
 
@@ -266,12 +505,12 @@
 		LB.tongue = src
 	return ..()
 
-/obj/item/bodypart/chest/drop_limb(special)
+/obj/item/bodypart/chest/drop_limb(special, destroy = FALSE)
 	if(special)
 		return ..()
 	return FALSE
 
-/obj/item/bodypart/r_arm/drop_limb(special)
+/obj/item/bodypart/r_arm/drop_limb(special, destroy = FALSE)
 	var/mob/living/carbon/C = owner
 	. = ..()
 	if(C && !special)
@@ -290,7 +529,7 @@
 		C.update_inv_armor()
 
 
-/obj/item/bodypart/l_arm/drop_limb(special)
+/obj/item/bodypart/l_arm/drop_limb(special, destroy = FALSE)
 	var/mob/living/carbon/C = owner
 	. = ..()
 	if(C && !special)
@@ -308,7 +547,7 @@
 		C.update_inv_gloves() //to remove the bloody hands overlay
 		C.update_inv_armor()
 
-/obj/item/bodypart/r_leg/drop_limb(special)
+/obj/item/bodypart/r_leg/drop_limb(special, destroy = FALSE)
 	var/mob/living/carbon/C = owner
 	. = ..()
 	if(C && !special)
@@ -322,7 +561,7 @@
 		C.update_inv_shoes()
 		C.update_inv_pants()
 
-/obj/item/bodypart/l_leg/drop_limb(special) //copypasta
+/obj/item/bodypart/l_leg/drop_limb(special, destroy = FALSE) //copypasta
 	var/mob/living/carbon/C = owner
 	. = ..()
 	if(C && !special)
@@ -336,7 +575,7 @@
 		C.update_inv_shoes()
 		C.update_inv_pants()
 
-/obj/item/bodypart/lamian_tail/drop_limb(special) //copypasta
+/obj/item/bodypart/lamian_tail/drop_limb(special, destroy = FALSE) //copypasta
 	var/mob/living/carbon/C = owner
 	. = ..()
 	if(C && !special)
@@ -350,7 +589,7 @@
 		C.update_inv_shoes()
 		C.update_inv_pants()
 
-/obj/item/bodypart/head/drop_limb(special)
+/obj/item/bodypart/head/drop_limb(special, destroy = FALSE)
 	if(!special)
 		//Drop all worn head items
 		var/list/worn_items = list(

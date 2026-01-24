@@ -22,6 +22,8 @@
 	invocation = "Fulmen!"
 	invocation_type = "shout"
 	cost = 3
+	is_offensive = TRUE
+	damage_variance = SPELL_VARIANCE_MID // Medium damage (60)
 	xp_gain = TRUE
 
 /obj/projectile/magic/lightning
@@ -38,6 +40,7 @@
 	nodamage = FALSE
 	speed = 0.3
 	flag = "magic"
+	woundclass = BCLASS_ELECTRICAL
 	light_color = "#ffffff"
 	light_outer_range = 7
 

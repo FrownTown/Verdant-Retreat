@@ -63,22 +63,22 @@
 		. += BP.burn_dam
 
 
-/mob/living/carbon/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE, required_status)
+/mob/living/carbon/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE, required_status, bclass = BCLASS_BLUNT)
 	if(!forced && (status_flags & GODMODE))
 		return FALSE
 	if(amount > 0)
-		take_overall_damage(amount, 0, 0, updating_health, required_status)
+		take_overall_damage(amount, 0, 0, updating_health, required_status, bclass)
 	else
 		if(has_status_effect(/datum/status_effect/buff/fortify))
 			amount *= 1.5
 		heal_overall_damage(abs(amount), 0, 0, required_status ? required_status : BODYPART_ORGANIC, updating_health)
 	return amount
 
-/mob/living/carbon/adjustFireLoss(amount, updating_health = TRUE, forced = FALSE, required_status)
+/mob/living/carbon/adjustFireLoss(amount, updating_health = TRUE, forced = FALSE, required_status, bclass = null)
 	if(!forced && (status_flags & GODMODE))
 		return FALSE
 	if(amount > 0)
-		take_overall_damage(0, amount, 0, updating_health, required_status)
+		take_overall_damage(0, amount, 0, updating_health, required_status, bclass)
 	else
 		if(has_status_effect(/datum/status_effect/buff/fortify))
 			amount *= 1.5
@@ -187,12 +187,25 @@
 //Damages ONE bodypart randomly selected from damagable ones.
 //It automatically updates damage overlays if necessary
 //It automatically updates health status
-/mob/living/carbon/take_bodypart_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status, check_armor = FALSE)
+/mob/living/carbon/take_bodypart_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status, check_armor = FALSE, bclass = null)
 	var/list/obj/item/bodypart/parts = get_damageable_bodyparts(required_status)
 	if(!parts.len)
 		return
 	var/obj/item/bodypart/picked = pick(parts)
-	if(picked.receive_damage(brute, burn, stamina,check_armor ? run_armor_check(picked, (brute ? "blunt" : burn ? "fire" : stamina ? "piercing" : null)) : FALSE))
+
+	// Determine armor type to check
+	var/armor_type = null
+	if(check_armor)
+		if(brute)
+			armor_type = "blunt"
+		else if(burn && bclass)
+			armor_type = bclass_to_armor_type(bclass)
+		else if(burn)
+			armor_type = "fire" // Default to fire if no bclass specified
+		else if(stamina)
+			armor_type = "piercing"
+
+	if(picked.receive_damage(brute, burn, stamina, check_armor ? run_armor_check(picked, armor_type) : FALSE, updating_health, required_status, bclass))
 		update_damage_overlays()
 
 //Heal MANY bodyparts, in random order
@@ -225,7 +238,7 @@
 		update_damage_overlays()
 
 // damage MANY bodyparts, in random order
-/mob/living/carbon/take_overall_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status)
+/mob/living/carbon/take_overall_damage(brute = 0, burn = 0, stamina = 0, updating_health = TRUE, required_status, bclass = null)
 	if(status_flags & GODMODE)
 		return	//godmode
 
@@ -251,8 +264,7 @@
 			var/burn_was = picked.burn_dam
 			var/stamina_was = picked.stamina_dam
 
-
-			update |= picked.receive_damage(brute_per_part, burn_per_part, stamina_per_part, FALSE, required_status)
+			update |= picked.receive_damage(brute_per_part, burn_per_part, stamina_per_part, FALSE, required_status, bclass)
 
 			brute	= round(brute - (picked.brute_dam - brute_was), DAMAGE_PRECISION)
 			burn	= round(burn - (picked.burn_dam - burn_was), DAMAGE_PRECISION)

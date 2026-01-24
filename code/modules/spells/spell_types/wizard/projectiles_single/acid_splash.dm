@@ -25,7 +25,8 @@
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane //can be arcane, druidic, blood, holy
 	cost = 3
-
+	is_offensive = TRUE
+	damage_variance = SPELL_VARIANCE_HIGH
 	xp_gain = TRUE
 	miracle = FALSE
 
@@ -42,6 +43,7 @@
 	flag = "magic"
 	range = 15
 	speed = 1
+	woundclass = BCLASS_ACID
 	var/aoe_range = 1
 
 /obj/projectile/magic/acidsplash/on_hit(atom/target, blocked = FALSE)
@@ -70,7 +72,12 @@
 
 /datum/status_effect/buff/acidsplash/tick()
 	var/mob/living/target = owner
-	target.adjustFireLoss(5)
+	if(!iscarbon(target))
+		target.adjustFireLoss(5, bclass = BCLASS_ACID)
+
+	else
+		var/mob/living/carbon/C = target
+		C.take_bodypart_damage(0, 5, check_armor = TRUE, bclass = BCLASS_ACID)
 
 /atom/movable/screen/alert/status_effect/buff/acidsplash
 	name = "Acid Burn"

@@ -214,10 +214,8 @@
 
 /mob/living/simple_animal/hostile/rogue/ghost/wraith/attack_hand(mob/living/carbon/human/C)
 	if(buckled == C) // If the wraith is buckled to a carbon mob
-		var/success_chance = C.STACON
-		var/success_check = rand(1,2)
 		C.visible_message(span_danger("\The [C] struggles against \the [src]'s grasp!"))
-		if(success_chance >= success_check)
+		if(get_stat_roll(C.STACON) >= 10)
 			var/turf/throw_range = get_ranged_target_turf(C, C.dir, rand(3, 5))
 			C.visible_message(span_danger("\The [C] manages to break free from \the [src]'s grasp!"))
 			C.unbuckle_all_mobs()

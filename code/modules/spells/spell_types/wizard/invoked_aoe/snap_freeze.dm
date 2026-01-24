@@ -14,6 +14,7 @@
 	charging_slowdown = 2
 	chargedloop = /datum/looping_sound/invokegen
 	associated_skill = /datum/skill/magic/arcane
+	is_offensive = TRUE
 	range = 7
 	gesture_required = TRUE // Offensive spell
 	spell_tier = 3
@@ -70,12 +71,13 @@
 			if(L.anti_magic_check())
 				visible_message(span_warning("The ice fades away around you. [L] "))  //antimagic needs some testing
 				playsound(L, 'sound/magic/magic_nulled.ogg', 100)
-				return 
+				return
 			play_cleave = TRUE
+			var/adjusted_damage = get_varied_damage(damage, user)
 			if(ishuman(L))
-				L.adjustFireLoss(damage)
+				L.adjustFireLoss(adjusted_damage, bclass = BCLASS_FROST)
 			else
-				L.adjustFireLoss(damage + 30)
+				L.adjustFireLoss(adjusted_damage + 30, bclass = BCLASS_FROST)
 			if(L.has_status_effect(/datum/status_effect/buff/frostbite))
 				return
 			else

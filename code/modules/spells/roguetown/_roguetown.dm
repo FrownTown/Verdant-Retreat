@@ -107,6 +107,12 @@
 		if(user.mind)
 			P.bonus_accuracy += (user.get_skill_level(associated_skill) * 5) // +5% per level
 		P.firer = user
+
+		// Apply spell damage variance
+		if(damage_variance > 0)
+			var/variance_roll = get_spell_damage_variance(user)
+			P.damage = round(P.damage * (1 + (variance_roll / 100)), 1)
+
 		P.preparePixelProjectile(target, user)
 		for(var/V in projectile_var_overrides)
 			if(P.vars[V])

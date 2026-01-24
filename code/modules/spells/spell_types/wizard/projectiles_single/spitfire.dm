@@ -25,6 +25,8 @@
 	chargedloop = /datum/looping_sound/invokefire
 	associated_skill = /datum/skill/magic/arcane
 	cost = 3
+	is_offensive = TRUE
+	damage_variance = SPELL_VARIANCE_HIGH
 
 /obj/projectile/magic/aoe/fireball/rogue2
 	name = "spitfire"

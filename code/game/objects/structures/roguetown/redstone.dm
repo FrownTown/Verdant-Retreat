@@ -189,7 +189,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 		else
 			user.visible_message("<span class='warning'>[user] kicks the lever!</span>")
 		playsound(src, 'sound/combat/hits/onwood/woodimpact (1).ogg', 100)
-		if(prob(L.STASTR * 4))
+		if(get_stat_roll(L.STASTR) >= 13)
 			for(var/obj/structure/O in redstone_attached)
 				spawn(0) O.redstone_triggered()
 			toggled = !toggled

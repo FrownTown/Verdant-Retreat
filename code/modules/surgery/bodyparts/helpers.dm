@@ -302,3 +302,28 @@
 	R.attach_limb(src)
 	regenerate_icons()
 	set_resting(FALSE)
+
+/**
+ * Maps a blade class (BCLASS) to the corresponding armor type for armor checking
+ *
+ * @param bclass The blade class to map
+ * @return The armor type string (fire/acid/frost/electrical/blunt/slash/etc)
+ */
+/proc/bclass_to_armor_type(bclass)
+	switch(bclass)
+		if(BCLASS_BURN)
+			return "fire"
+		if(BCLASS_ACID)
+			return "acid"
+		if(BCLASS_FROST)
+			return "frost"
+		if(BCLASS_ELECTRICAL)
+			return "electrical"
+		if(BCLASS_CHOP, BCLASS_CUT)
+			return "slash"
+		if(BCLASS_STAB, BCLASS_PIERCE)
+			return "stab"
+		if(BCLASS_BLUNT, BCLASS_SMASH, BCLASS_PUNCH, BCLASS_TWIST, BCLASS_BITE)
+			return "blunt"
+		else
+			return "blunt" // Default to blunt for unknown types

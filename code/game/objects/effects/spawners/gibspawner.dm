@@ -15,7 +15,7 @@
 	if(gibtypes.len != gibamounts.len)
 		stack_trace("Gib list amount length mismatch!")
 		return
-	if(gibamounts.len != gibdirections.len)
+	if(gibdirections && gibamounts.len != gibdirections.len)
 		stack_trace("Gib list dir length mismatch!")
 		return
 
@@ -49,10 +49,13 @@
 
 				gib.add_blood_DNA(dna_to_add)
 
-				var/list/directions = gibdirections[i]
-				if(isturf(loc))
-					if(directions.len)
-						gib.streak(directions)
+				if(gibdirections)
+					var/list/directions = gibdirections[i]
+					if(isturf(loc))
+						if(directions.len)
+							gib.streak(directions)
+				else
+					gib.streak(loc)
 
 	return INITIALIZE_HINT_QDEL
 
@@ -97,4 +100,13 @@
 	if(!gibdirections.len)
 		gibdirections = list(list(NORTH, NORTHEAST, NORTHWEST),list(SOUTH, SOUTHEAST, SOUTHWEST),list(WEST, NORTHWEST, SOUTHWEST),list(EAST, NORTHEAST, SOUTHEAST), GLOB.alldirs, GLOB.alldirs)
 	gibamounts[6] = pick(0, 1, 2)
+	return ..()
+
+/obj/effect/gibspawner/part
+	gibtypes = list(/obj/effect/decal/cleanable/blood/gibs, /obj/effect/decal/cleanable/blood/gibs/core, /obj/effect/decal/cleanable/blood/gibs, /obj/effect/decal/cleanable/blood/gibs/core, /obj/effect/decal/cleanable/blood/gibs)
+	gibamounts = list(1, 1, 1, 1, 1)
+	sound_vol = 20
+
+/obj/effect/gibspawner/part/Initialize()
+	gibdirections = null
 	return ..()

@@ -120,6 +120,14 @@
 		else
 			wound.on_death()
 
+/mob/living/carbon/handle_wounds() // Carbons now directly access these lists for performance reasons
+	for(var/obj/item/bodypart/BP as anything in bodyparts)
+		for(var/datum/wound/W as anything in BP.wounds)
+			if (stat != DEAD)
+				W.on_life()
+			else
+				W.on_death()
+
 
 /obj/item/proc/on_embed_life(mob/living/user, obj/item/bodypart/bodypart)
 	return
@@ -135,9 +143,9 @@
 				adjust_fire_stacks(1, psyblessed?.is_blessed ? /datum/status_effect/fire_handler/fire_stacks/sunder/blessed : /datum/status_effect/fire_handler/fire_stacks/sunder)
 			to_chat(src, span_danger("[embedded] in me hurts!"))
 
-		if(prob(embedded.embedding.embedded_fall_chance))
-			simple_remove_embedded_object(embedded)
-			to_chat(src,span_danger("[embedded] falls out of me!"))
+		//if(prob(embedded.embedding.embedded_fall_chance))
+		//	simple_remove_embedded_object(embedded)
+		//	to_chat(src,span_danger("[embedded] falls out of me!"))
 
 //this updates all special effects: knockdown, druggy, stuttering, etc..
 /mob/living/proc/handle_status_effects()

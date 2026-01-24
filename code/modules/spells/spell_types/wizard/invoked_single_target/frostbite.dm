@@ -22,7 +22,8 @@
 	glow_intensity = GLOW_INTENSITY_LOW
 	cost = 3
 	gesture_required = TRUE // Offensive spell
-
+	damage_variance = SPELL_VARIANCE_HIGH
+	is_offensive = TRUE
 	xp_gain = TRUE
 	miracle = FALSE
 
@@ -33,5 +34,7 @@
 	if(isliving(targets[1]))
 		var/mob/living/carbon/target = targets[1]
 		target.apply_status_effect(/datum/status_effect/buff/frostbite/) //apply debuff
-		target.adjustFireLoss(12) //damage
-		target.adjustBruteLoss(12)
+		var/adjusted_fire = get_varied_damage(12, user)
+		var/adjusted_brute = get_varied_damage(12, user)
+		target.adjustFireLoss(adjusted_fire) //damage
+		target.adjustBruteLoss(adjusted_brute)
