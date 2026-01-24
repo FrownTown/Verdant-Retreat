@@ -280,7 +280,7 @@
 		// Target limbs to trip/disable
 		user.zone_selected = pick(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
 		if(user.doing) return NODE_RUNNING
-		user.ClickOn(victim)
+		npc_click_on(user, victim)
 		return NODE_RUNNING
 
 	// 2. Target is DOWN. We need to restrain them.
@@ -321,7 +321,7 @@
 		user.rog_intent_change(3)
 
 		if(user.doing) return NODE_RUNNING
-		user.ClickOn(victim)
+		npc_click_on(user, victim)
 		return NODE_RUNNING
 	
 	// We have a grab! Now check state.

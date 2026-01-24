@@ -515,7 +515,7 @@
 			H.change_stat("endurance", 1)
 			H.change_stat("strength", 2)
 			armor = /obj/item/clothing/suit/roguetown/armor/leather/studded/bikini
-			pants = /obj/item/clothing/under/roguetown/tights/black
+			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
 			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
 			shoes = /obj/item/clothing/shoes/roguetown/boots
 			gloves = /obj/item/clothing/gloves/roguetown/fingerless_leather
@@ -563,7 +563,7 @@
 			H.change_stat("endurance", 2)
 			H.change_stat("constitution", 1)
 			armor = /obj/item/clothing/suit/roguetown/armor/plate/bikini
-			pants = /obj/item/clothing/under/roguetown/trou/leather
+			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
 			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
 			shoes = /obj/item/clothing/shoes/roguetown/boots
 			gloves = /obj/item/clothing/gloves/roguetown/angle
@@ -607,7 +607,7 @@
 			H.change_stat("constitution", 3)
 			H.change_stat("speed", -1)
 			armor = /obj/item/clothing/suit/roguetown/armor/plate/full/bikini
-			pants = /obj/item/clothing/under/roguetown/trou/leather
+			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
 			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
 			shoes = /obj/item/clothing/shoes/roguetown/boots
 			gloves = /obj/item/clothing/gloves/roguetown/angle

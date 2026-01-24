@@ -14,6 +14,49 @@
 /bt_action/proc/evaluate(mob/living/user, atom/target, list/blackboard)
 	return NODE_FAILURE
 
+// Helper to simulate ClickOn with less overhead for AI
+/proc/npc_click_on(mob/living/user, atom/target, params)
+	if(!user || !user.ai_root || !target)
+		return
+
+	if(world.time <= user.next_click)
+		return
+	user.next_click = world.time + 1
+
+	if(user.next_move > world.time)
+		return
+
+	if(user.incapacitated(ignore_restraints = 1))
+		return
+	
+	if(user.restrained())
+		user.changeNext_move(CLICK_CD_HANDCUFFED)
+		return
+
+	if(!user.atkswinging)
+		user.face_atom(target)
+
+	if(!user.Adjacent(target))
+		return
+
+	var/obj/item/W = user.get_active_held_item()
+	
+	// Simulate cooldowns based on intent
+	if(W)
+		var/adf = user.used_intent.clickcd
+		if(istype(user.rmb_intent, /datum/rmb_intent/aimed))
+			adf = round(adf * CLICK_CD_MOD_AIMED)
+		else if(istype(user.rmb_intent, /datum/rmb_intent/swift))
+			adf = max(round(adf * CLICK_CD_MOD_SWIFT), CLICK_CD_INTENTCAP)
+		user.changeNext_move(adf)
+
+	// Attack animation
+	if(W && ismob(target))
+		if(!user.used_intent.noaa)
+			user.do_attack_animation(get_turf(target), user.used_intent.animname, W, used_intent = user.used_intent)
+
+	user.resolveAdjacentClick(target, W, params)
+
 // ==============================================================================
 // MOVEMENT ACTIONS
 // ==============================================================================

@@ -314,29 +314,29 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	hash = (hash << 5) + hash + T.x
 	hash = (hash << 5) + hash + T.y
 	hash = (hash << 5) + hash + T.z
-	return hash
+	return hash & 0xFFFFFF
 
 // Claim a turf for pathfinding (called when setting path destination)
 /datum/controller/subsystem/processing/ai/proc/claim_turf(turf/T, mob/living/claimer)
 	if(!T || !claimer)
 		return
 	var/hash = hash_turf(T)
-	claimed_turfs["[hash]"] = claimer
+	claimed_turfs[hash] = claimer
 
 // Unclaim a turf (called when path is cleared or mob dies)
 /datum/controller/subsystem/processing/ai/proc/unclaim_turf(turf/T, mob/living/claimer)
 	if(!T)
 		return
 	var/hash = hash_turf(T)
-	if(claimed_turfs["[hash]"] == claimer)
-		claimed_turfs -= "[hash]"
+	if(claimed_turfs[hash] == claimer)
+		claimed_turfs -= hash
 
 // Check if a turf is claimed by another mob
 /datum/controller/subsystem/processing/ai/proc/turf_claimed_by(turf/T, mob/living/exclude)
 	if(!T)
 		return null
 	var/hash = hash_turf(T)
-	var/mob/living/claimer = claimed_turfs["[hash]"]
+	var/mob/living/claimer = claimed_turfs[hash]
 	if(claimer && claimer != exclude && !QDELETED(claimer))
 		return claimer
 	return null

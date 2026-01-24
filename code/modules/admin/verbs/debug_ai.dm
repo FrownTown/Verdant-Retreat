@@ -41,6 +41,7 @@
 			I.pixel_y = 32
 			I.plane = HUD_PLANE
 			I.layer = ABOVE_ALL_MOB_LAYER
+			I.appearance_flags = RESET_TRANSFORM
 			I.maptext_width = 128
 			I.maptext_x = -32
 			I.maptext_y = 4

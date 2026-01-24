@@ -56,7 +56,7 @@
 	var/text_key = "[key]"
 	for(var/i = 1, i <= length(text_key), i++)
 		hash = ((hash << 5) + hash) + text2ascii(text_key, i)
-	return hash
+	return hash & 0xFFFFFF
 /*
 	var/list/bt_action_cache // For goap stuff.
 

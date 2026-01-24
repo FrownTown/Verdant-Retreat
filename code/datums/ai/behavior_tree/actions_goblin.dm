@@ -429,7 +429,7 @@
 	// STEP 1: Initial grab
 	if(!G)
 		user.rog_intent_change(3) // GRAB intent
-		user.ClickOn(victim)
+		npc_click_on(user, victim)
 		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
 		return NODE_RUNNING
 
@@ -441,7 +441,7 @@
 			G.grab_state = GRAB_AGGRESSIVE
 			victim.visible_message(span_danger("[user] tightens [user.p_their()] grip on [victim]!"))
 		else
-			user.ClickOn(victim) // Try to upgrade
+			npc_click_on(user, victim) // Try to upgrade
 		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
 		return NODE_RUNNING
 
@@ -747,7 +747,7 @@
 		user.rog_intent_change(3)
 		
 		if(user.doing) return NODE_RUNNING
-		user.ClickOn(victim)
+		npc_click_on(user, victim)
 		return NODE_RUNNING
 
 	// We have the grab G. Proceed with dragging.

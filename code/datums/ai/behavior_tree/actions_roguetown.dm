@@ -1268,7 +1268,7 @@
 	
 	if(user.ai_root && world.time >= user.ai_root.next_attack_tick)
 		user.face_atom(target)
-		user.ClickOn(target) // Simple click
+		npc_click_on(user, target) // Simple click
 		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
 		return NODE_SUCCESS
 	return NODE_RUNNING
