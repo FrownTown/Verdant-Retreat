@@ -6,6 +6,130 @@
 // TARGETING
 // ------------------------------------------------------------------------------
 
+// Check aggressors list for simple_animals (parallel to carbon_check_aggressors)
+/bt_action/simple_animal_check_aggressors/evaluate(mob/living/simple_animal/hostile/user, mob/living/target, list/blackboard)
+	if(!istype(user) || !user.ai_root)
+		return NODE_FAILURE
+
+	var/list/aggressors = blackboard[AIBLK_AGGRESSORS]
+	if(!aggressors || !length(aggressors))
+		return NODE_FAILURE
+
+	// Clean up the aggressors list and build a list of visible ones
+	var/list/visible_aggressors = list()
+	var/list/to_remove = list()
+
+	for(var/mob/living/L as anything in aggressors)
+		// Remove dead or null entries
+		if(!L || L.stat == DEAD)
+			to_remove += L
+			continue
+
+		// Check if aggressor is in range and visible
+		var/dist = get_dist(user, L)
+		if(dist <= user.vision_range && !los_blocked(user, L, TRUE))
+			visible_aggressors += L
+		else
+			// They're out of range or not visible
+			// If we have other visible aggressors OR we already have a different target, forget about this one
+			if(length(visible_aggressors) > 0 || (user.ai_root.target && user.ai_root.target != L))
+				to_remove += L
+
+	// Clean up the list
+	if(length(to_remove))
+		aggressors -= to_remove
+
+	// If we have no visible aggressors, fail
+	if(!length(visible_aggressors))
+		return NODE_FAILURE
+
+	// Case 1: We have a target already
+	if(user.ai_root.target)
+		// If our current target is in the visible aggressors list, keep them
+		if(user.ai_root.target in visible_aggressors)
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(user.ai_root.target)
+			return NODE_SUCCESS
+
+		// Our current target is NOT in visible aggressors - switch to a visible one
+		// Pick the closest visible aggressor
+		var/mob/living/closest = null
+		var/closest_dist = 999
+		for(var/mob/living/L as anything in visible_aggressors)
+			var/dist = get_dist(user, L)
+			if(dist < closest_dist)
+				closest = L
+				closest_dist = dist
+
+		if(closest)
+			user.ai_root.target = closest
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(closest)
+			return NODE_SUCCESS
+
+	// Case 2: We don't have a target - pick the closest visible aggressor
+	else
+		var/mob/living/closest = null
+		var/closest_dist = 999
+		for(var/mob/living/L as anything in visible_aggressors)
+			var/dist = get_dist(user, L)
+			if(dist < closest_dist)
+				closest = L
+				closest_dist = dist
+
+		if(closest)
+			user.ai_root.target = closest
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(closest)
+			return NODE_SUCCESS
+
+	return NODE_FAILURE
+
+// Pursue to last known location for simple_animals
+/bt_action/simple_animal_pursue_last_known/evaluate(mob/living/simple_animal/user, mob/living/target, list/blackboard)
+	if(!istype(user) || !user.ai_root)
+		return NODE_FAILURE
+
+	// This action is only used when we DON'T have a current target
+	if(user.ai_root.target)
+		return NODE_FAILURE
+
+	// Get last known location
+	var/turf/last_known_loc = blackboard[AIBLK_LAST_KNOWN_TARGET_LOC]
+	if(!last_known_loc)
+		return NODE_FAILURE
+
+	// If we've reached the last known location, we're done pursuing
+	if(get_turf(user) == last_known_loc)
+		// Clear the last known location so we can transition to searching
+		blackboard -= AIBLK_LAST_KNOWN_TARGET_LOC
+		return NODE_SUCCESS
+
+	// Move towards last known location
+	if(user.set_ai_path_to(last_known_loc))
+		return NODE_RUNNING
+
+	return NODE_FAILURE
+
+// Search area for simple_animals
+/bt_action/simple_animal_search_area/evaluate(mob/living/simple_animal/user, mob/living/target, list/blackboard)
+	if(!istype(user) || !user.ai_root)
+		return NODE_FAILURE
+
+	// Only search if we don't have a target
+	if(user.ai_root.target)
+		return NODE_SUCCESS // Found target while searching!
+
+	// Random search movement - more active than idle wander
+	if(prob(40) && world.time >= user.ai_root.next_move_tick)
+		var/list/dirs = GLOB.cardinals.Copy()
+		shuffle_inplace(dirs)
+		for(var/move_dir in dirs)
+			var/turf/T = get_step(user, move_dir)
+			if(T && !T.density)
+				if(user.set_ai_path_to(T))
+					return NODE_RUNNING
+				break
+
+	return NODE_RUNNING
+
 /bt_action/list_targets
 	var/search_range = 7
 
@@ -26,7 +150,7 @@
 			if(!los_blocked(H, L))
 				targets += L
 
-	user.ai_root.blackboard["possible_targets"] = targets
+	user.ai_root.blackboard[AIBLK_POSSIBLE_TARGETS] = targets
 	return length(targets) ? NODE_SUCCESS : NODE_FAILURE
 
 /bt_action/found_target
@@ -55,7 +179,7 @@
 
 	var/atom/the_target = target
 	if(!the_target)
-		var/atom/check_target = user.ai_root.blackboard["check_target"]
+		var/atom/check_target = user.ai_root.blackboard[AIBLK_CHECK_TARGET]
 		if(!check_target)
 			return NODE_FAILURE
 		the_target = check_target
@@ -104,7 +228,7 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	var/list/valid_targets = user.ai_root.blackboard["valid_targets"]
+	var/list/valid_targets = user.ai_root.blackboard[AIBLK_VALID_TARGETS]
 	if(!valid_targets || !valid_targets.len)
 		return NODE_FAILURE
 
@@ -124,7 +248,7 @@
 		return NODE_FAILURE
 
 	var/chosen_target = pick(valid_targets)
-	user.ai_root.blackboard["chosen_target"] = chosen_target
+	user.ai_root.blackboard[AIBLK_CHOSEN_TARGET] = chosen_target
 	return NODE_SUCCESS
 
 /bt_action/give_target
@@ -133,7 +257,7 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	var/new_target = user.ai_root.blackboard["chosen_target"]
+	var/new_target = user.ai_root.blackboard[AIBLK_CHOSEN_TARGET]
 	if(!new_target)
 		return NODE_FAILURE
 
@@ -203,7 +327,7 @@
 				else
 					continue
 
-		user.ai_root.blackboard["check_target"] = A
+		user.ai_root.blackboard[AIBLK_CHECK_TARGET] = A
 		if(can_attack_check.evaluate(user, null, user.ai_root.blackboard) == NODE_SUCCESS)
 			valid_targets += A
 			continue
@@ -717,16 +841,16 @@
 		return NODE_FAILURE
 
 	// Check if we already have valid food target
-	var/atom/current_food = user.ai_root.blackboard["food_target"]
+	var/atom/current_food = user.ai_root.blackboard[AIBLK_FOOD_TARGET]
 	if(current_food && !QDELETED(current_food) && get_dist(user, current_food) <= search_range)
 		if(current_food.loc) // Ensure it's still in the world
 			return NODE_SUCCESS
 	
-	user.ai_root.blackboard["food_target"] = null
+	user.ai_root.blackboard[AIBLK_FOOD_TARGET] = null
 
 	for(var/atom/movable/A in view(search_range, user))
 		if(SA.food_type && is_type_in_list(A, SA.food_type))
-			user.ai_root.blackboard["food_target"] = A
+			user.ai_root.blackboard[AIBLK_FOOD_TARGET] = A
 			return NODE_SUCCESS
 	
 	return NODE_FAILURE
@@ -735,7 +859,7 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	var/atom/movable/food = user.ai_root.blackboard["food_target"]
+	var/atom/movable/food = user.ai_root.blackboard[AIBLK_FOOD_TARGET]
 	if(!food || QDELETED(food))
 		return NODE_FAILURE
 	
@@ -748,10 +872,10 @@
 	user.visible_message(span_notice("[user] eats [food]."))
 	playsound(user, 'sound/misc/eat.ogg', 50, TRUE)
 	qdel(food)
-	user.ai_root.blackboard["food_target"] = null
-	
+	user.ai_root.blackboard[AIBLK_FOOD_TARGET] = null
+
 	// Reset hunger timer
-	user.ai_root.blackboard["next_hunger_check"] = world.time + rand(60 SECONDS, 120 SECONDS)
+	user.ai_root.blackboard[AIBLK_NEXT_HUNGER_CHECK] = world.time + rand(60 SECONDS, 120 SECONDS)
 	
 	// Heal or restore nutrition if applicable
 	if(istype(user, /mob/living/simple_animal))
@@ -824,13 +948,13 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	var/atom/movable/follow_target = user.ai_root.blackboard["follow_target"]
+	var/atom/movable/follow_target = user.ai_root.blackboard[AIBLK_FOLLOW_TARGET]
 	if(!follow_target || get_dist(user, follow_target) > user.client?.view || 7)
-		user.ai_root.blackboard.Remove("follow_target")
+		user.ai_root.blackboard -= AIBLK_FOLLOW_TARGET
 		return NODE_FAILURE
 
 	if(istype(follow_target, /mob/living) && (follow_target:stat == DEAD))
-		user.ai_root.blackboard.Remove("follow_target")
+		user.ai_root.blackboard -= AIBLK_FOLLOW_TARGET
 		return NODE_SUCCESS
 
 	if(get_dist(user, follow_target) <= 1)
@@ -854,7 +978,7 @@
 
 	var/emote = emote_id
 	if(!emote)
-		emote = user.ai_root.blackboard["perform_emote_id"]
+		emote = user.ai_root.blackboard[AIBLK_PERFORM_EMOTE_ID]
 	if(!emote)
 		return NODE_FAILURE
 	
@@ -870,7 +994,7 @@
 
 	var/speech = speech_text
 	if(!speech)
-		speech = user.ai_root.blackboard["perform_speech_text"]
+		speech = user.ai_root.blackboard[AIBLK_PERFORM_SPEECH_TEXT]
 	if(!speech)
 		return NODE_FAILURE
 	
@@ -911,7 +1035,7 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	var/atom/use_target = user.ai_root.blackboard["use_target"]
+	var/atom/use_target = user.ai_root.blackboard[AIBLK_USE_TARGET]
 	if(!use_target || !user.CanReach(use_target))
 		return NODE_FAILURE
 	
@@ -929,7 +1053,7 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	if(user.ai_root.blackboard["food_target"]) 
+	if(user.ai_root.blackboard[AIBLK_FOOD_TARGET]) 
 		return NODE_FAILURE
 	
 	if(prob(walk_chance) && (user.mobility_flags & MOBILITY_MOVE) && isturf(user.loc) && !user.pulledby)
@@ -946,10 +1070,10 @@
 		return NODE_FAILURE
 
 	// 1. Check travel destination (overrides follow)
-	var/turf/travel = user.ai_root.blackboard["minion_travel_dest"]
+	var/turf/travel = user.ai_root.blackboard[AIBLK_MINION_TRAVEL_DEST]
 	if(travel)
 		if(get_dist(user, travel) <= 1)
-			user.ai_root.blackboard.Remove("minion_travel_dest")
+			user.ai_root.blackboard -= AIBLK_MINION_TRAVEL_DEST
 			user.set_ai_path_to(null)
 			return NODE_SUCCESS
 		
@@ -959,11 +1083,11 @@
 		return NODE_FAILURE
 
 	// 2. Check follow target
-	var/mob/following = user.ai_root.blackboard["minion_follow_target"]
+	var/mob/following = user.ai_root.blackboard[AIBLK_MINION_FOLLOW_TARGET]
 	if(following)
 		if(get_dist(user, following) > distance)
 			// Lost them
-			user.ai_root.blackboard.Remove("minion_follow_target")
+			user.ai_root.blackboard -= AIBLK_MINION_FOLLOW_TARGET
 			return NODE_FAILURE
 		
 		if(get_dist(user, following) > 1)
@@ -982,10 +1106,10 @@
 	if(!user.ai_root)
 		return NODE_FAILURE
 
-	if(user.ai_root.blackboard["reinforcements_cooldown"] > world.time)
+	if(user.ai_root.blackboard[AIBLK_REINFORCEMENTS_COOLDOWN] > world.time)
 		return NODE_FAILURE
 
-	if(user.ai_root.blackboard["tamed"])
+	if(user.ai_root.blackboard[AIBLK_TAMED])
 		return NODE_FAILURE
 
 	var/atom/current_target = target
@@ -993,7 +1117,7 @@
 		return NODE_FAILURE
 
 	// Emote/Say
-	var/call_say = user.ai_root.blackboard["reinforcements_say"]
+	var/call_say = user.ai_root.blackboard[AIBLK_REINFORCEMENTS_SAY]
 	if(call_say)
 		user.say(call_say)
 	else
@@ -1004,7 +1128,7 @@
 	if(istype(H))
 		for(var/mob/living/simple_animal/hostile/other in get_hearers_in_view(reinforcements_range, user))
 			if(other == user) continue
-			if(H.faction_check_mob(other, exact_match=FALSE) && !other.ai_root?.blackboard["tamed"])
+			if(H.faction_check_mob(other, exact_match=FALSE) && !other.ai_root?.blackboard[AIBLK_TAMED])
 				// In new system, we might just set their target if they are idle?
 				// Or add to a 'valid targets' list?
 				// For now, let's try to set their target if they don't have one.
@@ -1012,7 +1136,7 @@
 					SSai.WakeUp(other)
 					other.ai_root.target = current_target
 
-	user.ai_root.blackboard["reinforcements_cooldown"] = world.time + cooldown
+	user.ai_root.blackboard[AIBLK_REINFORCEMENTS_COOLDOWN] = world.time + cooldown
 	return NODE_SUCCESS
 
 /bt_action/random_speech
@@ -1112,12 +1236,12 @@
 		return NODE_RUNNING
 
 	// Eat logic
-	if(!user.ai_root.blackboard["eating_body"])
+	if(!user.ai_root.blackboard[AIBLK_EATING_BODY])
 		user.visible_message(span_danger("[user] starts to rip apart [target]!"))
-		user.ai_root.blackboard["eating_body"] = world.time
+		user.ai_root.blackboard[AIBLK_EATING_BODY] = world.time
 		return NODE_RUNNING
 
-	if(world.time - user.ai_root.blackboard["eating_body"] >= 100) // 10 seconds
+	if(world.time - user.ai_root.blackboard[AIBLK_EATING_BODY] >= 100) // 10 seconds
 		if(iscarbon(target))
 			var/mob/living/carbon/C = target
 			var/list/limbs = list()
@@ -1132,7 +1256,7 @@
 		else
 			target.gib()
 		
-		user.ai_root.blackboard.Remove("eating_body")
+		user.ai_root.blackboard -= AIBLK_EATING_BODY
 		return NODE_SUCCESS
 
 	return NODE_RUNNING
@@ -1175,8 +1299,8 @@
 				return NODE_RUNNING
 			else if(idx == length(path))
 				// Arrived at end
-				blackboard.Remove(path_key)
-				blackboard.Remove(target_key)
+				blackboard -= path_key
+				blackboard -= target_key
 				return NODE_SUCCESS
 		else
 			// Still travelling to current point

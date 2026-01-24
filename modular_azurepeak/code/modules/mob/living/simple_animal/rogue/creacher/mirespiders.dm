@@ -223,10 +223,10 @@
 
 	for (var/mob/living/simple_animal/hostile/retaliate/rogue/mirespider/follower in followers)
 		if(follower.ai_root && follower.ai_root.blackboard)
-			follower.ai_root.blackboard.Remove(BB_FOLLOW_TARGET)
-			follower.ai_root.blackboard.Remove(BB_TRAVEL_DESTINATION)
-			follower.ai_root.blackboard.Remove(BB_BASIC_MOB_CURRENT_TARGET)
-			follower.ai_root.blackboard.Remove(BB_BASIC_MOB_RETALIATE_LIST)
+			follower.ai_root.blackboard -= BB_FOLLOW_TARGET
+			follower.ai_root.blackboard -= BB_TRAVEL_DESTINATION
+			follower.ai_root.blackboard -= BB_BASIC_MOB_CURRENT_TARGET
+			follower.ai_root.blackboard -= BB_BASIC_MOB_RETALIATE_LIST
 	followers.Cut()
 
 /mob/living/simple_animal/hostile/rogue/mirespider_paralytic

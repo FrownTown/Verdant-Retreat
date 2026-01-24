@@ -632,7 +632,7 @@ GLOBAL_LIST_EMPTY(species_list)
 		var/list/visible = list()
 
 		for(var/mob/living/M as anything in entities)
-			if(get_dist(source, M) <= dist && !los_blocked(source, M))
+			if(get_dist(source, M) <= dist && !los_blocked(source, M, TRUE))
 				visible += M
 
 		source.qt_range.width = AI_HIBERNATION_RANGE

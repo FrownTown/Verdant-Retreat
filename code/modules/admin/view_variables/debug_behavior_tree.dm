@@ -3,9 +3,15 @@
 	var/datum/behavior_tree/node/parallel/root/root
 	var/client/viewer
 	var/image/outline_image
+	var/list/selected_mobs = list()
+	var/list/selection_images = list()
+	var/selecting_mode = FALSE
+	var/atom/drag_start
 
 /datum/behavior_tree_view/New(client/C)
 	viewer = C
+	selected_mobs = list()
+	selection_images = list()
 
 /datum/behavior_tree_view/proc/set_target(mob/living/M)
 	// Remove outline from old target
@@ -27,7 +33,9 @@
 		root = null
 
 /datum/behavior_tree_view/ui_state(mob/user)
-	return ADMIN_STATE(R_DEBUG)
+	if(!GLOB.admin_states["[R_DEBUG]"])
+		GLOB.admin_states["[R_DEBUG]"] = new /datum/ui_state/admin_state(R_DEBUG)
+	return GLOB.admin_states["[R_DEBUG]"]
 
 /datum/behavior_tree_view/ui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -37,9 +45,22 @@
 
 /datum/behavior_tree_view/ui_data(mob/user)
 	var/list/data = list()
+
+	// Always provide selection and spawn data
+	data["selected_count"] = length(selected_mobs)
+	var/list/selected_list = list()
+	for(var/mob/living/M in selected_mobs)
+		selected_list += M.name
+	data["selected_mobs"] = selected_list
+	data["spawn_categories"] = get_spawn_categories()
+
+	// Check if we have a target with AI
 	if(!target || !root)
 		data["has_ai"] = FALSE
-		data["selecting"] = TRUE
+		data["selecting"] = FALSE
+		data["mob_name"] = ""
+		data["blackboard"] = list()
+		data["tree"] = null
 		return data
 
 	data["has_ai"] = TRUE
@@ -53,12 +74,39 @@
 			data["blackboard"][key] = "[value]" // Stringify for display
 
 	data["tree"] = get_node_data(root)
+
 	return data
+
+/datum/behavior_tree_view/proc/get_spawn_categories()
+	var/list/categories = list()
+
+	// Goblins
+	var/list/goblins = list()
+	goblins["Goblin"] = "/mob/living/carbon/human/species/goblin/npc"
+	goblins["Goblin (Ambush)"] = "/mob/living/carbon/human/species/goblin/npc/ambush"
+	goblins["Hell Goblin"] = "/mob/living/carbon/human/species/goblin/npc/hell"
+	goblins["Cave Goblin"] = "/mob/living/carbon/human/species/goblin/npc/cave"
+	goblins["Sea Goblin"] = "/mob/living/carbon/human/species/goblin/npc/sea"
+	categories["Goblins"] = goblins
+
+	// Humanoids
+	var/list/humanoids = list()
+	humanoids["Highwayman"] = "/mob/living/carbon/human/species/human/northern/highwayman"
+	humanoids["Highwayman (Ambush)"] = "/mob/living/carbon/human/species/human/northern/highwayman/ambush"
+	categories["Humanoids"] = humanoids
+
+	// Squads
+	var/list/squads = list()
+	squads["Goblin Squad (Focus Fire)"] = "/obj/effect/mob_spawner/combat_test_goblin_squad"
+	squads["Bandit Squad (Spread Out)"] = "/obj/effect/mob_spawner/combat_test_bandit_squad"
+	categories["Combat Squads"] = squads
+
+	return categories
 
 /datum/behavior_tree_view/proc/get_node_data(datum/behavior_tree/node/N)
 	if(!N)
 		return null
-	
+
 	var/list/node_data = list()
 	node_data["type"] = "[N.type]"
 	node_data["state"] = N.node_state
@@ -73,26 +121,41 @@
 			var/last_slash = findlasttext(node_data["name"], "/")
 			if(last_slash)
 				node_data["name"] = copytext(node_data["name"], last_slash + 1)
-	
+
 	else if(istype(N, /datum/behavior_tree/node/selector))
 		var/datum/behavior_tree/node/selector/S = N
 		node_data["name"] = "Selector"
 		if(S.my_nodes)
 			for(var/datum/behavior_tree/node/child in S.my_nodes)
-				node_data["children"] += list(get_node_data(child))
+				var/child_data = get_node_data(child)
+				if(child_data)
+					node_data["children"] += list(child_data)
 
 	else if(istype(N, /datum/behavior_tree/node/sequence))
 		var/datum/behavior_tree/node/sequence/S = N
 		node_data["name"] = "Sequence"
 		if(S.my_nodes)
 			for(var/datum/behavior_tree/node/child in S.my_nodes)
-				node_data["children"] += list(get_node_data(child))
-	
+				var/child_data = get_node_data(child)
+				if(child_data)
+					node_data["children"] += list(child_data)
+
 	else if(istype(N, /datum/behavior_tree/node/decorator))
 		var/datum/behavior_tree/node/decorator/D = N
 		node_data["name"] = "Decorator"
 		if(D.child)
-			node_data["children"] += list(get_node_data(D.child))
+			var/child_data = get_node_data(D.child)
+			if(child_data)
+				node_data["children"] += list(child_data)
+
+	else if(istype(N, /datum/behavior_tree/node/parallel))
+		var/datum/behavior_tree/node/parallel/P = N
+		node_data["name"] = "Parallel"
+		if(P.my_nodes)
+			for(var/datum/behavior_tree/node/child in P.my_nodes)
+				var/child_data = get_node_data(child)
+				if(child_data)
+					node_data["children"] += list(child_data)
 
 	return node_data
 
@@ -105,6 +168,7 @@
 		viewer.images -= outline_image
 		qdel(outline_image)
 		outline_image = null
+	clear_selections()
 	target = null
 	root = null
 	if(viewer)
@@ -113,16 +177,84 @@
 		if(viewer.mob)
 			viewer.mob.update_mouse_pointer()
 
+/datum/behavior_tree_view/proc/clear_selections()
+	if(viewer)
+		for(var/image/I in selection_images)
+			viewer.images -= I
+			qdel(I)
+	selection_images = list()
+	selected_mobs = list()
+
+/datum/behavior_tree_view/proc/add_to_selection(mob/living/M)
+	if(M in selected_mobs)
+		return
+	selected_mobs += M
+	var/image/sel_img = new /image
+	sel_img.override = TRUE
+	sel_img.appearance = M.appearance
+	sel_img.loc = M
+	sel_img.filters += filter(type = "outline", size = 2, color = "#ffff00")
+	selection_images += sel_img
+	if(viewer)
+		viewer.images += sel_img
+
+/datum/behavior_tree_view/proc/remove_from_selection(mob/living/M)
+	var/index = selected_mobs.Find(M)
+	if(!index)
+		return
+	selected_mobs -= M
+	var/image/sel_img = selection_images[index]
+	if(viewer)
+		viewer.images -= sel_img
+	qdel(sel_img)
+	selection_images -= sel_img
+
 /datum/behavior_tree_view/ui_act(action, list/params)
+	to_chat(viewer.mob, span_notice("DEBUG ui_act ENTRY: action=[action]"))
 	. = ..()
+	to_chat(viewer.mob, span_notice("DEBUG parent returned: [.]"))
 	if(.)
 		return
+
+	to_chat(viewer.mob, span_notice("DEBUG ui_act: action=[action]"))
 
 	switch(action)
 		if("start_selecting")
 			// Enable click intercept mode
 			viewer.click_intercept = src
 			viewer.mouse_pointer_icon = 'icons/effects/supplypod_target.dmi'
+			selecting_mode = TRUE
+			return TRUE
+
+		if("clear_selection")
+			clear_selections()
+			return TRUE
+
+		if("spawn_mob")
+			var/path_string = params["path"]
+			to_chat(viewer.mob, span_notice("DEBUG: Attempting to spawn: [path_string]"))
+			var/mob_path = text2path(path_string)
+			if(!ispath(mob_path))
+				to_chat(viewer.mob, span_warning("Invalid mob path: [path_string]"))
+				return TRUE
+
+			var/turf/spawn_loc = get_turf(viewer.mob)
+			if(ispath(mob_path, /obj/effect/mob_spawner))
+				var/obj/effect/mob_spawner/spawner = new mob_path(spawn_loc)
+				spawner.attack_hand(viewer.mob)
+				to_chat(viewer.mob, span_notice("Spawned squad spawner"))
+			else if(ispath(mob_path, /mob/living))
+				var/mob/living/new_mob = new mob_path(spawn_loc)
+				to_chat(viewer.mob, span_notice("Spawned [new_mob.name] at your location"))
+			else
+				to_chat(viewer.mob, span_warning("Path is not a mob or spawner: [mob_path]"))
+			return TRUE
+
+		if("delete_selected")
+			for(var/mob/living/M in selected_mobs)
+				qdel(M)
+			clear_selections()
+			to_chat(viewer.mob, span_notice("Deleted selected mobs"))
 			return TRUE
 
 /datum/behavior_tree_view/proc/InterceptClickOn(user, params, atom/target_atom)
@@ -132,10 +264,15 @@
 		viewer.click_intercept = null
 		viewer.mouse_pointer_icon = null
 		viewer.mob.update_mouse_pointer()
+		selecting_mode = FALSE
+		drag_start = null
 		return TRUE
 
 	if(istype(target_atom, /atom/movable/screen))
 		return FALSE
+
+	// Check if ctrl-click for multi-select
+	var/is_ctrl = modifiers["ctrl"]
 
 	// Check if clicked on a living mob
 	var/mob/living/clicked_mob = null
@@ -150,15 +287,65 @@
 				break
 
 	if(clicked_mob)
-		set_target(clicked_mob)
-		SStgui.update_uis(src)
-		to_chat(user, span_notice("Now debugging behavior tree for: [clicked_mob.name]"))
+		if(is_ctrl)
+			// Multi-select with ctrl
+			if(clicked_mob in selected_mobs)
+				remove_from_selection(clicked_mob)
+			else
+				add_to_selection(clicked_mob)
+			SStgui.update_uis(src)
+		else
+			// Single select - debug this mob
+			set_target(clicked_mob)
+			SStgui.update_uis(src)
+			to_chat(user, span_notice("Now debugging behavior tree for: [clicked_mob.name]"))
 
-		// Disable click intercept after selection
-		viewer.click_intercept = null
-		viewer.mouse_pointer_icon = null
-		viewer.mob.update_mouse_pointer()
+			// Disable click intercept after selection
+			viewer.click_intercept = null
+			viewer.mouse_pointer_icon = null
+			viewer.mob.update_mouse_pointer()
+			selecting_mode = FALSE
 	else
 		to_chat(user, span_warning("No mob found at that location."))
 
+	return TRUE
+
+// Handle drag start
+/datum/behavior_tree_view/proc/InterceptMouseDown(user, params, atom/object)
+	var/list/modifiers = params2list(params)
+	if(modifiers["shift"])
+		drag_start = get_turf(object)
+		return TRUE
+	return FALSE
+
+// Handle drag end - select all mobs in rectangle
+/datum/behavior_tree_view/proc/InterceptMouseUp(user, params, atom/object)
+	if(!drag_start)
+		return FALSE
+
+	var/turf/drag_end = get_turf(object)
+	if(!drag_end)
+		drag_start = null
+		return FALSE
+
+	// Get rectangle bounds
+	var/min_x = min(drag_start.x, drag_end.x)
+	var/max_x = max(drag_start.x, drag_end.x)
+	var/min_y = min(drag_start.y, drag_end.y)
+	var/max_y = max(drag_start.y, drag_end.y)
+	var/z = drag_start.z
+
+	// Select all mobs in rectangle
+	clear_selections()
+	for(var/mob/living/M in GLOB.mob_list)
+		var/turf/M_turf = get_turf(M)
+		if(!M_turf || M_turf.z != z)
+			continue
+		if(M_turf.x >= min_x && M_turf.x <= max_x && M_turf.y >= min_y && M_turf.y <= max_y)
+			add_to_selection(M)
+
+	SStgui.update_uis(src)
+	to_chat(user, span_notice("Selected [length(selected_mobs)] mobs"))
+
+	drag_start = null
 	return TRUE

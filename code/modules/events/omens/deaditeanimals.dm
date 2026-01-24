@@ -68,7 +68,7 @@ GLOBAL_LIST_INIT(deadite_animal_migration_points, list())
 		created.gold_core_spawnable = NO_SPAWN
 		created.aggressive = TRUE
 		if(created.ai_root)
-			created.ai_root.blackboard["deadite_migration_path"] = migration_turfs
+			created.ai_root.blackboard[AIBLK_DEADITE_MIGRATION_PATH] = migration_turfs
 			// The tree will handle picking the first target from the path
 		else
 			created.GiveTarget(end_turf)

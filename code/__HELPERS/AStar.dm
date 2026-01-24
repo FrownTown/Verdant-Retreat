@@ -148,6 +148,13 @@ Also added 'exclude' turf to avoid travelling over; defaults to null
 				var/datum/PathNode/CN = openc[T]  //current checking turf
 				var/reverse = GLOB.reverse_dir[dir_to_check]
 				var/newg = cur.g + call(cur.source,dist)(T, caller) // add the travel distance between these two tiles to the distance so far
+
+				// Add cost if turf is claimed by another mob
+				if(isliving(caller))
+					var/mob/living/L = caller
+					if(SSai.turf_claimed_by(T, L))
+						newg += 5 // Add penalty cost for claimed turfs
+
 				if(CN)
 				//is already in open list, check if it's a better way from the current turf
 					CN.bf &= ALL_DIRS^reverse //we have no closed, so just cut off exceed dir.00001111 ^ reverse_dir.We don't need to expand to checked turf.

@@ -28,8 +28,8 @@
 	// Update Blackboard
 	var/mob/living/L = parent
 	if(L.ai_root)
-		L.ai_root.blackboard["friend_ref"] = friend_ref
-		L.ai_root.blackboard["tamed"] = TRUE
+		L.ai_root.blackboard[AIBLK_FRIEND_REF] = friend_ref
+		L.ai_root.blackboard[AIBLK_TAMED] = TRUE
 
 	RegisterSignal(new_friend, COMSIG_MOB_SAY, PROC_REF(check_verbal_command))
 	
@@ -46,9 +46,9 @@
 	// Update Blackboard
 	var/mob/living/L = parent
 	if(L.ai_root)
-		L.ai_root.blackboard["friend_ref"] = null
-		L.ai_root.blackboard["tamed"] = FALSE
-		L.ai_root.blackboard["command_mode"] = "none" // Reset command
+		L.ai_root.blackboard[AIBLK_FRIEND_REF] = null
+		L.ai_root.blackboard[AIBLK_TAMED] = FALSE
+		L.ai_root.blackboard[AIBLK_COMMAND_MODE] = "none" // Reset command
 
 /datum/component/ai_friend_events/proc/on_prebuckle(mob/source, mob/living/buckler, force)
 	var/mob/living/L = parent
@@ -133,21 +133,21 @@
 	switch(command)
 		if("stop")
 			L.visible_message(span_notice("[L] [attack_word] at [commander]'s command, and [L.p_they()] stop[L.p_s()] obediently, awaiting further orders."))
-			L.ai_root.blackboard["command_mode"] = "stop"
+			L.ai_root.blackboard[AIBLK_COMMAND_MODE] = "stop"
 			L.ai_root.target = null
 			L.ai_root.path = null
 			L.ai_root.move_destination = null
 			
 		if("follow")
 			L.visible_message(span_notice("[L] [attack_word] at [commander]'s command, and [L.p_they()] follow[L.p_s()] slightly in anticipation."))
-			L.ai_root.blackboard["command_mode"] = "follow"
-			L.ai_root.blackboard["minion_follow_target"] = commander
+			L.ai_root.blackboard[AIBLK_COMMAND_MODE] = "follow"
+			L.ai_root.blackboard[AIBLK_MINION_FOLLOW_TARGET] = commander
 			if(L.buckled)
 				L.resist()
 
 		if("attack")
 			L.visible_message(span_danger("[L] [attack_word] at [commander]'s command, and [L.p_they()] growl[L.p_s()] intensely."))
-			L.ai_root.blackboard["command_mode"] = "attack"
+			L.ai_root.blackboard[AIBLK_COMMAND_MODE] = "attack"
 			// The tree should handle acquiring a target, or we could set it here if the commander points?
 			// For now, "attack" mode just enables the combat subtree to be very aggressive.
 

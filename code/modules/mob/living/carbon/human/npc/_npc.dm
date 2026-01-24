@@ -173,8 +173,9 @@
 		face_atom(L)
 		if(!ai_root.target)
 			emote("aggro")
-		if(ai_root)
-			ai_root.target = L
+		ai_root.target = L
+		add_aggressor(L)
+
 		enemies |= L
 
 /mob/living/carbon/human/attackby(obj/item/W, mob/user, params)

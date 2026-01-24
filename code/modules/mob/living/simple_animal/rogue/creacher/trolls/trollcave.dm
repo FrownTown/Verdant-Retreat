@@ -39,6 +39,6 @@
 
 	// Initialize behavior tree with stone throw ability
 	init_ai_root(/datum/behavior_tree/node/selector/direbear_tree)
-	ai_root.blackboard["targeted_action"] = throwstone
+	ai_root.blackboard[AIBLK_TARGETED_ACTION] = throwstone
 	ai_root.next_move_delay = move_to_delay
 	ai_root.next_attack_delay = TROLL_ATTACK_SPEED

@@ -24,6 +24,9 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	var/next_squad_update_tick = 0
 	#endif
 
+	// Pathfinding reservation system - maps turf hash to claiming mob
+	var/alist/claimed_turfs
+
 /datum/controller/subsystem/processing/ai/Initialize()
 	..()
 	NEW_SS_GLOBAL(SSai)
@@ -34,6 +37,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	sleep_queue = list()
 	squads = list()
 	squads_to_remove = list()
+	claimed_turfs = alist()
 	// Register movement tracking for player mobs - this will be set up as players log in/spawn
 	
 	for(var/mob/living/M in GLOB.ai_init_queue)
@@ -74,7 +78,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	
 	active_mobs[M] = TRUE
 	if(M.ai_root.blackboard)
-		M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
+		M.ai_root.blackboard -= AIBLK_HIBERNATION_TIMER
 	M.ai_root.next_think_tick = world.time // Let it think immediately
 	M.ai_root.next_sleep_tick = world.time + M.ai_root.next_sleep_delay
 
@@ -115,7 +119,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 							continue
 				else
 					if(M.ai_root.blackboard && M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
-						M.ai_root.blackboard.Remove(AIBLK_HIBERNATION_TIMER)
+						M.ai_root.blackboard -= AIBLK_HIBERNATION_TIMER
 
 			M.RunAI()
 			M.ai_root.next_think_tick = current_time + M.ai_root.next_think_delay
@@ -296,6 +300,46 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 		hunter.ai_root.target = hunt_target
 
 #endif
+
+//================================================================
+// PATHFINDING CLAIM SYSTEM
+//================================================================
+
+// Hash a turf's coordinates to an integer for fast lookup
+/datum/controller/subsystem/processing/ai/proc/hash_turf(turf/T)
+	if(!T)
+		return 0
+	// DJB2 hash
+	var/hash = 5381
+	hash = (hash << 5) + hash + T.x
+	hash = (hash << 5) + hash + T.y
+	hash = (hash << 5) + hash + T.z
+	return hash
+
+// Claim a turf for pathfinding (called when setting path destination)
+/datum/controller/subsystem/processing/ai/proc/claim_turf(turf/T, mob/living/claimer)
+	if(!T || !claimer)
+		return
+	var/hash = hash_turf(T)
+	claimed_turfs["[hash]"] = claimer
+
+// Unclaim a turf (called when path is cleared or mob dies)
+/datum/controller/subsystem/processing/ai/proc/unclaim_turf(turf/T, mob/living/claimer)
+	if(!T)
+		return
+	var/hash = hash_turf(T)
+	if(claimed_turfs["[hash]"] == claimer)
+		claimed_turfs -= "[hash]"
+
+// Check if a turf is claimed by another mob
+/datum/controller/subsystem/processing/ai/proc/turf_claimed_by(turf/T, mob/living/exclude)
+	if(!T)
+		return null
+	var/hash = hash_turf(T)
+	var/mob/living/claimer = claimed_turfs["[hash]"]
+	if(claimer && claimer != exclude && !QDELETED(claimer))
+		return claimer
+	return null
 
 //================================================================
 //SUBSYSTEM HELPERS

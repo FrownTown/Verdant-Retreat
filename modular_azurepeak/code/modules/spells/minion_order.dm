@@ -55,7 +55,7 @@
                 if(!minion.ai_root)
                     continue
 
-                minion.ai_root.blackboard.Remove(BB_FOLLOW_TARGET)
+                minion.ai_root.blackboard -= BB_FOLLOW_TARGET
                 minion.ai_root.target = null
                 count += 1
                 switch (order_type)

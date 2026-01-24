@@ -217,10 +217,10 @@
 	var/turf/T = locate(x, y, z)
 	if(!T) return TRUE
 
-	if(T.density && T.opacity) return TRUE
+	if((checkforcover || T.density) && T.opacity) return TRUE
 
 	for(var/atom/A in T.contents)
-		if(A.density && A.opacity)
+		if((checkforcover || A.density) && A.opacity)
 			return TRUE
 	return FALSE
 

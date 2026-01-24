@@ -131,15 +131,47 @@
 
 /datum/behavior_tree/node/selector/acquire_target
 	my_nodes = list(
-		/datum/behavior_tree/node/action/has_target_check,
-		/datum/behavior_tree/node/action/find_target
+		/datum/behavior_tree/node/decorator/progress_validator/target_persistence/simple_has_target_wrapped,
+		/datum/behavior_tree/node/action/simple_animal_check_aggressors_action,
+		/datum/behavior_tree/node/decorator/retry/simple_find_target_wrapped
 	)
+
+// Wrap has_target in target_persistence decorator for simple_animals
+// This gives simple animals 4 seconds to "remember" a target after losing sight
+/datum/behavior_tree/node/decorator/progress_validator/target_persistence/simple_has_target_wrapped
+	child = /datum/behavior_tree/node/action/has_target_check
+	persistence_time = 4 SECONDS
+
+// Wrap find_target in retry decorator for simple_animals
+// This prevents spamming target searches every tick
+/datum/behavior_tree/node/decorator/retry/simple_find_target_wrapped
+	child = /datum/behavior_tree/node/action/find_target
+	cooldown = 2 SECONDS
+	max_failures = 1
 
 /datum/behavior_tree/node/selector/engage_target
 	my_nodes = list(
 		/datum/behavior_tree/node/sequence/attack_sequence,
-		/datum/behavior_tree/node/action/move_to_target
+		/datum/behavior_tree/node/action/move_to_target,
+		/datum/behavior_tree/node/sequence/simple_pursue_search
 	)
+
+// Pursue and search sequence for simple_animals - runs when we've lost the target
+/datum/behavior_tree/node/sequence/simple_pursue_search
+	my_nodes = list(
+		/datum/behavior_tree/node/decorator/timeout/simple_pursue_last_known,
+		/datum/behavior_tree/node/decorator/timeout/simple_search_area_wrapped
+	)
+
+// Pursue to last known location with 10 second timeout for simple_animals
+/datum/behavior_tree/node/decorator/timeout/simple_pursue_last_known
+	child = /datum/behavior_tree/node/action/simple_animal_pursue_last_known_action
+	limit = 10 SECONDS
+
+// Search area with 10 second timeout for simple_animals
+/datum/behavior_tree/node/decorator/timeout/simple_search_area_wrapped
+	child = /datum/behavior_tree/node/action/simple_animal_search_area_action
+	limit = 10 SECONDS
 
 /datum/behavior_tree/node/sequence/combat
 	my_nodes = list(
@@ -529,3 +561,16 @@
 		/datum/behavior_tree/node/sequence/chicken_egg_laying,
 		/datum/behavior_tree/node/sequence/idle
 	)
+
+// ------------------------------------------------------------------------------
+// SIMPLE_ANIMAL ACTION NODE WRAPPERS
+// ------------------------------------------------------------------------------
+
+/datum/behavior_tree/node/action/simple_animal_check_aggressors_action
+	my_action = /bt_action/simple_animal_check_aggressors
+
+/datum/behavior_tree/node/action/simple_animal_pursue_last_known_action
+	my_action = /bt_action/simple_animal_pursue_last_known
+
+/datum/behavior_tree/node/action/simple_animal_search_area_action
+	my_action = /bt_action/simple_animal_search_area

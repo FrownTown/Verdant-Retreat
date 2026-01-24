@@ -484,8 +484,3 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 
 	var/datum/behavior_tree_view/BTV = new(src)
 	BTV.ui_interact(mob)
-
-	// Automatically start in selection mode
-	src.click_intercept = BTV
-	src.mouse_pointer_icon = 'icons/effects/supplypod_target.dmi'
-	to_chat(mob, span_notice("Click on a mob to debug their behavior tree. Right click to cancel."))

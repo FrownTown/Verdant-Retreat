@@ -40,12 +40,6 @@
 	aggressive = 1
 	wander = FALSE
 
-/mob/living/carbon/human/species/goblin/npc/ambush/Initialize()
-	. = ..()
-	// ADAPT: Faster attack speed for ambush goblins using behavior tree delay
-	if(ai_root)
-		ai_root.next_attack_delay = CLICK_CD_RAPID
-
 /mob/living/carbon/human/species/goblin/hell
 	name = "hell goblin"
 	race = /datum/species/goblin/hell

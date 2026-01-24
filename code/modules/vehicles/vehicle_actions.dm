@@ -24,21 +24,24 @@
 	if(isnull(occupants[m]) || !actiontype)
 		return FALSE
 	LAZYINITLIST(occupant_actions[m])
-	if(occupant_actions[m][actiontype])
+	var/list/atypes = occupant_actions[m]
+
+	if(atypes[actiontype])
 		return TRUE
 	var/datum/action/action = generate_action_type(actiontype)
 	action.Grant(m)
-	occupant_actions[m][action.type] = action
+	atypes[action.type] = action
 	return TRUE
 
 /obj/vehicle/proc/remove_action_type_from_mob(actiontype, mob/m)
 	if(isnull(occupants[m]) || !actiontype)
 		return FALSE
 	LAZYINITLIST(occupant_actions[m])
-	if(occupant_actions[m][actiontype])
-		var/datum/action/action = occupant_actions[m][actiontype]
+	var/list/atypes = occupant_actions[m]
+	if(atypes[actiontype])
+		var/datum/action/action = atypes[actiontype]
 		action.Remove(m)
-		occupant_actions[m] -= actiontype
+		atypes -= actiontype
 	return TRUE
 
 /obj/vehicle/proc/grant_passenger_actions(mob/M)
@@ -81,11 +84,12 @@
 /obj/vehicle/proc/cleanup_actions_for_mob(mob/M)
 	if(!istype(M))
 		return FALSE
-	for(var/path in occupant_actions[M])
+	var/list/atypes = occupant_actions[M]
+	for(var/path in atypes)
 		stack_trace("Leftover action type [path] in vehicle type [type] for mob type [M.type] - THIS SHOULD NOT BE HAPPENING!")
-		var/datum/action/action = occupant_actions[M][path]
+		var/datum/action/action = atypes[path]
 		action.Remove(M)
-		occupant_actions[M] -= path
+		atypes -= path
 	occupant_actions -= M
 	return TRUE
 

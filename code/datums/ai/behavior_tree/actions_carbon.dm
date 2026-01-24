@@ -24,7 +24,7 @@
 	var/list/targets = get_nearby_entities(user, search_range)
 
 	for(var/mob/living/L in targets)
-		if(!user.should_target(L) || los_blocked(user, L))
+		if(!user.should_target(L) || los_blocked(user, L, TRUE))
 			continue
 
 		var/dist = get_dist(user, L)
@@ -35,6 +35,8 @@
 	if(new_target)
 		if(user.ai_root)
 			user.ai_root.target = new_target
+			user.add_aggressor(new_target)
+
 		user.retaliate(new_target) // Trigger aggro
 		return NODE_SUCCESS
 
@@ -44,9 +46,17 @@
 	if(!ishuman(user))
 		return NODE_FAILURE
 
-	if(target && user.should_target(target) && get_dist(user, target) <= 15)
+	if(target && user.should_target(target))
+		// Check if we can see the target
+		if(get_dist(user, target) <= 7 && !los_blocked(user, target, TRUE))
+			// Update last known location
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(target)
+			return NODE_SUCCESS
+
+		// Target exists but we can't see them - let the target_persistence decorator handle this
 		return NODE_SUCCESS
 
+	// No valid target
 	if(user.ai_root)
 		user.ai_root.target = null
 		user.back_to_idle()
@@ -176,20 +186,20 @@
 
 /bt_action/carbon_check_monster_bait/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	if(user.ai_root.blackboard[AIBLK_S_ACTION] && !length(user.sexcon.using_zones))
-		user.ai_root.blackboard.Remove(AIBLK_S_ACTION)
+		user.ai_root.blackboard -= AIBLK_S_ACTION
 
 	if(!target)
 		return NODE_FAILURE
 	
 	if(target.pulledby && target.pulledby != user)
-		user.ai_root.blackboard.Remove(AIBLK_MONSTER_BAIT)
+		user.ai_root.blackboard -= AIBLK_MONSTER_BAIT
 		return NODE_FAILURE
 	
 	if(HAS_TRAIT(target, TRAIT_MONSTERBAIT))
 		user.ai_root.blackboard[AIBLK_MONSTER_BAIT] = target
 		return NODE_SUCCESS
 
-	user.ai_root.blackboard.Remove(AIBLK_MONSTER_BAIT)
+	user.ai_root.blackboard -= AIBLK_MONSTER_BAIT
 	return NODE_FAILURE
 
 /bt_action/carbon_subdue_target
@@ -380,6 +390,133 @@
 
 	return NODE_RUNNING
 
+// ------------------------------------------------------------------------------
+// PURSUE AND SEARCH (replaces IS12 pursue/search timers)
+// ------------------------------------------------------------------------------
+
+// Moves to the last known location of a lost target
+/bt_action/carbon_pursue_last_known/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(user) || !user.ai_root)
+		return NODE_FAILURE
+
+	// This action is only used when we DON'T have a current target
+	if(user.ai_root.target)
+		return NODE_FAILURE
+
+	// Get last known location from the aggressors list
+	// We'll store the last seen location when an aggressor attacks us
+	var/turf/last_known_loc = blackboard[AIBLK_LAST_KNOWN_TARGET_LOC]
+	if(!last_known_loc)
+		return NODE_FAILURE
+
+	// If we've reached the last known location, we're done pursuing
+	if(get_turf(user) == last_known_loc)
+		// Clear the last known location so we can transition to searching
+		blackboard -= AIBLK_LAST_KNOWN_TARGET_LOC
+		return NODE_SUCCESS
+
+	// Move towards last known location
+	if(user.set_ai_path_to(last_known_loc))
+		return NODE_RUNNING
+
+	return NODE_FAILURE
+
+// Searches the area after reaching last known location
+/bt_action/carbon_search_area/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(user) || !user.ai_root)
+		return NODE_FAILURE
+
+	// Only search if we don't have a target
+	if(user.ai_root.target)
+		return NODE_SUCCESS // Found target while searching!
+
+	// Random search movement - more active than idle wander
+	if(prob(40))
+		var/list/dirs = shuffle(GLOB.cardinals.Copy())
+		for(var/move_dir in dirs)
+			var/turf/T = get_step(user, move_dir)
+			if(user.set_ai_path_to(T))
+				return NODE_RUNNING
+			break
+
+	return NODE_RUNNING
+
+// Check aggressors list for potential targets (replaces IS12's aggressor checking in evaluate_target)
+/bt_action/carbon_check_aggressors/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(user) || !user.ai_root)
+		return NODE_FAILURE
+
+	var/list/aggressors = blackboard[AIBLK_AGGRESSORS]
+	if(!aggressors || !length(aggressors))
+		return NODE_FAILURE
+
+	// Clean up the aggressors list and build a list of visible ones
+	var/list/visible_aggressors = list()
+	var/list/to_remove = list()
+
+	for(var/mob/living/L as anything in aggressors)
+		// Remove dead or null entries
+		if(!L || L.stat == DEAD)
+			to_remove += L
+			continue
+
+		// Check if aggressor is in range and visible
+		var/dist = get_dist(user, L)
+		if(dist <= 7 && !los_blocked(user, L, TRUE))
+			visible_aggressors += L
+		else
+			// They're out of range or not visible
+			// If we have other visible aggressors OR we already have a different target, forget about this one
+			if(length(visible_aggressors) > 0 || (user.ai_root.target && user.ai_root.target != L))
+				to_remove += L
+
+	// Clean up the list
+	if(length(to_remove))
+		aggressors -= to_remove
+
+	// If we have no visible aggressors, fail
+	if(!length(visible_aggressors))
+		return NODE_FAILURE
+
+	// Case 1: We have a target already
+	if(user.ai_root.target)
+		// If our current target is in the visible aggressors list, keep them
+		if(user.ai_root.target in visible_aggressors)
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(user.ai_root.target)
+			return NODE_SUCCESS
+
+		// Our current target is NOT in visible aggressors - switch to a visible one
+		// Pick the closest visible aggressor
+		var/mob/living/closest = null
+		var/closest_dist = 999
+		for(var/mob/living/L as anything in visible_aggressors)
+			var/dist = get_dist(user, L)
+			if(dist < closest_dist)
+				closest = L
+				closest_dist = dist
+
+		if(closest)
+			user.ai_root.target = closest
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(closest)
+			return NODE_SUCCESS
+
+	// Case 2: We don't have a target - pick the closest visible aggressor
+	else
+		var/mob/living/closest = null
+		var/closest_dist = INFINITY
+		for(var/mob/living/L as anything in visible_aggressors)
+			var/dist = get_dist(user, L)
+			if(dist < closest_dist)
+				closest = L
+				closest_dist = dist
+
+		if(closest)
+			user.ai_root.target = closest
+			blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(closest)
+			return NODE_SUCCESS
+
+	return NODE_FAILURE
+
 /bt_action/carbon_violate_target
 
 /bt_action/carbon_violate_target/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
@@ -458,7 +595,7 @@
 				var/stripped = FALSE
 				// Robust strip logic for victim
 				var/list/stripping_candidates = list()
-				
+
 				// Prioritize outer layers
 				for(var/obj/item/I in victim.get_blocking_equipment(used_bitflag))
 					stripping_candidates += I
@@ -467,7 +604,7 @@
 					if(victim.dropItemToGround(I, TRUE, TRUE))
 						stripped = TRUE
 						break
-				
+
 				if(!stripped && victim.underwear)
 					var/obj/item/bodypart/chest = victim.get_bodypart(BODY_ZONE_CHEST)
 					if(chest)
@@ -475,17 +612,16 @@
 					victim.underwear.forceMove(get_turf(victim))
 					victim.underwear = null
 					stripped = TRUE
-				
+
 				if(stripped)
 					victim.sexcon.update_all_accessible_body_zones()
 					return NODE_RUNNING
-				else
-					return NODE_FAILURE
-			return NODE_RUNNING
+				// If nothing was stripped, fall through to try the sex action anyway
+			else
+				return NODE_RUNNING // do_mob was interrupted
 
-		if(get_turf(user) != get_turf(victim) && user.Adjacent(victim))
-			user.Move(get_turf(victim), get_dir(user, victim))
-			user.dir = victim.dir
+		// Move to same turf if adjacent (for sex positioning)
+		position_for_sex(user, victim)
 
 		// 3. Start/Continue action
 		if(!user.ai_root.blackboard[AIBLK_S_ACTION])
@@ -497,9 +633,10 @@
 			user.ai_root.blackboard[AIBLK_S_ACTION] = "[action_path]"
 			return NODE_RUNNING
 		else
-			if(user.sexcon.just_ejaculated())
+			// Check if finished or spent
+			if(user.sexcon.just_ejaculated() || user.sexcon.is_spent())
 				user.sexcon.stop_current_action()
-				user.ai_root.blackboard.Remove(AIBLK_S_ACTION)
+				user.ai_root.blackboard -= AIBLK_S_ACTION
 				return NODE_SUCCESS
 			return NODE_RUNNING
 

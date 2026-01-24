@@ -48,13 +48,23 @@
 	var/ai_flags // A bitfield
 	var/current_command // If the mob is carrying out a command given by AI commander, we store its state here.
 
+// DJB2 hash for blackboard keys - converts strings to integers for faster lookup
+/datum/behavior_tree/node/parallel/root/proc/hash_key(key)
+	if(isnum(key))
+		return key
+	var/hash = 5381
+	var/text_key = "[key]"
+	for(var/i = 1, i <= length(text_key), i++)
+		hash = ((hash << 5) + hash) + text2ascii(text_key, i)
+	return hash
+/*
 	var/list/bt_action_cache // For goap stuff.
 
 	// These are caches that hold an instance of every goap_goal and goap_action subtype so the NPC can use them at will. This helps with performance by preventing either A)
 	// having to create a new instance of a goap_goal or goap_action every time it's needed, or B) having to share the same instance of a goap_goal or goap_action between multiple NPCs and cause memory leaks and race conditions.
 	var/list/goap_goals_cache
 	var/list/goap_actions_cache
-
+*/
 /mob/living/proc/init_ai_root(typepath)
 	if(ai_root) return
 
@@ -536,4 +546,121 @@
 
 	node_state = result
 	return result
+
+// COOLDOWN DECORATOR
+// Only allows child to run if cooldown period has elapsed since last run
+// Always returns SUCCESS (non-blocking) so it doesn't interfere with tree flow
+/datum/behavior_tree/node/decorator/cooldown
+	var/cooldown_time = 2 SECONDS
+	var/last_run_time = 0
+
+/datum/behavior_tree/node/decorator/cooldown/New(new_cooldown)
+	..()
+	if(new_cooldown)
+		cooldown_time = new_cooldown
+
+/datum/behavior_tree/node/decorator/cooldown/evaluate(mob/living/npc, atom/target, list/blackboard)
+	// Check if we are on cooldown
+	if(last_run_time > 0 && (world.time - last_run_time) < cooldown_time)
+		node_state = NODE_SUCCESS // Non-blocking, just skip
+		return node_state
+
+	// Run child node
+	child.evaluate(npc, target, blackboard)
+	last_run_time = world.time
+
+	node_state = NODE_SUCCESS // Always return success so we don't block tree flow
+	return node_state
+
+// TARGET PERSISTENCE DECORATOR
+// Allows the NPC to "remember" a target for a short time after losing sight.
+// This prevents rapid target switching and allows the NPC to commit to chasing.
+/datum/behavior_tree/node/decorator/progress_validator/target_persistence
+	var/persistence_time = 4 SECONDS // How long to remember target after losing sight
+	var/lost_sight_at = 0
+	var/last_target = null
+
+/datum/behavior_tree/node/decorator/progress_validator/target_persistence/New(new_persistence_time)
+	..()
+	if(new_persistence_time)
+		persistence_time = new_persistence_time
+
+/datum/behavior_tree/node/decorator/progress_validator/target_persistence/check_progress(mob/living/npc, list/blackboard)
+	if(!npc.ai_root || !npc.ai_root.target)
+		// No target, reset state
+		lost_sight_at = 0
+		last_target = null
+		return TRUE
+
+	var/mob/living/current_target = npc.ai_root.target
+
+	// Target changed, reset timer
+	if(current_target != last_target)
+		last_target = current_target
+		lost_sight_at = 0
+		return TRUE
+
+	// Check if we can see the target
+	var/can_see_target = (get_dist(npc, current_target) <= 15 && can_see(npc, current_target, 15))
+
+	if(can_see_target)
+		// We can see them, reset timer
+		lost_sight_at = 0
+		return TRUE
+
+	// Can't see them - start or check timer
+	if(lost_sight_at == 0)
+		lost_sight_at = world.time
+		return TRUE // First tick of not seeing them
+
+	// Check if persistence time expired
+	if((world.time - lost_sight_at) > persistence_time)
+		// Lost them for too long, clear target and fail
+		npc.ai_root.target = null
+		last_target = null
+		lost_sight_at = 0
+		return FALSE
+
+	// Still within persistence time
+	return TRUE
+
+// PURSUE TO LAST KNOWN LOCATION DECORATOR
+// When a target is lost, the NPC will pursue to their last known location for a limited time.
+// After arriving, transitions to searching behavior.
+/datum/behavior_tree/node/decorator/timeout/pursue_timeout
+	var/last_known_loc = null
+	var/pursue_started = FALSE
+
+/datum/behavior_tree/node/decorator/timeout/pursue_timeout/New(new_limit)
+	if(!new_limit)
+		new_limit = 10 SECONDS
+	..(new_limit)
+
+/datum/behavior_tree/node/decorator/timeout/pursue_timeout/evaluate(mob/living/npc, atom/target, list/blackboard)
+	if(!npc.ai_root)
+		return NODE_FAILURE
+
+	var/turf/T = get_turf(npc.ai_root.target)
+
+	// If we have a target in sight, store location and reset
+	if(npc.ai_root.target && T)
+		last_known_loc = T
+		pursue_started = FALSE
+		start_time = 0
+		return child.evaluate(npc, target, blackboard)
+
+	// No target, but have last known location
+	if(last_known_loc && !pursue_started)
+		pursue_started = TRUE
+		start_time = world.time
+
+	// Call parent timeout logic
+	return ..(npc, target, blackboard)
+
+// SEARCH AREA DECORATOR
+// After pursuing to last known location, the NPC will search the area for a limited time.
+/datum/behavior_tree/node/decorator/timeout/search_timeout
+
+/datum/behavior_tree/node/decorator/timeout/search_timeout/New()
+	..(10 SECONDS) // Default 10 second search time
 

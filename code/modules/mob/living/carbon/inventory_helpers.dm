@@ -205,8 +205,6 @@
 		held.ungrip(src, show_message = FALSE)
 		return !held.wielded
 
-	return FALSE
-
 /**
  * Selects a specific intent with inventory management.
  *
@@ -390,10 +388,10 @@
 		face_atom(target)
 
 		if(held)
-			held.melee_attack_chain(src, target)
-		else
-			// Unarmed attack
 			ClickOn(target)
+		else
+			// Unarmed attacks can't be executed on objects
+			return FALSE
 
 		return TRUE
 

@@ -112,6 +112,8 @@
 	if(stat == CONSCIOUS && !target && ai_root && !client && user)
 		if(ai_root)
 			ai_root.target = user
+			add_aggressor(user)
+
 	return ..()
 
 /mob/living/simple_animal/hostile/bullet_act(obj/projectile/P)
@@ -119,6 +121,8 @@
 		if(P.firer && get_dist(src, P.firer) <= aggro_vision_range)
 			if(ai_root)
 				ai_root.target = P.firer
+				add_aggressor(P.firer)
+
 		if(ai_root)
 			set_ai_path_to(P.starting)
 	return ..()
