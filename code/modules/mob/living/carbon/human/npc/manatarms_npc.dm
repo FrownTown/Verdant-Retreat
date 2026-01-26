@@ -13,7 +13,6 @@
 	possible_mmb_intents = list(INTENT_STEAL, INTENT_JUMP, INTENT_KICK, INTENT_BITE)
 	possible_rmb_intents = list(/datum/rmb_intent/feint, /datum/rmb_intent/aimed, /datum/rmb_intent/strong, /datum/rmb_intent/weak, /datum/rmb_intent/swift, /datum/rmb_intent/riposte)
 	aggressive = 1
-	mode = NPC_AI_IDLE
 	wander = FALSE
 	cmode_music = FALSE
 
@@ -53,6 +52,8 @@
 		put_in_hands(weapon, forced = TRUE)
 	if(offhand)
 		put_in_hands(offhand, forced = TRUE)
+
+	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 
 // Footsman man-at-arms NPC
 /mob/living/carbon/human/species/npc/manatarms/footsman

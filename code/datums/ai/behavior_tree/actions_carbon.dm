@@ -118,10 +118,9 @@
 	if(!user.Adjacent(target))
 		return NODE_FAILURE
 
-	if(user.ai_root && world.time >= user.ai_root.next_attack_tick)
+	if(user.ai_root)
 		user.face_atom(target)
-		user.monkey_attack(target)
-		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 12)
+		npc_click_on(user, target)
 		return NODE_SUCCESS
 
 	return NODE_RUNNING
@@ -237,9 +236,12 @@
 		// 1. Check current weapon for blunt mode
 		if(W)
 			user.update_a_intents()
-			for(var/datum/intent/I in user.possible_a_intents)
+			for(var/i = 1 to length(user.possible_a_intents))
+				var/datum/intent/I = user.possible_a_intents[i]
 				if(I.blade_class == BCLASS_BLUNT || I.blade_class == BCLASS_SMASH)
-					user.a_intent_change(I)
+					// Only change intent if not already using it
+					if(user.used_intent != I)
+						user.a_intent_change(i)
 					found_blunt_mode = TRUE
 					break
 			
@@ -266,9 +268,12 @@
 			if(best_blunt)
 				if(user.ensure_in_active_hand(best_blunt))
 					W = best_blunt
-					for(var/datum/intent/I in user.possible_a_intents)
+					for(var/i = 1 to length(user.possible_a_intents))
+						var/datum/intent/I = user.possible_a_intents[i]
 						if(I.blade_class == BCLASS_BLUNT || I.blade_class == BCLASS_SMASH)
-							user.a_intent_change(I)
+							// Only change intent if not already using it
+							if(user.used_intent != I)
+								user.a_intent_change(i)
 							found_blunt_mode = TRUE
 							break
 		
@@ -332,16 +337,8 @@
 			G.update_icon()
 		else
 			// Upgrade grab
-
-			var/datum/intent/upgrade_intent = null
-			var/datum/intent/I = locate(/datum/intent/grab/upgrade) in user.possible_a_intents
-			if(I)
-				upgrade_intent = I
-			
-			if(upgrade_intent)
-				user.a_intent_change(I)
-				if(user.doing) return NODE_RUNNING
-				G.attack(victim, user)
+			if(user.doing) return NODE_RUNNING
+			if(user.use_grab_intent(G, /datum/intent/grab/upgrade, victim))
 				return NODE_RUNNING
 			else
 				return NODE_FAILURE
@@ -358,16 +355,8 @@
 	
 	if(!is_pinned)
 		// Switch to Shove/Tackle intent
-		var/datum/intent/shove_intent = null
-		var/datum/intent/I = locate(/datum/intent/grab/shove) in user.possible_a_intents
-		if(I)
-			shove_intent = I
-		
-		if(shove_intent)
-			user.a_intent_change(shove_intent)
-			user.used_intent = shove_intent
-			if(user.doing) return NODE_RUNNING
-			G.attack(target, user)
+		if(user.doing) return NODE_RUNNING
+		if(user.use_grab_intent(G, /datum/intent/grab/shove, target))
 			return NODE_RUNNING
 		else
 			return NODE_FAILURE

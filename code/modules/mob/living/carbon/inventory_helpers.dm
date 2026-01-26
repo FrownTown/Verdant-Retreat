@@ -46,12 +46,13 @@
 	 * 1. Native equipment slot (if item flags allow).
 	 * 2. Pockets (if human and fits).
 	 * 3. Equipped storage containers (backpack, belt, etc.).
-	 * 4. Hands (if free).
+	 * 4. Hands (if free and allowed).
 	 *
 	 * @param I The item to store.
+	 * @param allow_hands Whether to allow storing in hands.
 	 * @return TRUE if the item was successfully stored/equipped/held, FALSE otherwise.
 	 */
-/mob/living/carbon/proc/place_in_inventory(obj/item/I)
+/mob/living/carbon/proc/place_in_inventory(obj/item/I, allow_hands = TRUE)
 	if(!I)
 		return FALSE
 	
@@ -59,7 +60,7 @@
 	if(equip_to_slot_if_possible(I, I.slot_flags, disable_warning = TRUE))
 		return TRUE
 
-	// 2. Try to put in pockets (Human specific logic)
+	// 2. Try to put in pockets
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		if(H.equip_to_slot_if_possible(I, SLOT_L_STORE, disable_warning = TRUE))
@@ -74,7 +75,7 @@
 			return TRUE
 
 	// 4. Finally, try to put in hands if it didn't fit anywhere else
-	if(put_in_hands(I))
+	if(allow_hands && put_in_hands(I))
 		return TRUE
 		
 	return FALSE
@@ -228,9 +229,9 @@
 		var/obj/item/held = get_active_held_item()
 		if(held)
 			// Try to stow it
-			if(!place_in_inventory(held))
+			if(!place_in_inventory(held, allow_hands = FALSE))
 				// If we can't stow it, drop it
-				dropItemToGround(held)
+				dropItemToGround(held, force = TRUE)
 		
 		switch(intent_name)
 			if(INTENT_HELP)
@@ -243,9 +244,9 @@
 				rog_intent_change(4)
 
 		// Execute the attack
-		ClickOn(target)
+		npc_click_on(src, target)
 		return TRUE
-	
+
 	else
 
 		// Find the intent index in our available intents
@@ -257,10 +258,11 @@
 				break
 
 		if(intent_index > 0)
-			a_intent_change(intent_index)
+			// Check if we're already using this intent
+			if(used_intent != possible_a_intents[intent_index])
+				a_intent_change(intent_index)
 
-			// Execute the attack
-			ClickOn(target)
+			npc_click_on(src, target)
 			return TRUE
 
 	return FALSE
@@ -388,12 +390,40 @@
 		face_atom(target)
 
 		if(held)
-			ClickOn(target)
+			npc_click_on(src, target)
 		else
 			// Unarmed attacks can't be executed on objects
 			return FALSE
 
 		return TRUE
+
+	return FALSE
+
+/**
+ * Uses a grab intent (upgrade or shove) on the grabbed target.
+ *
+ * Checks if the specified grab intent is already selected before changing it,
+ * then executes the grab's attack method to perform the upgrade/shove action.
+ *
+ * @param grab The grabbing object to use
+ * @param intent_type The type of grab intent to use (/datum/intent/grab/upgrade or /datum/intent/grab/shove)
+ * @param target The target being grabbed
+ * @return TRUE if the intent was executed, FALSE if the intent wasn't found
+ */
+/mob/living/carbon/proc/use_grab_intent(obj/item/grabbing/grab, intent_type, atom/target)
+	if(!grab || !intent_type || !target)
+		return FALSE
+
+	// Find the intent in our available intents
+	for(var/i = 1 to length(possible_a_intents))
+		var/datum/intent/check_intent = possible_a_intents[i]
+		if(istype(check_intent, intent_type))
+			// Only change intent if not already using it
+			if(used_intent != check_intent)
+				a_intent_change(i)
+			// Execute the grab action
+			grab.attack(target, src)
+			return TRUE
 
 	return FALSE
 
@@ -473,6 +503,6 @@
 			best_intent_index = i
 
 	// Select the best intent
-	rog_intent_change(best_intent_index)
+	a_intent_change(best_intent_index)
 
 	return TRUE

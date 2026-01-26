@@ -44,8 +44,8 @@
 			line += locate(current_x_step, current_y_step, starting_z)
 	return line
 
-/proc/get_stat_roll(stat_value, return_mod = FALSE)
-	var/mod = floor((stat_value - 10) / 2)
+/proc/get_stat_roll(stat_value, skill_value, return_mod = FALSE)
+	var/mod = floor((stat_value - 10) / 2) + skill_value
 	if(return_mod)
 		return mod
 	return rand(1, 20) + mod

@@ -119,30 +119,44 @@
 		/datum/behavior_tree/node/action/goblin_restrain_target_action
 	)
 
-// Stripper removes equipment
+// Stripper removes equipment or assists with restraint
 /datum/behavior_tree/node/sequence/goblin_stripper_actions
 	my_nodes = list(
 		/datum/behavior_tree/node/action/goblin_is_stripper,
-		/datum/behavior_tree/node/selector/goblin_strip_selector
+		/datum/behavior_tree/node/selector/goblin_stripper_selector
 	)
 
-/datum/behavior_tree/node/selector/goblin_strip_selector
+/datum/behavior_tree/node/selector/goblin_stripper_selector
 	my_nodes = list(
+		/datum/behavior_tree/node/action/goblin_assist_restrain_action, // Help restrain MONSTER_BAIT first
 		/datum/behavior_tree/node/action/goblin_strip_armor_action, // For normal enemies
 		/datum/behavior_tree/node/action/goblin_disarm // For MONSTER_BAIT (weapons)
 	)
 
-// Violator handles violation
+// Violator handles violation or assists with restraint
 /datum/behavior_tree/node/sequence/goblin_violator_actions
 	my_nodes = list(
 		/datum/behavior_tree/node/action/goblin_is_violator,
+		/datum/behavior_tree/node/selector/goblin_violator_selector
+	)
+
+/datum/behavior_tree/node/selector/goblin_violator_selector
+	my_nodes = list(
+		/datum/behavior_tree/node/action/goblin_assist_restrain_action, // Help restrain MONSTER_BAIT first
 		/datum/behavior_tree/node/action/goblin_squad_violate_action
 	)
 
-// Attacker handles combat
+// Attacker handles combat or assists with restraint
 /datum/behavior_tree/node/sequence/goblin_attacker_actions
 	my_nodes = list(
 		/datum/behavior_tree/node/action/goblin_is_attacker,
+		/datum/behavior_tree/node/selector/goblin_attacker_selector
+	)
+
+// Attacker selector: try to assist with MONSTER_BAIT restraint, otherwise attack
+/datum/behavior_tree/node/selector/goblin_attacker_selector
+	my_nodes = list(
+		/datum/behavior_tree/node/action/goblin_assist_restrain_action,
 		/datum/behavior_tree/node/action/goblin_attack_vitals_action
 	)
 
@@ -233,6 +247,9 @@
 
 /datum/behavior_tree/node/action/goblin_squad_coordination
 	my_action = /bt_action/goblin_squad_coordination
+
+/datum/behavior_tree/node/action/goblin_assist_restrain_action
+	my_action = /bt_action/goblin_assist_restrain
 
 /datum/behavior_tree/node/action/goblin_drag_away
 	my_action = /bt_action/goblin_drag_away

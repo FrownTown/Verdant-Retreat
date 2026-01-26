@@ -14,14 +14,27 @@
 /bt_action/proc/evaluate(mob/living/user, atom/target, list/blackboard)
 	return NODE_FAILURE
 
-// Helper to simulate ClickOn with less overhead for AI
+/// Helper to simulate carbon NPC ClickOn with less overhead for AI
+/// Note that this is only for adjacent targets
+/// At range, clicks should probably be bypassed entirely
 /proc/npc_click_on(mob/living/user, atom/target, params)
+	var/list/modifiers = params2list(params)
 	if(!user || !user.ai_root || !target)
 		return
-
-	if(world.time <= user.next_click)
+	
+	if(!modifiers["catcher"] && target.IsObscured())
 		return
-	user.next_click = world.time + 1
+
+	if(!user.loc.AllowClick())
+		return
+
+	if(user.dir == get_dir(target,user))
+		user.face_atom(target)
+		return
+
+	if(world.time < user.ai_root.next_attack_tick)
+		return
+	user.ai_root.next_attack_tick = world.time + user.ai_root.next_attack_delay
 
 	if(user.next_move > world.time)
 		return
@@ -35,6 +48,14 @@
 
 	if(!user.atkswinging)
 		user.face_atom(target)
+
+	if(user.in_throw_mode)
+		if(modifiers["right"])
+			if(user.oactive)
+				user.throw_item(target, TRUE)
+				return
+		user.throw_item(target)
+		return
 
 	if(!user.Adjacent(target))
 		return
@@ -62,7 +83,7 @@
 // ==============================================================================
 
 /bt_action/check_move_valid/evaluate(mob/living/user, atom/target, list/blackboard)
-	if(user.stat == DEAD || user.doing || world.time < user.ai_root.next_move_tick)
+	if(user.stat == DEAD || user.doing || user.incapacitated(ignore_restraints = 1) || world.time < user.ai_root.next_move_tick)
 		return NODE_FAILURE
 	return NODE_SUCCESS
 
@@ -109,6 +130,6 @@
 // THINKING ACTIONS
 // =============================================================================
 /bt_action/check_think_valid/evaluate(mob/living/user, atom/target, list/blackboard)
-	if(user.stat == DEAD || world.time < user.ai_root.next_think_tick)
+	if(user.stat == DEAD || world.time < user.ai_root.next_think_tick || user.incapacitated(ignore_restraints = 1))
 		return NODE_FAILURE
 	return NODE_SUCCESS

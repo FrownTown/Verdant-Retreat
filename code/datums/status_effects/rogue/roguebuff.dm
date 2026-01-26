@@ -1430,8 +1430,7 @@
 
 /datum/status_effect/buff/clash/on_remove()
 	. = ..()
-	var/newcd = 30 SECONDS - owner.get_tempo_bonus(TEMPO_TAG_RCLICK_CD_BONUS)
-	owner.apply_status_effect(/datum/status_effect/debuff/clashcd, newcd)
+	owner.apply_status_effect(/datum/status_effect/debuff/clashcd, 30 SECONDS)
 	var/newdur = world.time - dur
 	var/mob/living/carbon/human/H = owner
 	if(newdur > (initial(duration) - 0.2 SECONDS))	//Not checking exact duration to account for lag and any other tick / timing inconsistencies.

@@ -183,7 +183,7 @@
 		if(user.STALUC > 10)
 			variance_center += (user.STALUC - 10) * 0.0125
 		if(userskill > 0)
-			variance_center += userskill * 0.025
+			variance_center += userskill * 0.05
 		var/variance_roll = get_damage_variance(/datum/skill/combat/crossbows, variance_center, user)
 		BB.damage = (BB.damage * (1 + (variance_roll / 100))) * damfactor
 

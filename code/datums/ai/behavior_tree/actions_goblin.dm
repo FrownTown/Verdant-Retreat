@@ -59,11 +59,6 @@
 // HELPER PROCS
 // ------------------------------------------------------------------------------
 
-// Check if a mob is incapacitated (restrained, knocked down, unconscious, or sleeping)
-/proc/is_incapacitated(mob/living/M)
-	if(!M) return FALSE
-	return M.restrained() || M.IsKnockdown() || M.IsUnconscious() || M.IsSleeping()
-
 // Check if a mob has armor equipped in any armor slot
 /proc/has_armor_equipped(mob/living/carbon/human/H)
 	if(!ishuman(H)) return FALSE
@@ -183,7 +178,8 @@
 		return NODE_SUCCESS
 
 	// Get all nearby goblins
-	for(var/mob/living/carbon/human/G in range(coordination_range, user))
+	var/list/entities = get_nearby_entities(user, coordination_range)
+	for(var/mob/living/carbon/human/G in entities)
 		if(G == user) continue
 		if(!isgoblin(G)) continue
 		if(!G.ai_root || G.stat == DEAD) continue
@@ -214,7 +210,7 @@
 	var/current_target = user.ai_root.target
 
 	// Find highest priority interrupter
-	for(var/mob/living/L as anything in aggressors)
+	for(var/mob/living/L in aggressors)
 		if(!L || L.stat == DEAD) continue
 		if(L == current_target) continue // Already targeting them
 
@@ -390,96 +386,157 @@
 // ------------------------------------------------------------------------------
 
 /bt_action/goblin_restrain_target/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
-	if(!ishuman(user) || !isliving(target))
+	if(!ishuman(user) || !isliving(target) || !user.ai_root)
 		return NODE_FAILURE
 
 	var/mob/living/carbon/human/victim = target
+	if(QDELETED(victim) || victim.stat == DEAD)
+		return NODE_FAILURE
 
 	// Only restrainer should do this
 	var/role = user.ai_root.blackboard[AIBLK_SQUAD_ROLE]
 	if(role != GOB_SQUAD_ROLE_RESTRAINER)
 		return NODE_SUCCESS // Not our job
 
-	// Check if victim is already PINNED (Paralyzed)
-	if(victim.IsParalyzed())
-		return NODE_SUCCESS // Already pinned
+	// Get or initialize our state
+	var/state = user.ai_root.blackboard[AIBLK_RESTRAIN_STATE]
+	if(!state)
+		state = GOB_RESTRAIN_STATE_NONE
+		user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = state
 
-	// Must be adjacent
+	// If victim is already pinned, maintain that state
+	if(victim.IsParalyzed() && state == GOB_RESTRAIN_STATE_PINNED)
+		return NODE_RUNNING // Maintain pin position
+
+	// Must be adjacent for all actions
 	var/move_result = move_adjacent_to(user, victim)
 	if(move_result)
 		return move_result
 
-	// State machine: GRAB -> UPGRADE -> TACKLE -> PIN
+	// Get current grab state
 	var/obj/item/grabbing/G = user.get_active_held_item()
 	if(!istype(G) || G.grabbed != victim)
 		G = user.get_inactive_held_item()
 		if(!istype(G) || G.grabbed != victim)
 			G = null
 
-	// Check attack delay cooldown
-	if(!user.ai_root || world.time < user.ai_root.next_attack_tick)
-		return NODE_RUNNING
-
-	// Count how many goblins are grabbing the victim
+	// Count how many goblins are grabbing the victim (for auto-win bonus)
 	var/grab_count = 0
 	for(var/obj/item/grabbing/grab as anything in victim.grabbedby)
 		if(grab && grab.grabbee && isgoblin(grab.grabbee))
 			grab_count++
 
-	// STEP 1: Initial grab
-	if(!G)
-		user.rog_intent_change(3) // GRAB intent
-		npc_click_on(user, victim)
-		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
-		return NODE_RUNNING
+	// Check cooldown for actions (but not for initial weapon stowing)
+	var/on_cooldown = (world.time < user.ai_root.next_attack_tick)
 
-	// STEP 2: Upgrade grab to aggressive
-	if(G.grab_state < GRAB_AGGRESSIVE)
-		user.rog_intent_change(3) // GRAB intent
-		// Multiple goblins auto-win the upgrade
-		if(grab_count >= 2)
-			G.grab_state = GRAB_AGGRESSIVE
-			victim.visible_message(span_danger("[user] tightens [user.p_their()] grip on [victim]!"))
-		else
-			npc_click_on(user, victim) // Try to upgrade
-		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
-		return NODE_RUNNING
+	// State machine
+	switch(state)
+		if(GOB_RESTRAIN_STATE_NONE, GOB_RESTRAIN_STATE_GRABBING)
+			// Need to establish grab
+			if(!G)
+				// Stow weapon first
+				var/obj/item/held = user.get_active_held_item()
+				if(held)
+					if(!user.place_in_inventory(held))
+						user.dropItemToGround(held)
+					return NODE_RUNNING
 
-	// STEP 3: Tackle (if not already knocked down)
-	if(!victim.IsKnockdown())
-		user.used_intent = INTENT_DISARM
-		// Multiple goblins auto-win the tackle
-		if(grab_count >= 2)
-			victim.Knockdown(30)
-			log_combat(user, victim, "tackled (squad)")
-			victim.visible_message(span_danger("[user] tackles [victim] down!"))
-		else
-			// Normal monkey_attack will handle tackle logic
-			user.monkey_attack(victim)
-		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
-		return NODE_RUNNING
+				if(on_cooldown)
+					return NODE_RUNNING
 
-	// STEP 4: Pin (move on top and paralyze)
-	if(victim.IsKnockdown() && !victim.IsParalyzed())
-		// Move on top of victim for pinning position
-		position_for_sex(user, victim)
+				// Attempt grab
+				if(user.select_intent_and_attack(INTENT_GRAB, victim))
+					user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_GRABBING
+					return NODE_RUNNING
+				return NODE_FAILURE
+			else
+				// Successfully grabbed, move to upgrade
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_UPGRADING
+				return NODE_RUNNING
 
-		user.used_intent = INTENT_DISARM
-		// Multiple goblins auto-win the pin
-		if(grab_count >= 2)
-			victim.Paralyze(40)
-			log_combat(user, victim, "pinned (squad)")
-			victim.visible_message(span_danger("[user] pins [victim] down!"))
-			user.ai_root.blackboard[AIBLK_IS_PINNING] = TRUE // Mark this goblin as the pinner
-		else
-			// Normal monkey_attack will handle pin logic
-			user.monkey_attack(victim)
-			if(victim.IsParalyzed())
+		if(GOB_RESTRAIN_STATE_UPGRADING)
+			if(!G)
+				// Lost the grab, reset
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_NONE
+				return NODE_RUNNING
+
+			if(G.grab_state >= GRAB_AGGRESSIVE)
+				// Already upgraded, move to tackle
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_TACKLING
+				return NODE_RUNNING
+
+			if(user.doing || on_cooldown)
+				return NODE_RUNNING
+
+			// Upgrade the grab
+			if(grab_count >= 2)
+				// Auto-win upgrade
+				user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
+				G.grab_state = GRAB_AGGRESSIVE
+				victim.visible_message(span_danger("[user] tightens [user.p_their()] grip on [victim]!"), span_danger("[user] tightens [user.p_their()] grip on me!"))
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_TACKLING
+			else
+				user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
+				user.use_grab_intent(G, /datum/intent/grab/upgrade, victim)
+			return NODE_RUNNING
+
+		if(GOB_RESTRAIN_STATE_TACKLING)
+			if(!G)
+				// Lost the grab, reset
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_NONE
+				return NODE_RUNNING
+
+			if(victim.IsKnockdown())
+				// Already knocked down, move to pin
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_PINNING
+				return NODE_RUNNING
+
+			if(user.doing || on_cooldown)
+				return NODE_RUNNING
+
+			// Tackle them down
+			if(grab_count >= 2)
+				// Auto-win tackle
+				user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
+				victim.Knockdown(30)
+				victim.visible_message(span_danger("[user] tackles [victim] down!"), span_danger("[user] tackles me down!"))
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_PINNING
+			else
+				user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
+				user.use_grab_intent(G, /datum/intent/grab/shove, victim)
+			return NODE_RUNNING
+
+		if(GOB_RESTRAIN_STATE_PINNING)
+			if(!G)
+				// Lost the grab, reset
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_NONE
+				return NODE_RUNNING
+
+			if(user.doing)
+				return NODE_RUNNING
+
+			// Move on top for pinning position
+			position_for_sex(user, victim)
+
+			// Attempt to pin
+			if(grab_count >= 2)
+				// Auto-win pin
+				victim.Paralyze(15 SECONDS)
+				victim.visible_message(span_danger("[user] pins [victim] down!"), span_danger("[user] pins me down!"))
 				user.ai_root.blackboard[AIBLK_IS_PINNING] = TRUE
-		user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
-		return NODE_RUNNING
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_PINNED
+				return NODE_RUNNING
+			else
+				if(!on_cooldown)
+					user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
+					G.attack(victim, user)
+					if(victim.IsParalyzed())
+						user.ai_root.blackboard[AIBLK_IS_PINNING] = TRUE
+						user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_PINNED
+				return NODE_RUNNING
 
-	return NODE_SUCCESS
+	return NODE_RUNNING
+
 
 // ------------------------------------------------------------------------------
 // SQUAD TACTICS - STRIP ARMOR (for normal enemies)
@@ -490,18 +547,16 @@
 		return NODE_FAILURE
 
 	var/mob/living/carbon/human/victim = target
+	if(QDELETED(victim) || victim.stat == DEAD)
+		return NODE_FAILURE
 
 	// Only strippers should do this
 	var/role = user.ai_root.blackboard[AIBLK_SQUAD_ROLE]
 	if(role != GOB_SQUAD_ROLE_STRIPPER)
 		return NODE_SUCCESS // Not our job
 
-	// Don't strip if this is MONSTER_BAIT (that's handled by violation logic)
-	if(user.ai_root.blackboard[AIBLK_MONSTER_BAIT] == victim)
-		return NODE_SUCCESS
-
 	// Check if victim is incapacitated
-	if(!is_incapacitated(victim))
+	if(!victim.incapacitated())
 		return NODE_FAILURE // Can't strip while fighting back
 
 	// Must be adjacent
@@ -515,22 +570,99 @@
 
 	for(var/slot in armor_slots)
 		var/obj/item/clothing/armor = victim.get_item_by_slot(slot)
-		if(armor && armor.armor_class >= ARMOR_CLASS_LIGHT)
-			to_strip = armor
-			break
+		if(armor)
+			// Check if it's actually armor worth stripping
+			if(istype(armor) && armor.armor_class >= ARMOR_CLASS_LIGHT)
+				to_strip = armor
+				break
 
 	if(to_strip)
 		if(user.doing) return NODE_RUNNING
 
 		user.visible_message(span_danger("[user] starts tearing \the [to_strip] off of [victim]!"))
 		if(do_mob(user, victim, 30))
+			// Re-verify item is still equipped after the delay
 			if(to_strip && to_strip.loc == victim)
 				victim.dropItemToGround(to_strip)
 				to_strip.throw_at(get_ranged_target_turf(user, pick(GLOB.alldirs), 3), 3, 1)
-			return NODE_RUNNING
+		// Always return RUNNING to re-evaluate and find next item (or determine we're done)
 		return NODE_RUNNING
 
-	return NODE_SUCCESS // No armor left to strip
+	// No armor left - for MONSTER_BAIT, keep the sequence running so we don't fall through to attacking
+	if(user.ai_root.blackboard[AIBLK_MONSTER_BAIT] == victim)
+		return NODE_RUNNING // Stay in squad tactics, don't fall through
+
+	return NODE_SUCCESS // For normal enemies, we're done
+
+// ------------------------------------------------------------------------------
+// SQUAD TACTICS - ATTACKER ASSISTS WITH RESTRAINING MONSTER_BAIT
+// ------------------------------------------------------------------------------
+
+/bt_action/goblin_assist_restrain/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(user) || !ishuman(target))
+		return NODE_FAILURE
+
+	var/mob/living/carbon/human/victim = target
+	if(QDELETED(victim) || victim.stat == DEAD)
+		return NODE_FAILURE
+
+	// Get current grab state
+	var/obj/item/grabbing/G = user.get_active_held_item()
+	if(!istype(G) || G.grabbed != victim)
+		G = user.get_inactive_held_item()
+		if(!istype(G) || G.grabbed != victim)
+			G = null
+
+	// Check if we should assist
+	if(!can_assist(user, victim))
+		// Clean up - drop grab if we have one
+		if(G)
+			user.stop_pulling()
+		return NODE_FAILURE // Not our job or job is done
+
+	// Already grabbing - maintain it
+	if(G)
+		return NODE_RUNNING
+
+	// Execute: Establish grab
+	// Step 1: Stow weapon
+	var/obj/item/held = user.get_active_held_item()
+	if(held)
+		if(!user.place_in_inventory(held))
+			user.dropItemToGround(held)
+		return NODE_RUNNING
+
+	// Step 2: Move adjacent
+	var/move_result = move_adjacent_to(user, victim)
+	if(move_result)
+		return move_result
+
+	// Step 3: Check cooldown
+	if(world.time < user.ai_root.next_attack_tick)
+		return NODE_RUNNING
+
+	// Step 4: Grab
+	if(user.select_intent_and_attack(INTENT_GRAB, victim))
+		return NODE_RUNNING
+
+	return NODE_FAILURE
+
+// Helper: Should this goblin assist with restraining?
+/bt_action/goblin_assist_restrain/proc/can_assist(mob/living/carbon/human/user, mob/living/carbon/human/victim)
+	// Only non-restrainer roles assist
+	var/role = user.ai_root.blackboard[AIBLK_SQUAD_ROLE]
+	if(role == GOB_SQUAD_ROLE_RESTRAINER)
+		return FALSE
+
+	// Only help with MONSTER_BAIT targets
+	if(user.ai_root.blackboard[AIBLK_MONSTER_BAIT] != victim)
+		return FALSE
+
+	// Once victim is knocked down, our assist job is done
+	if(victim.IsKnockdown() || victim.IsParalyzed())
+		return FALSE
+
+	return TRUE
 
 // ------------------------------------------------------------------------------
 // SQUAD TACTICS - ATTACK VITALS (after armor stripped)
@@ -541,15 +673,17 @@
 		return NODE_FAILURE
 
 	var/mob/living/carbon/human/victim = target
+	if(QDELETED(victim) || victim.stat == DEAD)
+		return NODE_FAILURE
 
 	// Only attackers should do this
 	var/role = user.ai_root.blackboard[AIBLK_SQUAD_ROLE]
 	if(role != GOB_SQUAD_ROLE_ATTACKER)
 		return NODE_SUCCESS // Not our job
 
-	// Don't use vitals attack on MONSTER_BAIT
+	// Don't attack MONSTER_BAIT - that's handled by violation sequence
 	if(user.ai_root.blackboard[AIBLK_MONSTER_BAIT] == victim)
-		return NODE_FAILURE
+		return NODE_SUCCESS // Not our job for MONSTER_BAIT
 
 	// Check if victim has any armor left
 	if(has_armor_equipped(victim))
@@ -567,7 +701,7 @@
 	// Attack with targeted zone
 	user.face_atom(victim)
 	user.zone_selected = pick(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN)
-	user.monkey_attack(victim)
+	npc_click_on(user, victim)
 	user.ai_root.next_attack_tick = world.time + (user.ai_root.next_attack_delay || 10)
 
 	return NODE_RUNNING
@@ -581,22 +715,28 @@
 		return NODE_FAILURE
 
 	var/mob/living/carbon/human/victim = user.ai_root.blackboard[AIBLK_MONSTER_BAIT]
-	if(!victim)
+	if(!victim || QDELETED(victim) || victim.stat == DEAD)
+		// Clear invalid target
+		user.ai_root.blackboard -= AIBLK_MONSTER_BAIT
+		user.ai_root.target = null
 		return NODE_FAILURE
 
 	var/role = user.ai_root.blackboard[AIBLK_SQUAD_ROLE]
 
-	// Only violators participate
-	if(role != GOB_SQUAD_ROLE_VIOLATOR)
-		return NODE_SUCCESS // Not our job
-
-	// For MONSTER_BAIT: only the pinning goblin (restrainer) violates first
+	// Only violators and restrainers (who pinned) participate
 	// Check if this goblin is the one pinning
 	var/is_pinning = user.ai_root.blackboard[AIBLK_IS_PINNING]
 
-	// Check if victim is incapacitated
-	if(!is_incapacitated(victim))
-		return NODE_FAILURE
+	if(role != GOB_SQUAD_ROLE_VIOLATOR && !is_pinning)
+		return NODE_SUCCESS // Not our job
+
+	// Wait for victim to be incapacitated by restrainer
+	if(!victim.incapacitated())
+		// Move adjacent while waiting
+		var/move_result = move_adjacent_to(user, victim)
+		if(move_result)
+			return move_result
+		return NODE_RUNNING // Wait for restrainer to pin
 
 	// Must be adjacent
 	var/move_result = move_adjacent_to(user, victim)
@@ -620,8 +760,8 @@
 
 	// Random chance for additional violators to join (low chance)
 	if(!we_are_primary && others_violating > 0)
-		// 20% chance for second violator, 10% for third
-		var/join_chance = others_violating == 1 ? 20 : 10
+		// 50% chance for second violator, 10% for third
+		var/join_chance = others_violating == 1 ? 50 : 10
 		if(!prob(join_chance))
 			return NODE_SUCCESS // Don't join
 
@@ -866,7 +1006,7 @@
 	if(!victim) return NODE_FAILURE
 
 	// Target MUST be incapacitated
-	if(!is_incapacitated(victim))
+	if(!victim.incapacitated())
 		return NODE_FAILURE
 
 	// Check for weapons to strip - Prioritize hands -> Belt -> Back

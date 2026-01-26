@@ -39,6 +39,9 @@
 	var/width = 0
 	var/height = 0
 
+	var/initial_width = 0
+	var/initial_height = 0
+
 /datum/shape/proc/intersects(datum/shape/range)
 	return
 
@@ -56,7 +59,9 @@
 	center_x = x
 	center_y = y
 	width = w
+	initial_width = w
 	height = h
+	initial_height = h
 
 /datum/shape/rectangle/UpdateQTMover(x, y)
 	center_x = x

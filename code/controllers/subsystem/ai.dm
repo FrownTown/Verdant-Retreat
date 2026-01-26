@@ -120,8 +120,9 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 				else
 					if(M.ai_root.blackboard && M.ai_root.blackboard[AIBLK_HIBERNATION_TIMER])
 						M.ai_root.blackboard -= AIBLK_HIBERNATION_TIMER
+			
+			INVOKE_ASYNC(M, TYPE_PROC_REF(/mob/living, RunAI))
 
-			M.RunAI()
 			M.ai_root.next_think_tick = current_time + M.ai_root.next_think_delay
 
 	for(var/mob/living/M as anything in unregister_queue)
@@ -142,7 +143,7 @@ PROCESSING_SUBSYSTEM_DEF(ai)
 	if(current_time > next_squad_update_tick)
 		for(var/ai_squad/S as anything in squads)
 			if(length(S.members))
-				S.RunAI()
+				INVOKE_ASYNC(S, TYPE_PROC_REF(/ai_squad, RunAI))
 			else
 				squads_to_remove |= S
 

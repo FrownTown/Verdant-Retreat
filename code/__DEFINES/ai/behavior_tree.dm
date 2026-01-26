@@ -187,5 +187,16 @@
 #define GOB_SQUAD_ROLE_VIOLATOR 3
 #define GOB_SQUAD_ROLE_ATTACKER 4
 
+// Defines for goblin restrainer states
+#define GOB_RESTRAIN_STATE_NONE 0
+#define GOB_RESTRAIN_STATE_GRABBING 1
+#define GOB_RESTRAIN_STATE_UPGRADING 2
+#define GOB_RESTRAIN_STATE_TACKLING 3
+#define GOB_RESTRAIN_STATE_PINNING 4
+#define GOB_RESTRAIN_STATE_PINNED 5
+
+// Blackboard key for restrainer state
+#define AIBLK_RESTRAIN_STATE 8745623
+
 #define SS_PRIORITY_AI 67
 #define INIT_ORDER_AI 8

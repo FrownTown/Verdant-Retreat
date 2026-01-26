@@ -193,13 +193,13 @@
 
 		var/variance_center = 0
 		var/bonusstat = max(user.STAPER, user.STASTR)
-		if(user.STALUC > bonusstat && user.STALUC > 10)
+		if(user.STALUC/2 > bonusstat && user.STALUC > 10)
 			variance_center += (user.STALUC - 10) * 0.0125
 		else
-			variance_center += (bonusstat - 10) * 0.0125
+			variance_center += (bonusstat - 10) * 0.025
 		var/userskill = user.get_skill_level(/datum/skill/combat/slings)
 		if(userskill > 0)
-			variance_center += userskill * 0.025
+			variance_center += userskill * 0.05
 		var/variance_roll = get_damage_variance(/datum/skill/combat/slings, variance_center, user)
 
 		var/statmult = max(bonusstat / 20, 1)

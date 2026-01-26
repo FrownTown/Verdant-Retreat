@@ -247,14 +247,16 @@
 
 		var/variance_center = 0
 		var/bonusstat = heavy_bow ? user.STASTR : user.STAPER
+		if((user.STAPER - 10)/2 > (user.STASTR - 10) && user.STAPER > 10)
+			bonusstat = floor(user.STAPER/2)
 
-		if(user.STALUC > bonusstat && user.STALUC > 10)
+		if((user.STALUC - 10)/2 > bonusstat && user.STALUC > 10)
 			variance_center += (user.STALUC - 10) * 0.0125
 		else
-			variance_center += (bonusstat - 10) * 0.0125
+			variance_center += (bonusstat - 10) * 0.025
 
 		if(userskill > 0)
-			variance_center += userskill * 0.025
+			variance_center += userskill * 0.05
 
 		var/variance_roll = get_damage_variance(/datum/skill/combat/bows, variance_center, user)
 

@@ -94,6 +94,7 @@
 #define ATTACK_OVERRIDE_NODEFENSE 2
 
 /obj/item/proc/attack(mob/living/M, mob/living/user)
+	set waitfor = FALSE
 	var/override_status
 	//Item signal for override
 	if(SEND_SIGNAL(src, COMSIG_ITEM_ATTACK, M, user) & COMPONENT_ITEM_NO_ATTACK)
@@ -119,11 +120,6 @@
 	if(force && HAS_TRAIT(user, TRAIT_PACIFISM))
 		to_chat(user, span_warning("I don't want to harm other living beings!"))
 		return
-
-	if(HAS_TRAIT(M, TRAIT_TEMPO))
-		if(ishuman(M) && ishuman(user) && user.mind && user != M)
-			var/mob/living/carbon/human/H = M
-			H.process_tempo_attack(user)
 
 	M.lastattacker = user.real_name
 	M.lastattackerckey = user.ckey
@@ -152,7 +148,7 @@
 		if(!user.used_intent.noaa && isnull(user.mind))
 			if(get_dist(get_turf(user), get_turf(M)) <= user.used_intent.reach)
 				user.do_attack_animation(M, user.used_intent.animname, user.used_intent.masteritem, used_intent = user.used_intent, simplified = TRUE)
-		sleep(swingdelay)
+		sleep(swingdelay) // I can't fucking believe this didn't have waitfor set to 0 before 1/25/2026 - Plasma
 	if(user.a_intent != cached_intent)
 		return
 	if(QDELETED(src) || QDELETED(M))
@@ -529,7 +525,7 @@
 	var/clamped_roll = clamp(variance_roll, -variance_range, variance_range)
 
 	// Store variance percentile in the user for attack message display
-	if(ishuman(user) && variance_range > 0 && !isprojectile)
+	if(!isprojectile && ishuman(user) && variance_range > 0)
 		var/mob/living/carbon/human/H = user
 		H.last_variance_percentile = ((clamped_roll + variance_range) / (variance_range * 2)) * 100
 

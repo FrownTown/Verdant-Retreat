@@ -221,7 +221,6 @@
 #define TRAIT_GOODWRITER "Great Writer"
 #define TRAIT_ADRENALINE_RUSH "Adrenaline Rush"
 #define TRAIT_COMBAT_AWARE	"Combat Aware"
-#define TRAIT_TEMPO	"Tempo Capable"
 #define TRAIT_STRONGKICK	"Strong Kick"
 #define TRAIT_SILVER_WEAK "Silver Weakness"
 #define TRAIT_DEADITE "Deadite"
@@ -407,7 +406,6 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_BLOODLOSS_IMMUNE = span_notice("While I may bleed, I will feel nothing from it."),
 	TRAIT_ADRENALINE_RUSH = span_notice("I'm invigorated in the midst of battle! I don't feel my wounds!"),
 	TRAIT_COMBAT_AWARE = span_notice("My honed senses and intuition allow me to spot notable things in the midst of battle with ease."),
-	TRAIT_TEMPO	= span_greentext("I can keep up with multiple opponents at once."),
 	TRAIT_STRONGKICK = span_info("My kicks knock people down and back a step, consistently. There's no need for obstacles."),
 	TRAIT_SILVER_WEAK = span_notice("Silver is my bane."),
 	TRAIT_WINGS = span_info("My wings allow me to jump farther."),

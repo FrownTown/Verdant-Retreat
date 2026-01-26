@@ -68,22 +68,52 @@
 			center_of_mass = T
 
 /ai_squad/proc/RunAI()
-	// Share aggressors and targets across squad
-	var/list/shared_aggressors = list()
+	// Get or initialize squad enemies list
+	if(!blackboard[AIBLK_SQUAD_KNOWN_ENEMIES])
+		blackboard[AIBLK_SQUAD_KNOWN_ENEMIES] = list()
+	var/list/squad_enemies = blackboard[AIBLK_SQUAD_KNOWN_ENEMIES]
 
-	// Collect all aggressors from all members
+	// Step 1: Collect all aggressors from all members and add to squad enemies
 	for(var/mob/living/M in members)
 		if(!M.ai_root) continue
 		var/list/member_aggressors = M.ai_root.blackboard[AIBLK_AGGRESSORS]
-		if(member_aggressors)
-			shared_aggressors |= member_aggressors
+		if(member_aggressors && length(member_aggressors))
+			squad_enemies |= member_aggressors
 
-	// Distribute shared aggressors to all members
+	// Step 2: Clean up squad enemies - remove if no longer valid for ANY member
+	for(var/mob/living/enemy as anything in squad_enemies)
+		if(!enemy || QDELETED(enemy) || enemy.stat == DEAD)
+			squad_enemies -= enemy
+			continue
+
+		// Check if this enemy is still a valid aggressor for ANY member
+		var/still_valid = FALSE
+		for(var/mob/living/M in members)
+			if(!M.ai_root) continue
+
+			// Check if within visible range (7 tiles = visible)
+			if(get_dist(M, enemy) <= 7)
+				still_valid = TRUE
+				break
+
+		// Remove if no longer valid for any member
+		if(!still_valid)
+			squad_enemies -= enemy
+
+	// Step 3: Distribute squad enemies to all members' aggressors lists
 	for(var/mob/living/M in members)
 		if(!M.ai_root) continue
 		if(!M.ai_root.blackboard[AIBLK_AGGRESSORS])
 			M.ai_root.blackboard[AIBLK_AGGRESSORS] = list()
-		M.ai_root.blackboard[AIBLK_AGGRESSORS] |= shared_aggressors
+
+		// Share all squad enemies to this member
+		M.ai_root.blackboard[AIBLK_AGGRESSORS] |= squad_enemies
+
+		// Clean up member's aggressors - remove anything not in squad enemies
+		var/list/member_aggressors = M.ai_root.blackboard[AIBLK_AGGRESSORS]
+		for(var/mob/living/aggressor as anything in member_aggressors)
+			if(!(aggressor in squad_enemies))
+				member_aggressors -= aggressor
 
 	// Apply current tactic
 	if(current_tactic)
@@ -108,7 +138,7 @@
 	if(!current_tactic)
 		set_tactic(/squad_tactic/focus_fire)
 
-// RunAI is overridden in goblin_squad.dm for better target detection
+// RunAI is overridden in squad specific subtypes
 
 /ai_squad/goblin/proc/assign_tactical_roles(mob/living/target)
 	if(!target) return

@@ -13,7 +13,6 @@
 	possible_mmb_intents = list(INTENT_STEAL, INTENT_JUMP, INTENT_KICK, INTENT_BITE)
 	possible_rmb_intents = list(/datum/rmb_intent/feint, /datum/rmb_intent/aimed, /datum/rmb_intent/strong, /datum/rmb_intent/weak, /datum/rmb_intent/swift, /datum/rmb_intent/riposte)
 	aggressive = 1
-	mode = NPC_AI_IDLE
 	wander = FALSE
 	cmode_music = FALSE
 
@@ -45,6 +44,7 @@
 	update_hair()
 	update_body()
 	update_body_parts()
+	init_ai_root(/datum/behavior_tree/node/selector/hostile_humanoid_tree)
 
 /mob/living/carbon/human/species/npc/knight/heavy
 	name = "heavy knight"

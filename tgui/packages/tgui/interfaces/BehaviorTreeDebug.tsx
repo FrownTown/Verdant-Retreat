@@ -14,7 +14,7 @@ type Data = {
   has_ai: boolean;
   selecting: boolean;
   mob_name: string;
-  blackboard: Record<string, string>;
+  blackboard: Array<{key: string; value: string}>;
   tree: NodeData;
   selected_count: number;
   selected_mobs: string[];
@@ -190,10 +190,10 @@ export const BehaviorTreeDebug = (props) => {
                   <Stack.Item>
                     <Section title="Blackboard">
                       <LabeledList>
-                        {Object.keys(data.blackboard || {}).length > 0 ? (
-                          Object.keys(data.blackboard).map(key => (
-                            <LabeledList.Item key={key} label={key}>
-                              {data.blackboard[key]}
+                        {(data.blackboard || []).length > 0 ? (
+                          data.blackboard.map((entry, i) => (
+                            <LabeledList.Item key={i} label={entry.key}>
+                              {entry.value}
                             </LabeledList.Item>
                           ))
                         ) : (
