@@ -17,13 +17,17 @@
 		return FALSE
 	if(ismob(target))
 		ai_root.target = target
+		SEND_SIGNAL(src, COMSIG_AI_TARGET_CHANGED, target)
 	else if(isturf(target) || isobj(target))
 		ai_root.obj_target = target
+		SEND_SIGNAL(src, COMSIG_AI_TARGET_CHANGED, target)
 	else
 		return FALSE
 
 /mob/living/proc/LoseTarget()	
-	ai_root?.target = null
+	if(ai_root)
+		ai_root.target = null
+		SEND_SIGNAL(src, COMSIG_AI_TARGET_CHANGED, null)
 
 /mob/living/proc/RunAI()
 	if(!ai_root || stat == DEAD)
@@ -123,6 +127,8 @@
 
 	// Store last known location
 	ai_root.blackboard[AIBLK_LAST_KNOWN_TARGET_LOC] = get_turf(aggressor)
+
+	SEND_SIGNAL(src, COMSIG_AI_ATTACKED, aggressor)
 
 // Check if mob can switch to a new target (respects delay to prevent thrashing)
 /mob/living/proc/can_switch_target(atom/new_target, switch_delay = 2 SECONDS)
