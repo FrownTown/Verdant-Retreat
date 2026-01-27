@@ -112,11 +112,12 @@
 		/datum/behavior_tree/node/sequence/goblin_attacker_actions
 	)
 
-// Restrainer pins the target
+// Restrainer pins the target first
 /datum/behavior_tree/node/sequence/goblin_restrainer_actions
 	my_nodes = list(
 		/datum/behavior_tree/node/action/goblin_is_restrainer,
-		/datum/behavior_tree/node/action/goblin_restrain_target_action
+		/datum/behavior_tree/node/action/goblin_restrain_target_action,
+		/datum/behavior_tree/node/action/goblin_squad_violate_action
 	)
 
 // Stripper removes equipment or assists with restraint

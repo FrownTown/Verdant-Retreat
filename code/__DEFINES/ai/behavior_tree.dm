@@ -198,5 +198,32 @@
 // Blackboard key for restrainer state
 #define AIBLK_RESTRAIN_STATE 8745623
 
+// ==============================================================================
+// STATEFUL BEHAVIOR TREE - SIGNAL SYSTEM
+// ==============================================================================
+// These signals are used by Observer nodes and Service nodes to implement
+// event-driven behavior instead of polling every tick
+
+// Fired when the mob's target changes (acquired, lost, or switched)
+#define COMSIG_AI_TARGET_CHANGED "ai_target_changed"
+
+// Fired when blackboard data critical to decision-making is updated
+#define COMSIG_AI_BLACKBOARD_UPDATED "ai_blackboard_updated"
+
+// Fired when the mob takes damage or is attacked
+#define COMSIG_AI_ATTACKED "ai_attacked"
+
+// Fired when the mob's health drops below a threshold
+#define COMSIG_AI_LOW_HEALTH "ai_low_health"
+
+// Fired when squad state changes (role assigned, squad formed, etc.)
+#define COMSIG_AI_SQUAD_CHANGED "ai_squad_changed"
+
+// Fired when target becomes incapacitated
+#define COMSIG_AI_TARGET_INCAPACITATED "ai_target_incapacitated"
+
+// Fired when target recovers from incapacitation
+#define COMSIG_AI_TARGET_RECOVERED "ai_target_recovered"
+
 #define SS_PRIORITY_AI 67
 #define INIT_ORDER_AI 8

@@ -78,29 +78,6 @@
 		return NODE_FAILURE
 	return null // Already adjacent
 
-// Strip clothing blocking a body zone for sexcon
-// Returns: NODE_RUNNING if stripping, NODE_SUCCESS if nothing to strip/done, NODE_FAILURE if failed
-/proc/strip_for_access(mob/living/carbon/human/user, mob/living/carbon/human/victim, bitflag, do_time = 50, is_self = FALSE)
-	if(!user || !victim) return NODE_FAILURE
-
-	var/mob/living/carbon/human/target_mob = is_self ? user : victim
-	var/stripped = FALSE
-
-	for(var/obj/item/I in target_mob.get_blocking_equipment(bitflag))
-		if(target_mob.dropItemToGround(I, TRUE, TRUE))
-			stripped = TRUE
-			break
-
-	if(!stripped && target_mob.underwear)
-		var/obj/item/bodypart/chest = target_mob.get_bodypart(BODY_ZONE_CHEST)
-		if(chest)
-			chest.remove_bodypart_feature(target_mob.underwear.undies_feature)
-		target_mob.underwear.forceMove(get_turf(target_mob))
-		target_mob.underwear = null
-		stripped = TRUE
-
-	return stripped ? NODE_RUNNING : NODE_FAILURE
-
 // Force user to move onto the same turf as target and face the same direction (for sexcon)
 // This overrides normal movement pathing
 /proc/position_for_sex(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -404,9 +381,9 @@
 		state = GOB_RESTRAIN_STATE_NONE
 		user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = state
 
-	// If victim is already pinned, maintain that state
+	// If victim is already pinned, continue
 	if(victim.IsParalyzed() && state == GOB_RESTRAIN_STATE_PINNED)
-		return NODE_RUNNING // Maintain pin position
+		return NODE_SUCCESS
 
 	// Must be adjacent for all actions
 	var/move_result = move_adjacent_to(user, victim)
@@ -516,7 +493,8 @@
 				return NODE_RUNNING
 
 			// Move on top for pinning position
-			position_for_sex(user, victim)
+			if(get_turf(user) != get_turf(victim))
+				position_for_sex(user, victim)
 
 			// Attempt to pin
 			if(grab_count >= 2)
@@ -534,6 +512,23 @@
 						user.ai_root.blackboard[AIBLK_IS_PINNING] = TRUE
 						user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_PINNED
 				return NODE_RUNNING
+
+		if(GOB_RESTRAIN_STATE_PINNED)
+			if(get_turf(user) != get_turf(victim))
+				position_for_sex(user, victim)
+
+			if(!G)
+				// Lost the grab, reset
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_NONE
+				return NODE_RUNNING
+
+			if(!victim.IsParalyzed())
+				// Unpin
+				user.ai_root.blackboard[AIBLK_IS_PINNING] = FALSE
+				user.ai_root.blackboard[AIBLK_RESTRAIN_STATE] = GOB_RESTRAIN_STATE_PINNING
+				return NODE_RUNNING
+			
+			return NODE_SUCCESS
 
 	return NODE_RUNNING
 
@@ -765,13 +760,7 @@
 		if(!prob(join_chance))
 			return NODE_SUCCESS // Don't join
 
-	// Use the standard violation logic
 	if(user.doing) return NODE_RUNNING
-
-	if(!victim.sexcon)
-		victim.sexcon = new
-	if(!user.sexcon)
-		user.sexcon = new
 
 	if(user.sexcon.is_spent())
 		user.sexcon.stop_current_action()
@@ -783,7 +772,6 @@
 		user.sexcon.update_all_accessible_body_zones()
 		victim.sexcon.update_all_accessible_body_zones()
 
-		// Determine action
 		var/action_path = /datum/sex_action/vaginal_sex
 		if(length(victim.sexcon.using_zones) && !length(user.sexcon.using_zones))
 			if(BODY_ZONE_PRECISE_GROIN in victim.sexcon.using_zones)
@@ -791,42 +779,76 @@
 			if(BODY_ZONE_PRECISE_MOUTH in user.sexcon.using_zones)
 				action_path = /datum/sex_action/anal_sex
 			else
-				return NODE_FAILURE
-
+				return NODE_FAILURE // Uh oh
+				
 		var/datum/sex_action/action = SEX_ACTION(action_path)
 		if(!action)
 			return NODE_FAILURE
 
-		var/used_zone = action_path == /datum/sex_action/force_blowjob ? BODY_ZONE_PRECISE_MOUTH : BODY_ZONE_PRECISE_GROIN
-		var/used_bitflag = used_zone == BODY_ZONE_PRECISE_MOUTH ? MOUTH : GROIN
-
-		// Strip self if needed
-		if(!action.check_location_accessible(user, user, used_zone))
-			user.visible_message(span_warning("[user] starts stripping [user.p_their()] own clothing!"))
-			if(do_mob(user, user, 30))
-				var/result = strip_for_access(user, user, used_bitflag, 30, TRUE)
-				if(result == NODE_RUNNING)
-					user.sexcon.update_all_accessible_body_zones()
-				return result
-			return NODE_RUNNING
-
-		// Strip victim if needed
-		if(!action.check_location_accessible(user, victim, used_zone))
-			user.visible_message(span_warning("[user] starts stripping the clothing off of [victim]!"))
-			if(do_mob(user, victim, 50))
-				var/result = strip_for_access(user, victim, used_bitflag, 50, FALSE)
-				if(result == NODE_RUNNING)
-					victim.sexcon.update_all_accessible_body_zones()
-					return NODE_RUNNING
-				else
-					return NODE_FAILURE
-			return NODE_RUNNING
-
-		// Move to same turf if adjacent (for sex positioning)
-		position_for_sex(user, victim)
-
-		// Start/Continue action
 		if(!user.ai_root.blackboard[AIBLK_S_ACTION])
+			var/used_zone = action_path == /datum/sex_action/force_blowjob ? BODY_ZONE_PRECISE_MOUTH : BODY_ZONE_PRECISE_GROIN
+			var/used_bitflag = used_zone == BODY_ZONE_PRECISE_MOUTH ? MOUTH : GROIN
+				
+			if(!action.check_location_accessible(user, user, used_zone))
+				user.visible_message(span_warning("[user] starts stripping [user.p_their()] own clothing!"))
+				if(do_mob(user, user, 30))
+					var/stripped = FALSE
+					var/list/stripping_candidates = list()
+					// Strip self
+					for(var/obj/I as anything in user.get_blocking_equipment(used_bitflag))
+						stripping_candidates += I
+
+					for(var/obj/item/I as anything in stripping_candidates)
+						if(user.dropItemToGround(I, TRUE, TRUE))
+							stripped = TRUE
+							break
+					
+					if(!stripped && user.underwear)
+						var/obj/item/bodypart/chest = user.get_bodypart(BODY_ZONE_CHEST)
+						if(chest)
+							chest.remove_bodypart_feature(user.underwear.undies_feature)
+						user.underwear.forceMove(get_turf(user))
+						user.underwear = null
+						stripped = TRUE
+					
+					if(stripped)
+						user.sexcon.update_all_accessible_body_zones()
+						return NODE_RUNNING
+				return NODE_RUNNING
+
+			// 2. Check if VICTIM is accessible
+			if(!action.check_location_accessible(user, victim, used_zone))
+				user.visible_message(span_warning("[user] starts stripping the clothing off of [victim]!"))
+				if(do_mob(user, victim, 50))
+					var/stripped = FALSE
+					// Robust strip logic for victim
+					var/list/stripping_candidates = list()
+
+					// Prioritize outer layers
+					for(var/obj/item/I as anything in victim.get_blocking_equipment(used_bitflag))
+						stripping_candidates += I
+
+					for(var/obj/item/I as anything in stripping_candidates)
+						if(victim.dropItemToGround(I, TRUE, TRUE))
+							stripped = TRUE
+							break
+
+					if(!stripped && victim.underwear)
+						var/obj/item/bodypart/chest = victim.get_bodypart(BODY_ZONE_CHEST)
+						if(chest)
+							chest.remove_bodypart_feature(victim.underwear.undies_feature)
+						victim.underwear.forceMove(get_turf(victim))
+						victim.underwear = null
+						stripped = TRUE
+
+					if(stripped)
+						victim.sexcon.update_all_accessible_body_zones()
+						return NODE_RUNNING
+				else
+					return NODE_RUNNING // do_mob was interrupted
+
+			position_for_sex(user, victim)
+
 			if(user.sexcon.arousal < 20)
 				user.sexcon.set_arousal(22)
 			user.sexcon.set_charge(SEX_MAX_CHARGE)
@@ -835,13 +857,15 @@
 			user.ai_root.blackboard[AIBLK_S_ACTION] = "[action_path]"
 			return NODE_RUNNING
 		else
-			if(user.sexcon.just_ejaculated())
+			// Check if finished or spent
+			if(user.sexcon.just_ejaculated() || user.sexcon.is_spent())
 				user.sexcon.stop_current_action()
 				user.ai_root.blackboard -= AIBLK_S_ACTION
 				return NODE_SUCCESS
 			return NODE_RUNNING
 
 	return NODE_FAILURE
+
 
 // ------------------------------------------------------------------------------
 // SUBDUE / DRAG LOGIC

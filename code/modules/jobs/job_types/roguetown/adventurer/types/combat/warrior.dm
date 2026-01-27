@@ -408,14 +408,12 @@
 			H.adjust_skillrank(/datum/skill/craft/tanning, 2, TRUE)
 			ADD_TRAIT(H, TRAIT_DODGEEXPERT, TRAIT_GENERIC)
 			H.set_blindness(0)
-			H.change_stat("speed", 3)
+			H.change_stat("speed", 4)
+			H.change_stat("constitution", 1)
 			H.change_stat("endurance", 1)
 			H.change_stat("strength", 1)
 			armor = /obj/item/clothing/suit/roguetown/armor/leather/bikini
-			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
-			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
 			shoes = /obj/item/clothing/shoes/roguetown/boots/furlinedboots
-			gloves = /obj/item/clothing/gloves/roguetown/fingerless_leather
 			backl = /obj/item/storage/backpack/rogue/satchel
 			belt = /obj/item/storage/belt/rogue/leather
 			neck = /obj/item/storage/belt/rogue/pouch/coins/poor
@@ -424,20 +422,20 @@
 			var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 			switch(weapon_choice)
 				if ("Steel Knuckles")
-					H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_JOURNEYMAN, TRUE)
+					H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_EXPERT, TRUE)
 					beltr = /obj/item/rogueweapon/knuckles
 				if("Axe")
-					H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+					H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
 					beltr = /obj/item/rogueweapon/stoneaxe/boneaxe
 				if("Sword")
-					H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+					H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 					r_hand = /obj/item/rogueweapon/sword/short
 					beltr = /obj/item/rogueweapon/scabbard/sword
 				if("Whip")
-					H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+					H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_EXPERT, TRUE)
 					beltr = /obj/item/rogueweapon/whip
 				if("Spear")
-					H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+					H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
 					r_hand = /obj/item/rogueweapon/spear/bonespear
 				if ("MY BARE HANDS!!!")
 					H.adjust_skillrank_up_to(/datum/skill/combat/wrestling, SKILL_LEVEL_EXPERT, TRUE)
@@ -461,11 +459,11 @@
 			ADD_TRAIT(H, TRAIT_DODGEEXPERT, TRAIT_GENERIC)
 			H.set_blindness(0)
 			H.change_stat("speed", 3)
+			H.change_stat("constitution", 1)
 			H.change_stat("endurance", 1)
-			H.change_stat("strength", 1)
+			H.change_stat("strength", 2)
 			armor = /obj/item/clothing/suit/roguetown/armor/leather/hide/bikini
-			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
-			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
+			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather/heavy
 			shoes = /obj/item/clothing/shoes/roguetown/boots/furlinedboots
 			gloves = /obj/item/clothing/gloves/roguetown/fingerless_leather
 			backl = /obj/item/storage/backpack/rogue/satchel
@@ -504,34 +502,33 @@
 			H.adjust_skillrank(/datum/skill/combat/polearms, 2, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/wrestling, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/unarmed, 3, TRUE)
-			H.adjust_skillrank(/datum/skill/misc/athletics, 3, TRUE)
+			H.adjust_skillrank(/datum/skill/misc/athletics, 4, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/swimming, 2, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/swords, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/climbing, 2, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/reading, 2, TRUE)
 			ADD_TRAIT(H, TRAIT_DODGEEXPERT, TRAIT_GENERIC)
 			H.set_blindness(0)
-			H.change_stat("speed", 2)
-			H.change_stat("endurance", 1)
+			H.change_stat("speed", 3)
+			H.change_stat("perception", 2)
 			H.change_stat("strength", 2)
 			armor = /obj/item/clothing/suit/roguetown/armor/leather/studded/bikini
-			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
-			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
+			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather/heavy
 			shoes = /obj/item/clothing/shoes/roguetown/boots
 			gloves = /obj/item/clothing/gloves/roguetown/fingerless_leather
 			backl = /obj/item/storage/backpack/rogue/satchel
 			belt = /obj/item/storage/belt/rogue/leather
 			neck = /obj/item/storage/belt/rogue/pouch/coins/poor
 			backpack_contents = list(/obj/item/flashlight/flare/torch = 1, /obj/item/rogueweapon/huntingknife/idagger/steel = 1)
-			var/weapons = list("Katar","Rapier","Whip","Billhook","MY BARE HANDS!!!")
+			var/weapons = list("Katar","Longsword","Whip","Billhook","MY BARE HANDS!!!")
 			var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 			switch(weapon_choice)
 				if ("Katar")
 					H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_JOURNEYMAN, TRUE)
 					beltr = /obj/item/rogueweapon/katar
-				if("Rapier")
+				if("Longsword")
 					H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
-					beltr = /obj/item/rogueweapon/sword/rapier
+					beltr = /obj/item/rogueweapon/sword/long
 				if("Whip")
 					H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
 					beltr = /obj/item/rogueweapon/whip
@@ -553,18 +550,17 @@
 			H.adjust_skillrank(/datum/skill/combat/wrestling, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/unarmed, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/swimming, 2, TRUE)
-			H.adjust_skillrank(/datum/skill/misc/athletics, 3, TRUE)
+			H.adjust_skillrank(/datum/skill/misc/athletics, 4, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/climbing, 2, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/reading, 1, TRUE)
 			ADD_TRAIT(H, TRAIT_MEDIUMARMOR, TRAIT_GENERIC)
 			ADD_TRAIT(H, TRAIT_NOPAIN, TRAIT_GENERIC)
 			H.set_blindness(0)
-			H.change_stat("strength", 2)
+			H.change_stat("strength", 3)
 			H.change_stat("endurance", 2)
-			H.change_stat("constitution", 1)
+			H.change_stat("constitution", 2)
 			armor = /obj/item/clothing/suit/roguetown/armor/plate/bikini
-			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
-			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
+			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather/heavy
 			shoes = /obj/item/clothing/shoes/roguetown/boots
 			gloves = /obj/item/clothing/gloves/roguetown/angle
 			backl = /obj/item/storage/backpack/rogue/satchel
@@ -598,16 +594,16 @@
 			H.adjust_skillrank(/datum/skill/combat/wrestling, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/unarmed, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/swimming, 1, TRUE)
-			H.adjust_skillrank(/datum/skill/misc/athletics, 2, TRUE)
+			H.adjust_skillrank(/datum/skill/misc/athletics, 3, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/climbing, 1, TRUE)
 			H.adjust_skillrank(/datum/skill/misc/reading, 1, TRUE)
 			ADD_TRAIT(H, TRAIT_HEAVYARMOR, TRAIT_GENERIC)
 			H.set_blindness(0)
 			H.change_stat("strength", 3)
-			H.change_stat("constitution", 3)
+			H.change_stat("constitution", 4)
+			H.change_stat("endurance", 2)
 			H.change_stat("speed", -1)
 			armor = /obj/item/clothing/suit/roguetown/armor/plate/full/bikini
-			pants = /obj/item/clothing/under/roguetown/heavy_leather_pants/shorts
 			wrists = /obj/item/clothing/wrists/roguetown/bracers/leather
 			shoes = /obj/item/clothing/shoes/roguetown/boots
 			gloves = /obj/item/clothing/gloves/roguetown/angle

@@ -31,6 +31,11 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	/// Mob that owns this wound
 	var/mob/living/owner
 
+	/// When this wound was created (world.time)
+	var/created = 0
+	/// Number of wounds merged into this one (for tracking wound density)
+	var/amount = 1
+
 	/// How many "health points" this wound has, AKA how hard it is to heal
 	var/whp = 60
 	/// How many "health points" this wound gets after being sewn
@@ -164,6 +169,7 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	sortTim(affected.wounds, GLOBAL_PROC_REF(cmp_wound_severity_dsc))
 	bodypart_owner = affected
 	owner = bodypart_owner.owner
+	created = world.time // Track when this wound was created
 	bodypart_owner.bleeding += bleed_rate // immediately apply our base bleeding
 	// Invalidate bleed cache since we added a new wound
 	if(iscarbon(owner))
@@ -411,6 +417,46 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	SHOULD_CALL_PARENT(TRUE)	//Don't skip this if you're making new dynamic wounds.
 	return
 
+/// Checks if two bleed rates are similar enough (within 3x ratio)
+/datum/wound/proc/bleed_rates_similar(bleed1, bleed2)
+	if(isnull(bleed1) || isnull(bleed2))
+		return TRUE // If either has no bleed rate, don't check
+	var/bleed_ratio = max(bleed1, bleed2) / max(min(bleed1, bleed2), 0.1)
+	return (bleed_ratio <= 3)
+
+/// Checks if this wound can merge with another wound (similar to IS12 Reborn system)
+/datum/wound/proc/can_merge(datum/wound/other)
+	if(!other || QDELETED(other))
+		return FALSE
+	if(other.type != src.type)
+		return FALSE
+	// Don't merge wounds of vastly different severities (based on bleed rate)
+	if(!bleed_rates_similar(bleed_rate, other.bleed_rate))
+		return FALSE
+	// Don't merge sewn and unsewn wounds
+	if(is_sewn() != other.is_sewn())
+		return FALSE
+	return TRUE
+
+/// Merges another wound into this one
+/datum/wound/proc/merge_wound(datum/wound/other)
+	if(!can_merge(other))
+		return FALSE
+
+	// Combine wound properties
+	whp = round((whp + other.whp) * 0.9, DAMAGE_PRECISION) // Slightly less than sum to prevent infinite scaling
+	set_bleed_rate(round(bleed_rate + (other.bleed_rate * 0.5), 0.1)) // Add half the other's bleed rate
+	woundpain = round((woundpain + other.woundpain) * 0.85, DAMAGE_PRECISION)
+	sew_threshold = round((sew_threshold + other.sew_threshold) * 0.9, DAMAGE_PRECISION)
+	amount += other.amount // Track how many wounds merged
+	created = max(created, other.created) // Take the newer creation time
+
+	// Remove the other wound
+	other.remove_from_bodypart()
+	qdel(other)
+
+	return TRUE
+
 /datum/wound/proc/update_name()
 	var/newname
 	var/oldname = name
@@ -429,6 +475,30 @@ GLOBAL_LIST_INIT(primordial_wounds, init_primordial_wounds())
 	var/is_maxed = FALSE
 	clotting_rate = 0.4
 	clotting_threshold = 0
+	/// Maximum damage this wound can absorb before creating a new wound
+	var/max_absorbable_damage = 150
+
+/// Checks if this dynamic wound can absorb more damage
+/datum/wound/dynamic/proc/can_worsen(damage)
+	if(amount > 1)
+		return FALSE // Merged wounds don't get worsened, they stay separate
+	if(is_maxed)
+		return FALSE // Already at max severity
+	if(whp >= max_absorbable_damage)
+		return FALSE // Wound is too severe to absorb more damage
+
+	// Check if incoming damage would result in similar bleed rate
+	var/hypothetical_new_bleed = get_hypothetical_bleed_rate(damage)
+	if(!bleed_rates_similar(bleed_rate, hypothetical_new_bleed))
+		return FALSE // Incoming damage would make wound severity too different
+
+	return TRUE
+
+/// Calculates what the bleed rate would be if we added this damage (override in child classes for accuracy)
+/datum/wound/dynamic/proc/get_hypothetical_bleed_rate(damage)
+	// Default approximation: assume linear scaling with damage
+	// Child classes override this for their specific upgrade formulas
+	return bleed_rate + (damage * 0.1)
 
 /datum/wound/dynamic/sew_wound()
 	heal_wound(whp)

@@ -27,6 +27,10 @@
 		if(!user.should_target(L) || los_blocked(user, L, TRUE))
 			continue
 
+		// Goblins should never target other goblins
+		if(isgoblin(user) && isgoblin(L))
+			continue
+
 		var/dist = get_dist(user, L)
 		if(dist < closest_dist)
 			new_target = L

@@ -353,17 +353,36 @@ GLOBAL_LIST_INIT(brain_penetration_zones, list(BODY_ZONE_PRECISE_SKULL, BODY_ZON
 			woundtype = /datum/wound/dynamic/burn
 		else	//Wrong bclass type for wounds, skip adding this.
 			return
-	var/datum/wound/dynwound = has_wound(woundtype)
-	if(!isnull(dynwound))
-		dynwound.upgrade(dam, armor)
-	else
-		if(ispath(woundtype) && woundtype)
-			if(!isnull(woundtype))
-				var/datum/wound/newwound = add_wound(woundtype, FALSE, FALSE, dam, user, weapon)
-				dynwound = newwound
-				if(newwound && !isnull(newwound))
-					newwound.upgrade(dam, armor)
-	return dynwound
+
+	// PHASE 1: Try to worsen an existing wound that can absorb this damage (probability-based like IS12)
+	var/list/worsenable_wounds = list()
+	var/list/all_dynamic_wounds = list()
+	for(var/datum/wound/dynamic/existing in wounds)
+		if(!istype(existing, woundtype))
+			continue
+		all_dynamic_wounds += existing
+		if(existing.can_worsen(dam))
+			worsenable_wounds += existing
+
+	// Probability increases with more wounds on the limb (50% base, +10% per wound, max 90%)
+	var/worsen_chance = clamp(50 + (length(all_dynamic_wounds) - 1) * 10, 50, 90)
+	if(length(worsenable_wounds) && prob(worsen_chance))
+		var/datum/wound/dynamic/target = pick(worsenable_wounds)
+		target.upgrade(dam, armor)
+		return target
+
+	// PHASE 2: Create a new wound
+	var/datum/wound/dynamic/newwound = add_wound(woundtype, FALSE, FALSE, dam, user, weapon)
+	if(newwound && !isnull(newwound))
+		newwound.upgrade(dam, armor)
+
+		// PHASE 3: Try to merge the new wound with an existing similar wound (deterministic like IS12)
+		for(var/datum/wound/dynamic/existing in all_dynamic_wounds)
+			if(existing.can_merge(newwound))
+				existing.merge_wound(newwound)
+				return existing
+
+	return newwound
 
 /// Behemoth of a proc used to apply a wound after a bodypart is damaged in an attack
 /obj/item/bodypart/proc/try_crit(bclass = BCLASS_BLUNT, dam, mob/living/user, zone_precise = src.body_zone, silent = FALSE, crit_message = FALSE, raw_damage = 0, armor_block = 0, armor_resistance = 0, was_blunted = FALSE, obj/item/weapon)

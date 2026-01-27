@@ -86,6 +86,9 @@
 	update_name()
 	..()
 
+/datum/wound/dynamic/puncture/get_hypothetical_bleed_rate(damage)
+	return bleed_rate + clamp((damage * PUNC_UPG_BLEEDRATE), 0.1, PUNC_UPG_CLAMP)
+
 #undef PUNC_UPG_BLEEDRATE
 #undef PUNC_UPG_WHPRATE
 #undef PUNC_UPG_SEWRATE
@@ -128,6 +131,9 @@
 	woundpain += (dam * GOUGE_UPG_PAINRATE)
 	update_name()
 	..()
+
+/datum/wound/dynamic/gouge/get_hypothetical_bleed_rate(damage)
+	return bleed_rate + clamp((damage * GOUGE_UPG_BLEEDRATE), 0.1, GOUGE_UPG_CLAMP)
 
 #undef GOUGE_UPG_BLEEDRATE
 #undef GOUGE_UPG_WHPRATE

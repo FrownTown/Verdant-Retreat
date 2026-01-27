@@ -29,6 +29,38 @@
 		return FALSE
 	return TRUE
 
+// Burns use WHP for severity checks instead of bleed rate
+/datum/wound/dynamic/burn/can_worsen(damage)
+	if(amount > 1)
+		return FALSE // Merged wounds don't get worsened, they stay separate
+	if(is_maxed)
+		return FALSE // Already at max severity
+	if(whp >= max_absorbable_damage)
+		return FALSE // Wound is too severe to absorb more damage
+
+	// Check if incoming damage would result in similar severity based on WHP
+	var/hypothetical_new_whp = whp + (damage * BURN_UPG_WHPRATE)
+	var/whp_ratio = max(whp, hypothetical_new_whp) / max(min(whp, hypothetical_new_whp), 1)
+	if(whp_ratio > 3)
+		return FALSE // Incoming damage would make wound severity too different
+
+	return TRUE
+
+// Burns merge based on WHP similarity, not bleed rate
+/datum/wound/dynamic/burn/can_merge(datum/wound/other)
+	if(!other || QDELETED(other))
+		return FALSE
+	if(other.type != src.type)
+		return FALSE
+	// Don't merge burns of vastly different severities (based on WHP)
+	var/whp_ratio = max(whp, other.whp) / max(min(whp, other.whp), 1)
+	if(whp_ratio > 3)
+		return FALSE
+	// Don't merge sewn and unsewn wounds
+	if(is_sewn() != other.is_sewn())
+		return FALSE
+	return TRUE
+
 /datum/wound/dynamic/burn/sew_wound()
 	return standard_sewing_procedure()
 

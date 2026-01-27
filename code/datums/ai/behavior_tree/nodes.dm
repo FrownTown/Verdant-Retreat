@@ -24,6 +24,12 @@
 
 	var/alist/blackboard
 
+	// STATEFUL EXECUTION: The Pointer
+	// Instead of re-traversing the entire tree every tick, we cache the currently running node
+	// When a node returns RUNNING, we store it here and call it directly on the next tick
+	// When it returns SUCCESS or FAILURE, we clear this and traverse from root again
+	var/datum/behavior_tree/node/running_node
+
 	// These are timestamp variables to track when commonly-done things should happen. Very lightweight compared to a timer datum. These can get randomized later.
 	// Anything that needs to be checked every tick should be stored here, rather than in the blackboard, to minimize list operations.
 
@@ -48,7 +54,9 @@
 	var/ai_flags // A bitfield
 	var/current_command // If the mob is carrying out a command given by AI commander, we store its state here.
 
-// DJB2 hash for blackboard keys - converts strings to integers for faster lookup
+/// DJB2 hash for blackboard keys - converts strings to integers for faster lookup
+/// Use this if you don't want to calculate the hash yourself for a define, or if you're using
+/// Blackboard keys that don't have defines
 /datum/behavior_tree/node/parallel/root/proc/hash_key(key)
 	if(isnum(key))
 		return key
@@ -257,9 +265,8 @@
 
 // PARALLEL
 // Special node for situations where it is desirable to always run multiple nodes regardless of their state or return value.
-// This is primarily used for separating thinking and movement trees, but could also have other applications.
-// Always runs all children. Returns NODE_FAILURE if any fail; NODE_RUNNING if any are running and none failed; NODE_SUCCESS otherwise.
-// Currently, the return values are not used for anything, but this may change in the future.
+// This is primarily used for attaching services to existing node branches.
+// Always runs all children, always succeeds. Runs asynchronously.
 /datum/behavior_tree/node/parallel
 	var/list/my_nodes = list()
 
@@ -271,28 +278,31 @@
 	my_nodes = created
 
 /datum/behavior_tree/node/parallel/evaluate(mob/living/npc, atom/target, list/blackboard)
-	var/any_running = FALSE
-	var/any_failed = FALSE
 	for(var/datum/behavior_tree/node/L as anything in my_nodes)
-		var/result = L.evaluate(npc, target, blackboard)
-		if(result == NODE_FAILURE)
-			any_failed = TRUE
-		else if(result == NODE_RUNNING)
-			any_running = TRUE
-	
-	if(any_failed)
-		node_state = NODE_FAILURE
-	else if(any_running)
-		node_state = NODE_RUNNING
-	else
-		node_state = NODE_SUCCESS
-	return node_state
+		INVOKE_ASYNC(L, PROC_REF(evaluate), npc, target, blackboard)
+		
+	return NODE_SUCCESS
 
 /datum/behavior_tree/node/parallel/Destroy()
 	for(var/datum/D as anything in my_nodes)
 		D.Destroy()
 	my_nodes.len = 0
 	. = ..()
+
+/// Special override for the root node. Handles running the movement tree in parallel
+/// with the thinking tree. Skips over nodes to jump back to the last running node and
+/// clears the running node if the node returns anything other than NODE_RUNNING.
+/datum/behavior_tree/node/parallel/root/evaluate(mob/living/npc, atom/target, list/blackboard)
+	INVOKE_ASYNC(move_node, PROC_REF(evaluate), npc, target, blackboard)
+
+	if(running_node)
+		var/result = running_node.evaluate(npc, target, blackboard)
+		if(result != NODE_RUNNING)
+			running_node = null
+	else
+		main_node.evaluate(npc, target, blackboard)
+
+	return NODE_SUCCESS
 
 // ACTION (These are the "leaf" nodes that do the actual work by running bt_action datums.)
 // This is a wrapper class. Each instance can hold a specific action datum.
@@ -356,6 +366,7 @@
 				if(last_slash)
 					txt = copytext(txt, last_slash + 1)
 				npc.ai_root.active_node_text = txt
+				npc.ai_root.running_node = src
 
 			#ifdef BT_DEBUG
 			if(world.time > next_log_tick)
@@ -664,3 +675,104 @@
 /datum/behavior_tree/node/decorator/timeout/search_timeout/New()
 	..(10 SECONDS) // Default 10 second search time
 
+
+// ==============================================================================
+// OBSERVERS
+// ==============================================================================
+// Decorators that listen for a signal and abort their child (return FAILURE) if triggered.
+// They also clear the running_node cache to force a tree re-evaluation.
+
+/datum/behavior_tree/node/decorator/observer
+	var/observed_signal
+	var/triggered = FALSE
+	var/datum/weakref/registered_to // weakref of what we registered to
+
+/datum/behavior_tree/node/decorator/observer/New(signal_id)
+	..()
+	if(signal_id)
+		observed_signal = signal_id
+
+/datum/behavior_tree/node/decorator/observer/proc/register_signal_ref(datum/owner)
+	var/datum/cur_owner = registered_to?.resolve()
+	if(cur_owner)
+		if(cur_owner == owner) return
+		UnregisterSignal(cur_owner, observed_signal)
+	
+	RegisterSignal(owner, observed_signal, PROC_REF(on_signal))
+	registered_to = WEAKREF(owner)
+
+/datum/behavior_tree/node/decorator/observer/proc/on_signal(datum/source)
+	SIGNAL_HANDLER
+	triggered = TRUE
+	// Force the tree to re-evaluate from root to catch this interruption
+	if(!QDELETED(source) && isliving(source)) // Defensive programming I guess
+		var/mob/living/L = source
+		L.ai_root?.running_node = null
+
+/datum/behavior_tree/node/decorator/observer/evaluate(mob/living/npc, atom/target, list/blackboard)
+	register_signal_ref(npc) // Ensure registered
+
+	if(triggered)
+		triggered = FALSE
+		return NODE_FAILURE
+	
+	return child.evaluate(npc, target, blackboard)
+
+/datum/behavior_tree/node/decorator/observer/Destroy()
+	var/datum/cur_owner = registered_to?.resolve()
+	if(cur_owner)
+		UnregisterSignal(cur_owner, observed_signal)
+		registered_to = null
+	. = ..()
+
+
+// ==============================================================================
+// SERVICES
+// ==============================================================================
+// Decorators that run a maintenance task periodically while their branch is active.
+// Used to update blackboard variables or send signals without interrupting the flow.
+
+/datum/behavior_tree/node/decorator/service
+	var/interval = 1 SECONDS
+	var/next_fire = 0
+
+/datum/behavior_tree/node/decorator/service/New(new_interval)
+	..()
+	if(new_interval)
+		interval = new_interval
+
+/datum/behavior_tree/node/decorator/service/evaluate(mob/living/npc, atom/target, list/blackboard)
+	if(world.time >= next_fire)
+		service_tick(npc, blackboard)
+		next_fire = world.time + interval
+	
+	return child.evaluate(npc, target, blackboard)
+
+/datum/behavior_tree/node/decorator/service/proc/service_tick(mob/living/npc, list/blackboard)
+	// Override this to do work
+	return
+
+// Generic Service implementation
+/datum/behavior_tree/node/decorator/service/generic
+	var/signal_to_send
+	var/list/argslist
+	var/bb_key
+	var/bb_value
+
+/datum/behavior_tree/node/decorator/service/generic/New(_signal_to_send, list/_argslist, _bb_key, _bb_value)
+	..()
+	signal_to_send = _signal_to_send
+	argslist = _argslist
+	bb_key = _bb_key
+	bb_value = _bb_value
+
+/datum/behavior_tree/node/decorator/service/generic/service_tick(mob/living/npc, list/blackboard)
+	if(signal_to_send)
+		var/params = (argslist && length(argslist)) ? list2params(argslist) : null
+		if(params)
+			SEND_SIGNAL(npc, signal_to_send, params)
+		else
+			SEND_SIGNAL(npc, signal_to_send)
+			
+	if(bb_key)
+		npc.ai_root.blackboard[bb_key] = bb_value

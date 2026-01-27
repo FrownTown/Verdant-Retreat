@@ -66,7 +66,8 @@ GLOBAL_LIST_EMPTY(aiblk_hash_lookup)
 	var/mob/living/target
 	var/datum/behavior_tree/node/parallel/root/root
 	var/client/viewer
-	var/image/outline_image
+	var/obj/effect/outline_image
+	var/image/outline_holder // These namings are intentional, you'll see
 	var/list/selected_mobs = list()
 	var/list/selection_images = list()
 	var/selecting_mode = FALSE
@@ -79,20 +80,27 @@ GLOBAL_LIST_EMPTY(aiblk_hash_lookup)
 
 /datum/behavior_tree_view/proc/set_target(mob/living/M)
 	// Remove outline from old target
+	if(outline_holder && viewer)
+		viewer.images -= outline_holder
+		qdel(outline_holder)
+		outline_holder = null
 	if(outline_image && viewer)
-		viewer.images -= outline_image
 		qdel(outline_image)
 		outline_image = null
 
 	target = M
 	if(istype(target))
 		root = target.ai_root
-		// Add outline to new target (client-only image)
-		outline_image = image(target, loc = target)
-		outline_image.override = TRUE
+		// Add outline to new target (client-only image, watch this crazy shit)
+		outline_holder = image(icon = 'icons/mob/roguehud64.dmi', loc = target, icon_state = "blank")
+		outline_holder.override = TRUE
+		if(!outline_image)
+			outline_image = new
 		outline_image.appearance = target.appearance
-		outline_image.filters += filter(type = "outline", size = 2, color = "#00ffff")
-		viewer.images += outline_image
+		outline_image.vis_flags |= VIS_INHERIT_DIR
+		outline_image.filters = filter(type = "outline", size = 2, color = "#00ffff")
+		outline_holder.vis_contents += outline_image
+		viewer.images += outline_holder
 	else
 		root = null
 
@@ -230,6 +238,10 @@ GLOBAL_LIST_EMPTY(aiblk_hash_lookup)
 	cleanup()
 
 /datum/behavior_tree_view/proc/cleanup()
+	if(outline_holder && viewer)
+		viewer.images -= outline_holder
+		qdel(outline_holder)
+		outline_holder = null
 	if(outline_image && viewer)
 		viewer.images -= outline_image
 		qdel(outline_image)

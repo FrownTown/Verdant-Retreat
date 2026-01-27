@@ -28,6 +28,12 @@
 /mob/living/carbon/human/species/goblin/npc/get_preferred_squad_type()
 	return /ai_squad/goblin
 
+/mob/living/carbon/human/species/goblin/npc/should_target(mob/living/L)
+	// Goblins never target other goblins (faction check)
+	if(faction_check_mob(L))
+		return FALSE
+	return ..()
+
 /mob/living/carbon/human/species/goblin/npc/Initialize()
 	. = ..()
 	// Initialize behavior tree AI

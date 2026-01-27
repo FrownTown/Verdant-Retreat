@@ -69,6 +69,9 @@
 	update_name()
 	..()
 
+/datum/wound/dynamic/bite/get_hypothetical_bleed_rate(damage)
+	return bleed_rate + clamp((damage * BITE_UPG_BLEEDRATE), 0.1, BITE_UPG_CLAMP)
+
 #undef BITE_UPG_BLEEDRATE
 #undef BITE_UPG_WHPRATE
 #undef BITE_UPG_SEWRATE

@@ -76,6 +76,9 @@
 	update_name()
 	..()
 
+/datum/wound/dynamic/slash/get_hypothetical_bleed_rate(damage)
+	return bleed_rate + clamp((damage * SLASH_UPG_BLEEDRATE), 0.1, SLASH_UPG_CLAMP)
+
 #undef SLASH_UPG_BLEEDRATE
 #undef SLASH_UPG_WHPRATE
 #undef SLASH_UPG_SEWRATE
@@ -213,6 +216,9 @@
 	update_name()
 	..()
 
+/datum/wound/dynamic/lashing/get_hypothetical_bleed_rate(damage)
+	return bleed_rate + clamp((damage * LASHING_UPG_BLEEDRATE), 0.1, LASHING_UPG_CLAMP)
+
 #undef LASHING_UPG_BLEEDRATE
 #undef LASHING_UPG_WHPRATE
 #undef LASHING_UPG_SEWRATE
@@ -249,6 +255,9 @@
 	passive_healing += PUNISH_UPG_SELFHEAL
 	update_name()
 	..()
+
+/datum/wound/dynamic/punish/get_hypothetical_bleed_rate(damage)
+	return bleed_rate + clamp((damage * PUNISH_UPG_BLEEDRATE), 0.1, PUNISH_UPG_CLAMP)
 
 #undef PUNISH_UPG_BLEEDRATE
 #undef PUNISH_UPG_WHPRATE

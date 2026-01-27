@@ -44,6 +44,10 @@
 	if(!ai_root)
 		return FALSE
 
+	// NPCs should not move while knocked down
+	if(IsKnockdown())
+		return FALSE
+
 	SSai.WakeUp(src) // Assume if we got this called on us, we want to actually do it.
 
 	if(!destination)

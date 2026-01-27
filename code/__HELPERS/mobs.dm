@@ -161,7 +161,6 @@ GLOBAL_LIST_EMPTY(species_list)
 			return "unknown"
 
 /proc/do_mob(mob/user , mob/target, time = 30, uninterruptible = 0, progress = 1, datum/callback/extra_checks = null, double_progress = 0)
-	set waitfor = FALSE
 	if(!user || !target)
 		return 0
 
