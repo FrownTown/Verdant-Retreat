@@ -368,18 +368,16 @@
 				break
 	return NODE_RUNNING
 
-/bt_action/simple_animal_check_aggressors/evaluate(mob/living/user, mob/living/target, list/blackboard)
-	// Wrapper for switch_to_aggressor
-	var/bt_action/switch_to_aggressor/A = new
-	return A.evaluate(user, target, blackboard)
+/bt_action/simple_animal_check_aggressors
+	parent_type = /bt_action/switch_to_aggressor
+
+/bt_action/find_target
+	parent_type = /bt_action/pick_best_target
 
 /bt_action/find_target/evaluate(mob/living/user, mob/living/target, list/blackboard)
-	// Wrapper: Scan -> Pick
-	var/list/targets = get_nearby_entities(user, 7) // Simple scan
+	var/list/targets = get_nearby_entities(user, 7)
 	blackboard[AIBLK_POSSIBLE_TARGETS] = targets
-	
-	var/bt_action/pick_best_target/P = new
-	return P.evaluate(user, target, blackboard)
+	return ..()
 
 /bt_action/target_in_range
 	var/range = 1
@@ -408,8 +406,24 @@
 	return NODE_RUNNING
 
 /bt_action/attack_ranged/evaluate(mob/living/user, mob/living/target, list/blackboard)
-	var/bt_action/do_ranged_attack/A = new
-	return A.evaluate(user, target, blackboard)
+	if(!target) return NODE_FAILURE
+	
+	var/mob/living/simple_animal/hostile/H = user
+	if(!istype(H)) return NODE_FAILURE
+	
+	if(H.ranged_cooldown > world.time)
+		return NODE_FAILURE
+
+	H.visible_message(span_danger("<b>[H]</b> [H.ranged_message] at [target]!"))
+	if(H.rapid > 1)
+		var/datum/callback/cb = CALLBACK(H, TYPE_PROC_REF(/mob/living/simple_animal/hostile, Shoot), target)
+		for(var/i in 1 to H.rapid)
+			addtimer(cb, (i - 1)*H.rapid_fire_delay)
+	else
+		H.Shoot(target)
+
+	H.ranged_cooldown = world.time + H.ranged_cooldown_time
+	return NODE_SUCCESS
 
 // --- Specialized Actions Restored ---
 

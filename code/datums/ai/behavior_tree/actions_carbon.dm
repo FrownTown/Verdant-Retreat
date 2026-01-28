@@ -291,10 +291,8 @@
 // RESTORED ACTIONS
 // ------------------------------------------------------------------------------
 
-/bt_action/carbon_check_aggressors/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
-	// Wrapper for atomized switch action
-	var/bt_action/switch_to_aggressor/A = new
-	return A.evaluate(user, target, blackboard)
+/bt_action/carbon_check_aggressors
+	parent_type = /bt_action/switch_to_aggressor
 
 /bt_action/carbon_pursue_last_known/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	if(!ishuman(user) || !user.ai_root) return NODE_FAILURE

@@ -289,23 +289,26 @@
 	if(best && user.set_ai_path_to(best)) return NODE_RUNNING
 	return NODE_FAILURE
 
+/bt_action/goblin_assist_restrain
+	parent_type = /bt_action/goblin_grab_target
+
 /bt_action/goblin_assist_restrain/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	var/mob/living/carbon/victim = blackboard[AIBLK_MONSTER_BAIT]
 	if(!victim || victim.IsKnockdown()) return NODE_FAILURE
-	
-	// Just grab them
-	var/bt_action/goblin_grab_target/G = new
-	return G.evaluate(user, victim, blackboard)
+	return ..(user, victim, blackboard)
+
+/bt_action/goblin_attack_vitals
+	parent_type = /bt_action/do_melee_attack
 
 /bt_action/goblin_attack_vitals/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	user.zone_selected = pick(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN)
-	var/bt_action/do_melee_attack/A = new
-	return A.evaluate(user, target, blackboard)
+	return ..()
+
+/bt_action/goblin_squad_violate
+	parent_type = /bt_action/start_sex
 
 /bt_action/goblin_squad_violate/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
-	// Uses the atomized sex logic from actions_carbon.dm conceptually
-	var/bt_action/start_sex/S = new
-	return S.evaluate(user, blackboard[AIBLK_MONSTER_BAIT], blackboard)
+	return ..(user, blackboard[AIBLK_MONSTER_BAIT], blackboard)
 
 /bt_action/goblin_drag_away/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	// Simplified drag
