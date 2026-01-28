@@ -70,10 +70,17 @@
 // HOSTILE HUMANOID TREE (for bandits, guards, etc.)
 // ------------------------------------------------------------------------------
 
+// Service Stack: Target Scanner -> Aggressor Manager -> Health Monitor -> Pain Monitor -> Logic
 /datum/behavior_tree/node/decorator/service/target_scanner/hostile/hostile_humanoid_tree
 	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/hostile_humanoid_wrapper
 
 /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/hostile_humanoid_wrapper
+	child = /datum/behavior_tree/node/decorator/service/health_monitor/hostile_humanoid_health_wrapper
+
+/datum/behavior_tree/node/decorator/service/health_monitor/hostile_humanoid_health_wrapper
+	child = /datum/behavior_tree/node/decorator/service/pain_monitor/hostile_humanoid_pain_wrapper
+
+/datum/behavior_tree/node/decorator/service/pain_monitor/hostile_humanoid_pain_wrapper
 	child = /datum/behavior_tree/node/selector/hostile_humanoid_logic
 
 /datum/behavior_tree/node/selector/hostile_humanoid_tree
@@ -82,9 +89,18 @@
 
 /datum/behavior_tree/node/selector/hostile_humanoid_logic
 	my_nodes = list(
+		/datum/behavior_tree/node/decorator/observer/pain_crit/flee_response, // React to pain
+		/datum/behavior_tree/node/decorator/observer/self_preservation/flee_response, // React to low health
 		/datum/behavior_tree/node/sequence/humanoid_combat,
 		/datum/behavior_tree/node/sequence/humanoid_idle
 	)
+
+// Flee response wrapper for observers
+/datum/behavior_tree/node/decorator/observer/pain_crit/flee_response
+	child = /datum/behavior_tree/node/sequence/humanoid_flee_sequence
+
+/datum/behavior_tree/node/decorator/observer/self_preservation/flee_response
+	child = /datum/behavior_tree/node/sequence/humanoid_flee_sequence
 
 /datum/behavior_tree/node/sequence/humanoid_combat
 	my_nodes = list(
@@ -143,6 +159,15 @@
 	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/goblin_wrapper
 
 /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/goblin_wrapper
+	child = /datum/behavior_tree/node/decorator/service/squad_cleanup/goblin_squad_wrapper
+
+/datum/behavior_tree/node/decorator/service/squad_cleanup/goblin_squad_wrapper
+	child = /datum/behavior_tree/node/decorator/service/health_monitor/goblin_health_wrapper
+
+/datum/behavior_tree/node/decorator/service/health_monitor/goblin_health_wrapper
+	child = /datum/behavior_tree/node/decorator/service/pain_monitor/goblin_pain_wrapper
+
+/datum/behavior_tree/node/decorator/service/pain_monitor/goblin_pain_wrapper
 	child = /datum/behavior_tree/node/selector/goblin_logic
 
 /datum/behavior_tree/node/selector/goblin_tree
@@ -151,21 +176,18 @@
 
 /datum/behavior_tree/node/selector/goblin_logic
 	my_nodes = list(
+		/datum/behavior_tree/node/decorator/observer/pain_crit/flee_response,
+		/datum/behavior_tree/node/decorator/observer/self_preservation/flee_response,
 		/datum/behavior_tree/node/sequence/goblin_combat,
 		/datum/behavior_tree/node/sequence/humanoid_idle
 	)
 
 /datum/behavior_tree/node/sequence/goblin_combat
 	my_nodes = list(
-		/datum/behavior_tree/node/decorator/cooldown/goblin_cleanup_wrapper{cooldown_time = 2 SECONDS},
 		/datum/behavior_tree/node/action/goblin_squad_coordination,
 		/datum/behavior_tree/node/selector/humanoid_acquire_target,
 		/datum/behavior_tree/node/selector/goblin_handle_combat
 	)
-
-// Wrapper to run cleanup on cooldown (every 2 seconds)
-/datum/behavior_tree/node/decorator/cooldown/goblin_cleanup_wrapper
-	child = /datum/behavior_tree/node/action/goblin_cleanup_squad_state
 
 /datum/behavior_tree/node/selector/goblin_handle_combat
 	my_nodes = list(

@@ -28,6 +28,18 @@
 	cooldown = 5 SECONDS
 	max_failures = 3
 
+/datum/behavior_tree/node/decorator/retry/movement/evaluate(mob/living/npc, atom/target, list/blackboard)
+	var/result = ..()
+	
+	// If the retry decorator returns FAILURE, it means we exhausted our retries or are on cooldown.
+	// In either case, the movement has failed significantly.
+	if(result == NODE_FAILURE && npc.ai_root)
+		// Clear path to force repath logic elsewhere (or stop moving)
+		npc.set_ai_path_to(null)
+		SEND_SIGNAL(npc, COMSIG_AI_MOVEMENT_FAILED)
+		
+	return result
+
 /datum/behavior_tree/node/sequence/movement_tree
 	my_nodes = list(
 		/datum/behavior_tree/node/action/check_move_valid,

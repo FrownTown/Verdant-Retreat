@@ -231,5 +231,11 @@
 // Fired when target recovers from incapacitation
 #define COMSIG_AI_TARGET_RECOVERED "ai_target_recovered"
 
+// Fired when movement is blocked repeatedly
+#define COMSIG_AI_PATH_BLOCKED "ai_path_blocked"
+
+// Fired when movement fails completely (repath needed)
+#define COMSIG_AI_MOVEMENT_FAILED "ai_movement_failed"
+
 #define SS_PRIORITY_AI 67
 #define INIT_ORDER_AI 8

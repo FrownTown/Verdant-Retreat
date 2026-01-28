@@ -73,21 +73,20 @@
 	scan_range = 7
 
 /datum/behavior_tree/node/decorator/service/target_scanner/hungry
-	search_objects = TRUE // Looks for food too (conceptually, or just uses different logic)
-	// Actually hunger is handled by separate scavenging logic usually, but let's keep it simple
+	search_objects = TRUE
+	scan_range = 7
 
 /datum/behavior_tree/node/decorator/service/aggressor_manager/standard
 
 /datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard
+
+/datum/behavior_tree/node/decorator/observer/pain_crit/standard
 
 // ------------------------------------------------------------------------------
 // REFACTORED SUB-TREES (SEQUENCES & SELECTORS)
 // ------------------------------------------------------------------------------
 
 // TARGET ACQUISITION
-// 1. Keep current target (if valid)
-// 2. React to new aggressors
-// 3. Pick new target from scanned list
 /datum/behavior_tree/node/selector/acquire_target
 	my_nodes = list(
 		/datum/behavior_tree/node/decorator/progress_validator/target_persistence/simple_has_target_wrapped,
@@ -95,15 +94,11 @@
 		/datum/behavior_tree/node/action/pick_best_target
 	)
 
-// Target persistence wrapper
 /datum/behavior_tree/node/decorator/progress_validator/target_persistence/simple_has_target_wrapped
 	child = /datum/behavior_tree/node/action/has_valid_target
 	persistence_time = 4 SECONDS
 
 // ATTACK SEQUENCE
-// 1. Face target
-// 2. Check range
-// 3. Attack
 /datum/behavior_tree/node/sequence/attack_sequence
 	my_nodes = list(
 		/datum/behavior_tree/node/action/face_target,
@@ -112,9 +107,6 @@
 	)
 
 // ENGAGE TARGET
-// 1. Attack if in range
-// 2. Move to target
-// 3. Fallback: Pursue/Search (if target lost but location known)
 /datum/behavior_tree/node/selector/engage_target
 	my_nodes = list(
 		/datum/behavior_tree/node/sequence/attack_sequence,
@@ -166,12 +158,12 @@
 	)
 
 // ------------------------------------------------------------------------------
-// TREES (ROOTS) - Now wrapped with Services
+// HOSTILE TREE WRAPPERS (SERVICES APPLIED)
 // ------------------------------------------------------------------------------
 
-// HOSTILE TREE
-// Service Layer -> Logic Layer
-/datum/behavior_tree/node/decorator/service/target_scanner/hostile/generic_hostile_tree
+// GENERIC HOSTILE
+/datum/behavior_tree/node/selector/generic_hostile_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
 	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/hostile_wrapper
 
 /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/hostile_wrapper
@@ -179,60 +171,21 @@
 
 /datum/behavior_tree/node/selector/generic_hostile_tree_logic
 	my_nodes = list(
-		/datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard/reaction_wrapper, // Interrupt idle/move on attack
+		/datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard/reaction_wrapper,
+		/datum/behavior_tree/node/decorator/observer/pain_crit/standard/flee_wrapper, // Add Pain Fleeing
 		/datum/behavior_tree/node/sequence/combat,
 		/datum/behavior_tree/node/action/move_to_dest,
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// Observer Wrapper
+// Dummy Wrappers for Observers (Interrupts logic flow if triggered)
 /datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard/reaction_wrapper
-	child = /datum/behavior_tree/node/parallel/fail_early/dummy // Just needs to return running/success usually? 
-	// Actually, Observer aborts the child if signal received.
-	// We want the observer to be present in the tree.
-	// If we put it at the top of the selector, it will be evaluated.
-	// But Observer evaluates its CHILD.
-	// We want the observer to interrupt the REST of the tree if triggered?
-	// The Observer implementation returns FAILURE if triggered.
-	// If we put it as the first child of a Selector, FAILURE means "try next node".
-	// This is effectively a "Check Interrupt" node.
-	// We need a dummy child that always returns FAILURE so the selector continues if NOT triggered?
-	// Wait, if triggered, observer returns FAILURE.
-	// If NOT triggered, observer runs child.
-	// We want: Triggered -> Return SUCCESS (to catch selector's attention? No, usually Selector ORs).
-	// Ideally:
-	// Selector:
-	// 1. ReactToAttack (If attacked, do this immediately)
-	// 2. Combat
-	// ...
-	
-	// The Observer I wrote returns NODE_FAILURE if triggered.
-	// This aborts the child.
-	// Ideally we want an "Interrupt" node that returns SUCCESS if triggered, so the selector picks it.
-	// Let's rely on the Action /switch_to_aggressor inside acquire_target for now, 
-	// and use the Service/Observer just for state updates or complex interrupts.
-	// The Observer I wrote clears running_node, which forces re-evaluation. 
-	// So placing it anywhere in the tree where it gets evaluated is fine.
-	
-	child = /datum/behavior_tree/node/action/clear_target // Dummy safe action
+	child = /datum/behavior_tree/node/action/clear_target // Force re-eval
 
-// Remap generic_hostile_tree to the service wrapper
-/datum/behavior_tree/node/selector/generic_hostile_tree
-	// We use a trick here: we extend the service node but keep the name expected by other files
-	// Actually, trees.dm uses specific types. I should ensure I inherit correctly or replace carefully.
-	// The previous definition was a /selector.
-	// If I change it to a /service (decorator), it might break if something expects a selector (unlikely for root).
-	// But to be safe, I'll define it as a selector that contains the service? No, service wraps logic.
-	
-	// Let's define generic_hostile_tree as the Service Wrapper.
-	// Inheritance change:
-	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
-	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/hostile_wrapper
+/datum/behavior_tree/node/decorator/observer/pain_crit/standard/flee_wrapper
+	child = /datum/behavior_tree/node/action/flee_target // Run away!
 
-// ------------------------------------------------------------------------------
-// OTHER TREES (Simplified updates)
-// ------------------------------------------------------------------------------
-
+// GENERIC HUNGRY HOSTILE
 /datum/behavior_tree/node/selector/generic_hungry_hostile_tree
 	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
 	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/hungry_wrapper
@@ -242,14 +195,23 @@
 
 /datum/behavior_tree/node/selector/generic_hungry_logic
 	my_nodes = list(
+		/datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard/reaction_wrapper,
 		/datum/behavior_tree/node/sequence/combat,
 		/datum/behavior_tree/node/action/move_to_dest,
 		/datum/behavior_tree/node/sequence/scavenge,
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// Friendly tree (no scanner?)
+// GENERIC FRIENDLY (Just needs aggressor manager maybe? Or minimal scanner)
+// Friendly usually means "defends owner" or "flees" or "wanders"
 /datum/behavior_tree/node/selector/generic_friendly_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile // Scan for threats
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/friendly_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/friendly_wrapper
+	child = /datum/behavior_tree/node/selector/generic_friendly_logic
+
+/datum/behavior_tree/node/selector/generic_friendly_logic
 	my_nodes = list(
 		/datum/behavior_tree/node/sequence/combat,
 		/datum/behavior_tree/node/action/move_to_dest,
@@ -257,11 +219,19 @@
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// ... (Retain specific trees like direbear, deepone, etc. mapping them to new sequences if possible, 
-// or leaving them with old actions if they use specific logic I haven't atomized yet.
-// For brevity and safety, I will retain the specialized tree structures but point them to the new atomized actions where applicable.)
+// ------------------------------------------------------------------------------
+// SPECIALIZED TREES (WRAPPED)
+// ------------------------------------------------------------------------------
 
+// DIREBEAR
 /datum/behavior_tree/node/selector/direbear_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/direbear_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/direbear_wrapper
+	child = /datum/behavior_tree/node/selector/direbear_logic
+
+/datum/behavior_tree/node/selector/direbear_logic
 	my_nodes = list(
 		/datum/behavior_tree/node/sequence/combat_direbear,
 		/datum/behavior_tree/node/action/move_to_dest,
@@ -269,4 +239,285 @@
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// ... (Other trees kept as-is structure-wise, automatically benefiting from atomized acquire_target/engage_target if they use them)
+// DEEPONE MELEE
+/datum/behavior_tree/node/selector/deepone_melee_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/deepone_melee_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/deepone_melee_wrapper
+	child = /datum/behavior_tree/node/selector/deepone_melee_logic
+
+/datum/behavior_tree/node/selector/deepone_melee_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// DEEPONE RANGED
+/datum/behavior_tree/node/selector/deepone_ranged_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/deepone_ranged_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/deepone_ranged_wrapper
+	child = /datum/behavior_tree/node/selector/deepone_ranged_logic
+
+/datum/behavior_tree/node/selector/deepone_ranged_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_ranged,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// HAUNT
+/datum/behavior_tree/node/selector/haunt_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/haunt_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/haunt_wrapper
+	child = /datum/behavior_tree/node/selector/haunt_logic
+
+/datum/behavior_tree/node/selector/haunt_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// MIMIC
+/datum/behavior_tree/node/selector/mimic_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/mimic_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/mimic_wrapper
+	child = /datum/behavior_tree/node/selector/mimic_logic
+
+/datum/behavior_tree/node/selector/mimic_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_mimic,
+		/datum/behavior_tree/node/sequence/scavenge,
+		/datum/behavior_tree/node/sequence/idle_mimic
+	)
+
+// DREAMFIEND
+/datum/behavior_tree/node/selector/dreamfiend_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/dreamfiend_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/dreamfiend_wrapper
+	child = /datum/behavior_tree/node/selector/dreamfiend_logic
+
+/datum/behavior_tree/node/selector/dreamfiend_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_dreamfiend,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// SKELETON
+/datum/behavior_tree/node/selector/skeleton_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/skeleton_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/skeleton_wrapper
+	child = /datum/behavior_tree/node/selector/skeleton_logic
+
+/datum/behavior_tree/node/selector/skeleton_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/action/minion_follow,
+		/datum/behavior_tree/node/sequence/combat_skeleton,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// ORC
+/datum/behavior_tree/node/selector/orc_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/orc_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/orc_wrapper
+	child = /datum/behavior_tree/node/selector/orc_logic
+
+/datum/behavior_tree/node/selector/orc_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_orc,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// VOLF
+/datum/behavior_tree/node/selector/volf_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/volf_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/volf_wrapper
+	child = /datum/behavior_tree/node/selector/volf_logic
+
+/datum/behavior_tree/node/selector/volf_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_volf,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// SUMMONS (Colossus, Behemoth, etc)
+// Assuming they use target scanner too (to find stuff to smash/kill)
+
+/datum/behavior_tree/node/selector/colossus_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/colossus_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/colossus_wrapper
+	child = /datum/behavior_tree/node/selector/colossus_logic
+
+/datum/behavior_tree/node/selector/colossus_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat_colossus,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// CHICKEN
+/datum/behavior_tree/node/selector/chicken_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/chicken_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/chicken_wrapper
+	child = /datum/behavior_tree/node/selector/chicken_logic
+
+/datum/behavior_tree/node/selector/chicken_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/chicken_egg_laying,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// MIRESPIDER
+/datum/behavior_tree/node/selector/mirespider_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/mirespider_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/mirespider_wrapper
+	child = /datum/behavior_tree/node/selector/mirespider_logic
+
+/datum/behavior_tree/node/selector/mirespider_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/action/minion_follow,
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// MOSSBACK
+/datum/behavior_tree/node/selector/mossback_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hungry
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/mossback_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/mossback_wrapper
+	child = /datum/behavior_tree/node/selector/mossback_logic
+
+/datum/behavior_tree/node/selector/mossback_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/action/minion_follow,
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// WOLF UNDEAD (Uses deadite_migrate)
+/datum/behavior_tree/node/selector/wolf_undead_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/wolf_undead_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/wolf_undead_wrapper
+	child = /datum/behavior_tree/node/selector/wolf_undead_logic
+
+/datum/behavior_tree/node/selector/wolf_undead_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/sequence/combat,
+		/datum/behavior_tree/node/action/deadite_migrate,
+		/datum/behavior_tree/node/action/move_to_dest,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// INSANE CLOWN (Just acquire target, rest handled by mob?)
+/datum/behavior_tree/node/selector/insane_clown_tree
+	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
+	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/clown_wrapper
+
+/datum/behavior_tree/node/decorator/service/aggressor_manager/standard/clown_wrapper
+	child = /datum/behavior_tree/node/selector/insane_clown_logic
+
+/datum/behavior_tree/node/selector/insane_clown_logic
+	my_nodes = list(
+		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/sequence/idle
+	)
+
+// ------------------------------------------------------------------------------
+// LEFTOVER WRAPPERS / HELPER NODES
+// ------------------------------------------------------------------------------
+
+/datum/behavior_tree/node/action/simple_animal_check_aggressors_action
+	my_action = /bt_action/simple_animal_check_aggressors
+
+/datum/behavior_tree/node/action/simple_animal_pursue_last_known_action
+	my_action = /bt_action/simple_animal_pursue_last_known
+
+/datum/behavior_tree/node/action/simple_animal_search_area_action
+	my_action = /bt_action/simple_animal_search_area
+
+/datum/behavior_tree/node/action/minion_follow
+	my_action = /bt_action/minion_follow
+
+/datum/behavior_tree/node/action/deadite_migrate
+	my_action = /bt_action/deadite_migrate
+
+/datum/behavior_tree/node/action/colossus_stomp
+	my_action = /bt_action/colossus_stomp
+
+/datum/behavior_tree/node/action/behemoth_quake
+	my_action = /bt_action/behemoth_quake
+
+/datum/behavior_tree/node/action/leyline_teleport
+	my_action = /bt_action/leyline_teleport
+
+/datum/behavior_tree/node/action/obelisk_activate
+	my_action = /bt_action/obelisk_activate
+
+/datum/behavior_tree/node/action/dryad_vine
+	my_action = /bt_action/dryad_vine
+
+/datum/behavior_tree/node/action/chicken_check_ready
+	my_action = /bt_action/chicken_check_ready
+
+/datum/behavior_tree/node/action/chicken_lay_egg
+	my_action = /bt_action/chicken_lay_egg
+
+/datum/behavior_tree/node/action/chicken_find_nest
+	my_action = /bt_action/chicken_find_nest
+
+/datum/behavior_tree/node/action/chicken_check_material
+	my_action = /bt_action/chicken_check_material
+
+/datum/behavior_tree/node/action/chicken_build_nest
+	my_action = /bt_action/chicken_build_nest
+
+/datum/behavior_tree/node/action/chicken_find_material
+	my_action = /bt_action/chicken_find_material
+
+/datum/behavior_tree/node/action/mimic_disguise
+	my_action = /bt_action/mimic_disguise
+
+/datum/behavior_tree/node/action/mimic_undisguise
+	my_action = /bt_action/mimic_undisguise
+
+/datum/behavior_tree/node/action/dreamfiend_blink
+	my_action = /bt_action/dreamfiend_blink
+
+/datum/behavior_tree/node/action/use_ability
+	my_action = /bt_action/use_ability
+
+/datum/behavior_tree/node/action/call_reinforcements
+	my_action = /bt_action/call_reinforcements

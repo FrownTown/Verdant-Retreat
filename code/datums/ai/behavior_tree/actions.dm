@@ -104,25 +104,15 @@
 	if(next_step && get_dist(user, next_step) <= 1)
 		if(user.Move(next_step, get_dir(user, next_step)))
 			user.ai_root.next_move_tick = world.time + user.ai_root.next_move_delay
-			blackboard -= AIBLK_PATH_BLOCKED_COUNT
 			return NODE_SUCCESS
 		else
-			// Movement failed - count failures and abandon if stuck
-			var/blocked_count = blackboard[AIBLK_PATH_BLOCKED_COUNT] || 0
-			blocked_count++
-			blackboard[AIBLK_PATH_BLOCKED_COUNT] = blocked_count
-
-			if(blocked_count >= 5)
-				// Stuck for too long, clear path to force repath or abandon
-				user.set_ai_path_to(null)
-				blackboard -= AIBLK_PATH_BLOCKED_COUNT
-				return NODE_FAILURE
-
-			return NODE_RUNNING
+			// Movement failed - return failure to let the tree handle retries
+			SEND_SIGNAL(user, COMSIG_AI_PATH_BLOCKED, next_step)
+			return NODE_FAILURE
 	else
 		// Path is invalid, clear it
 		user.set_ai_path_to(null)
-		blackboard -= AIBLK_PATH_BLOCKED_COUNT
+		SEND_SIGNAL(user, COMSIG_AI_MOVEMENT_FAILED)
 		return NODE_FAILURE
 
 
