@@ -97,6 +97,10 @@
 
 	return NODE_SUCCESS
 
+// ------------------------------------------------------------------------------
+// RESTRAIN LOGIC
+// ------------------------------------------------------------------------------
+
 /bt_action/goblin_grab_target
 /bt_action/goblin_grab_target/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	var/mob/living/victim = target
@@ -203,6 +207,10 @@
 		
 	return NODE_SUCCESS
 
+// ------------------------------------------------------------------------------
+// SUPPORT ACTIONS
+// ------------------------------------------------------------------------------
+
 /bt_action/goblin_strip_armor
 /bt_action/goblin_strip_armor/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	var/mob/living/carbon/human/victim = target
@@ -305,8 +313,7 @@
 
 /bt_action/goblin_attack_vitals/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	user.zone_selected = pick(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN)
-	
-	if(!target) return NODE_FAILURE
+	return ..()
 
 /bt_action/goblin_squad_violate
 	parent_type = /bt_action/start_sex
