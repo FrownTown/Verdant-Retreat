@@ -57,8 +57,7 @@
 					user.ai_root.blackboard[AIBLK_SQUAD_ROLE] = GOB_SQUAD_ROLE_ATTACKER
 					return NODE_SUCCESS
 
-	// Squad Logic (Simplified for atomization context)
-	// Just ensures roles are set if squad exists
+	// Squad Logic
 	var/list/squad_mates = list()
 	var/atom/our_target = user.ai_root.target
 	
@@ -72,12 +71,29 @@
 	user.ai_root.blackboard[AIBLK_SQUAD_MATES] = squad_mates
 
 	if(length(squad_mates) > 0 && !user.ai_root.blackboard[AIBLK_SQUAD_ROLE])
-		// Simple role assignment
-		// Priority: Restrainer -> Stripper -> Violator -> Attacker
-		// This logic needs to be robust but keeping it simple for now as per "turn into sequences" focus
-		// Ideally this action just sets blackboard vars for the Selector to use.
-		user.ai_root.blackboard[AIBLK_SQUAD_ROLE] = GOB_SQUAD_ROLE_ATTACKER // Default
-		// (Full assignment logic omitted for brevity, assuming existing logic or service handles optimal distribution)
+		var/restrainers = 0
+		var/strippers = 0
+		var/violators = 0
+		
+		for(var/mob/living/M in squad_mates)
+			if(!M.ai_root) continue
+			var/role = M.ai_root.blackboard[AIBLK_SQUAD_ROLE]
+			switch(role)
+				if(GOB_SQUAD_ROLE_RESTRAINER) restrainers++
+				if(GOB_SQUAD_ROLE_STRIPPER) strippers++
+				if(GOB_SQUAD_ROLE_VIOLATOR) violators++
+		
+		var/new_role = GOB_SQUAD_ROLE_ATTACKER
+		var/mob/living/bait = user.ai_root.blackboard[AIBLK_MONSTER_BAIT]
+		
+		if(restrainers < 1)
+			new_role = GOB_SQUAD_ROLE_RESTRAINER
+		else if(strippers < 2 && length(squad_mates) >= 2)
+			new_role = GOB_SQUAD_ROLE_STRIPPER
+		else if(bait && violators < 1)
+			new_role = GOB_SQUAD_ROLE_VIOLATOR
+		
+		user.ai_root.blackboard[AIBLK_SQUAD_ROLE] = new_role
 
 	return NODE_SUCCESS
 
@@ -121,7 +137,7 @@
 	var/grab_count = 0
 	var/mob/living/L = G.grabbed
 	if(istype(L))
-		for(var/obj/item/grabbing/grab as anything in L.grabbedby)
+		for(var/obj/item/grabbing/grab in L.grabbedby)
 			if(grab && grab.grabbee && isgoblin(grab.grabbee)) grab_count++
 		
 	if(grab_count >= 2)
