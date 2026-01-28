@@ -254,6 +254,81 @@
 // ATOMIC ACTIONS - UTILITY
 // ------------------------------------------------------------------------------
 
+/bt_action/move_to_destination
+/bt_action/move_to_destination/evaluate(mob/living/user, atom/target, list/blackboard)
+	if(!user.ai_root) return NODE_FAILURE
+
+	var/atom/destination = user.ai_root.move_destination
+	if(!destination)
+		if(target && target != user)
+			user.set_ai_path_to(target)
+			return NODE_RUNNING
+		return NODE_FAILURE
+
+	if(get_dist(user, destination) <= 1 || user.loc == destination.loc)
+		user.set_ai_path_to(null)
+		return NODE_SUCCESS
+
+	if(length(user.ai_root.path))
+		return NODE_RUNNING
+
+	if(user.set_ai_path_to(destination))
+		return NODE_RUNNING
+
+	return NODE_FAILURE
+
+/bt_action/find_food
+	var/search_range = 5
+/bt_action/find_food/evaluate(mob/living/user, mob/living/target, list/blackboard)
+	if(!user.ai_root) return NODE_FAILURE
+	var/mob/living/simple_animal/SA = user
+	if(!istype(SA) || !SA.food_type) return NODE_FAILURE
+	
+	var/atom/current_food = blackboard[AIBLK_FOOD_TARGET]
+	if(current_food && !QDELETED(current_food) && get_dist(user, current_food) <= search_range)
+		if(current_food.loc) return NODE_SUCCESS
+		
+	blackboard[AIBLK_FOOD_TARGET] = null
+	for(var/atom/movable/A in view(search_range, user))
+		if(SA.food_type && is_type_in_list(A, SA.food_type))
+			blackboard[AIBLK_FOOD_TARGET] = A
+			return NODE_SUCCESS
+	return NODE_FAILURE
+
+/bt_action/eat_food/evaluate(mob/living/user, mob/living/target, list/blackboard)
+	if(!user.ai_root) return NODE_FAILURE
+	var/atom/movable/food = blackboard[AIBLK_FOOD_TARGET]
+	if(!food || QDELETED(food)) return NODE_FAILURE
+	
+	if(get_dist(user, food) > 1)
+		user.ai_root.move_destination = food
+		return NODE_FAILURE
+		
+	user.visible_message(span_notice("[user] eats [food]."))
+	playsound(user, 'sound/misc/eat.ogg', 50, TRUE)
+	qdel(food)
+	blackboard[AIBLK_FOOD_TARGET] = null
+	blackboard[AIBLK_NEXT_HUNGER_CHECK] = world.time + rand(60 SECONDS, 120 SECONDS)
+	
+	if(istype(user, /mob/living/simple_animal))
+		var/mob/living/simple_animal/SA = user
+		SA.food = min(SA.food + 30, 100)
+		SA.adjustHealth(-5)
+		
+	return NODE_SUCCESS
+
+/bt_action/check_hunger
+	var/hunger_key = "next_hunger_check"
+/bt_action/check_hunger/evaluate(mob/living/user, mob/living/target, list/blackboard)
+	if(!user.ai_root) return NODE_FAILURE
+	var/next_eat = blackboard[hunger_key]
+	if(!next_eat)
+		next_eat = world.time + rand(0, 30 SECONDS)
+		blackboard[hunger_key] = next_eat
+		
+	if(world.time < next_eat) return NODE_FAILURE
+	return NODE_SUCCESS
+
 /bt_action/clear_target
 /bt_action/clear_target/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	user.ai_root.target = null
@@ -269,6 +344,29 @@
 // ==============================================================================
 // LEGACY / WRAPPERS / SPECIALIZED ACTIONS
 // ==============================================================================
+
+/bt_action/simple_animal_pursue_last_known/evaluate(mob/living/user, mob/living/target, list/blackboard)
+	if(!user.ai_root) return NODE_FAILURE
+	if(user.ai_root.target) return NODE_FAILURE // Only pursue if no target
+	var/turf/last_known = blackboard[AIBLK_LAST_KNOWN_TARGET_LOC]
+	if(!last_known) return NODE_FAILURE
+	if(get_turf(user) == last_known)
+		blackboard -= AIBLK_LAST_KNOWN_TARGET_LOC
+		return NODE_SUCCESS
+	if(user.set_ai_path_to(last_known)) return NODE_RUNNING
+	return NODE_FAILURE
+
+/bt_action/simple_animal_search_area/evaluate(mob/living/user, mob/living/target, list/blackboard)
+	if(!user.ai_root) return NODE_FAILURE
+	if(user.ai_root.target) return NODE_SUCCESS
+	if(prob(40) && world.time >= user.ai_root.next_move_tick)
+		var/list/dirs = GLOB.cardinals.Copy()
+		for(var/move_dir in dirs)
+			var/turf/T = get_step(user, move_dir)
+			if(T && !T.density)
+				if(user.set_ai_path_to(T)) return NODE_RUNNING
+				break
+	return NODE_RUNNING
 
 /bt_action/simple_animal_check_aggressors/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	// Wrapper for switch_to_aggressor

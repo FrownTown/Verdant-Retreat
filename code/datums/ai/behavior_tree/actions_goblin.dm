@@ -21,7 +21,6 @@
 	if(should_cleanup)
 		user.ai_root.blackboard -= AIBLK_SQUAD_ROLE
 		user.ai_root.blackboard -= AIBLK_SQUAD_MATES
-		user.ai_root.blackboard -= AIBLK_SQUAD_SIZE
 		user.ai_root.blackboard -= AIBLK_VIOLATION_INTERRUPTED
 		user.ai_root.blackboard -= AIBLK_DEFENDING_FROM_INTERRUPT
 		user.ai_root.blackboard -= AIBLK_IS_PINNING
@@ -71,7 +70,6 @@
 				squad_mates += G
 	
 	user.ai_root.blackboard[AIBLK_SQUAD_MATES] = squad_mates
-	user.ai_root.blackboard[AIBLK_SQUAD_SIZE] = length(squad_mates) + 1
 
 	if(length(squad_mates) > 0 && !user.ai_root.blackboard[AIBLK_SQUAD_ROLE])
 		// Simple role assignment
@@ -121,8 +119,10 @@
 	
 	// Check for squad bonus
 	var/grab_count = 0
-	for(var/obj/item/grabbing/grab as anything in G.grabbed.grabbedby)
-		if(grab && grab.grabbee && isgoblin(grab.grabbee)) grab_count++
+	var/mob/living/L = G.grabbed
+	if(istype(L))
+		for(var/obj/item/grabbing/grab as anything in L.grabbedby)
+			if(grab && grab.grabbee && isgoblin(grab.grabbee)) grab_count++
 		
 	if(grab_count >= 2)
 		G.grab_state = GRAB_AGGRESSIVE
@@ -137,7 +137,8 @@
 	var/obj/item/grabbing/G = user.get_active_held_item()
 	if(!istype(G) || G.grab_state < GRAB_AGGRESSIVE) return NODE_FAILURE
 	
-	if(G.grabbed.IsKnockdown() || G.grabbed.IsParalyzed()) return NODE_SUCCESS
+	var/mob/living/L = G.grabbed
+	if(L.IsKnockdown() || L.IsParalyzed()) return NODE_SUCCESS
 	
 	if(world.time < user.ai_root.next_attack_tick) return NODE_FAILURE
 	
@@ -156,7 +157,10 @@
 	
 	// Must be on top
 	if(get_turf(user) != get_turf(victim))
-		position_for_sex(user, victim)
+		// Position for sex inline logic
+		var/turf/T = get_turf(victim)
+		if(get_turf(user) != T)
+			user.Move(T, get_dir(user, T))
 		return NODE_RUNNING
 		
 	if(world.time < user.ai_root.next_attack_tick) return NODE_FAILURE
@@ -179,21 +183,12 @@
 		
 	// Maintain
 	if(get_turf(user) != get_turf(G.grabbed))
-		position_for_sex(user, G.grabbed)
+		// Position for sex inline logic
+		var/mob/living/victim = G.grabbed
+		var/turf/T = get_turf(victim)
+		if(get_turf(user) != T)
+			user.Move(T, get_dir(user, T))
 		
-	return NODE_SUCCESS // Keep running? Or Success?
-	// If this is in a Selector, Success stops evaluation.
-	// If we want to hold the pin indefinitely, we should return RUNNING?
-	// But usually this action is used to check if we ARE pinning.
-	// If we return SUCCESS, we satisfy the "Restrain" goal?
-	// Ideally: Selector(MaintainPin, Pin, Tackle...)
-	// If MaintainPin returns SUCCESS, we are done with the sequence?
-	// Yes, for a "Restrain Target" sequence, being in state Pinned is Success.
-	// But we need to KEEP pinning.
-	// Behavior Trees usually run every tick.
-	// If we return SUCCESS, the tree finishes. Next tick it runs again.
-	// So returning SUCCESS is fine, as long as we don't start doing something else.
-	
 	return NODE_SUCCESS
 
 // ------------------------------------------------------------------------------
@@ -208,8 +203,8 @@
 	var/obj/item/clothing/to_strip = null
 	var/list/slots = list(SLOT_HEAD, SLOT_ARMOR, SLOT_GLOVES, SLOT_SHOES)
 	for(var/slot in slots)
-		var/obj/item/I = victim.get_item_by_slot(slot)
-		if(I && I.armor_class >= ARMOR_CLASS_LIGHT)
+		var/obj/item/clothing/I = victim.get_item_by_slot(slot)
+		if(I && istype(I) && I.armor_class >= ARMOR_CLASS_LIGHT)
 			to_strip = I
 			break
 			
@@ -245,6 +240,18 @@
 			to_strip.throw_at(get_ranged_target_turf(user, pick(GLOB.alldirs), 5), 5, 1)
 			
 	return NODE_RUNNING
+
+/bt_action/goblin_attack_check/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(target) && !user.faction_check_mob(target))
+		return NODE_SUCCESS
+	if(target && (target.restrained()))
+		return NODE_FAILURE
+
+	var/list/ignored = user.ai_root.blackboard[AIBLK_IGNORED_TARGETS]
+	if(ignored && ignored[target])
+		return NODE_FAILURE
+
+	return NODE_SUCCESS
 
 // ------------------------------------------------------------------------------
 // ROLE CHECKS (KEPT AS PREDICATES)

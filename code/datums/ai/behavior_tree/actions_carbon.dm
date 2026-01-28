@@ -133,7 +133,7 @@
 	if(victim.IsParalyzed() || victim.restrained()) return NODE_SUCCESS
 	
 	var/obj/item/grabbing/G = user.get_active_held_item()
-	if(!istype(G) || G.grab_state < GRAB_AGGRESSIVE || G.grabbed != victim || !get_turf(user) != get_turf(victim)) return NODE_FAILURE
+	if(!istype(G) || G.grab_state < GRAB_AGGRESSIVE || G.grabbed != victim || get_turf(user) != get_turf(victim)) return NODE_FAILURE
 	
 	// Pin/Tackle
 	user.use_grab_intent(G, /datum/intent/grab/shove, victim)
@@ -163,11 +163,11 @@
 
 /bt_action/strip_victim
 /bt_action/strip_victim/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
-	var/mob/living/victim = target ? target : user.ai_root.blackboard[AIBLK_MONSTER_BAIT]
-	if(!victim) return NODE_FAILURE
+	var/mob/living/carbon/human/victim = target ? target : user.ai_root.blackboard[AIBLK_MONSTER_BAIT]
+	if(!ishuman(victim)) return NODE_FAILURE
 	
 	var/used_bitflag = GROIN
-	if(!user.getorganslot(ORGAN_SLOT_PENIS)) used_bitflag = MOUTH // Assume receiving if no penis? Simple logic.
+	if(!user.getorganslot(ORGAN_SLOT_PENIS)) used_bitflag = MOUTH 
 	
 	if(!victim.get_blocking_equipment(used_bitflag)) return NODE_SUCCESS // Exposed
 	
@@ -204,13 +204,19 @@
 	user.sexcon.set_target(victim)
 	user.sexcon.update_all_accessible_body_zones()
 	
-	// Determine action (simplified)
 	var/action_path = /datum/sex_action/vaginal_sex
+	
 	if(user.getorganslot(ORGAN_SLOT_PENIS))
-		if(victim.getorganslot(ORGAN_SLOT_VAGINA))
+		if(victim.getorganslot(ORGAN_SLOT_VAGINA) && (BODY_ZONE_PRECISE_GROIN in victim.sexcon.using_zones))
 			action_path = /datum/sex_action/vaginal_sex
-		else
+		else if(BODY_ZONE_PRECISE_MOUTH in victim.sexcon.using_zones)
+			action_path = /datum/sex_action/force_blowjob
+		else if(BODY_ZONE_PRECISE_GROIN in victim.sexcon.using_zones) // Fallback to anal if no vagina but groin accessible
 			action_path = /datum/sex_action/anal_sex
+		else
+			return NODE_FAILURE // Nothing accessible
+	else
+		return NODE_FAILURE 
 	
 	user.sexcon.try_start_action(action_path)
 	user.ai_root.blackboard[AIBLK_S_ACTION] = "[action_path]"
@@ -250,7 +256,7 @@
 
 /bt_action/carbon_idle_wander/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	if(prob(8) && user.wander && user.ai_root)
-		var/turf/T = get_step(pick(GLOB.cardinals))
+		var/turf/T = get_step(user, pick(GLOB.cardinals))
 		if(!T) return NODE_FAILURE
 		else if(user.set_ai_path_to(T)) return NODE_RUNNING
 	return NODE_RUNNING
@@ -279,4 +285,42 @@
 /bt_action/carbon_flee/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	var/turf/flee_turf = get_ranged_target_turf(user, get_dir(target, user), 8)
 	if(flee_turf && user.set_ai_path_to(flee_turf)) return NODE_RUNNING
+	return NODE_FAILURE
+
+// ------------------------------------------------------------------------------
+// RESTORED ACTIONS
+// ------------------------------------------------------------------------------
+
+/bt_action/carbon_check_aggressors/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	// Wrapper for atomized switch action
+	var/bt_action/switch_to_aggressor/A = new
+	return A.evaluate(user, target, blackboard)
+
+/bt_action/carbon_pursue_last_known/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(user) || !user.ai_root) return NODE_FAILURE
+	if(user.ai_root.target) return NODE_FAILURE
+	
+	var/turf/last_known_loc = blackboard[AIBLK_LAST_KNOWN_TARGET_LOC]
+	if(!last_known_loc) return NODE_FAILURE
+	
+	if(get_turf(user) == last_known_loc)
+		blackboard -= AIBLK_LAST_KNOWN_TARGET_LOC
+		return NODE_SUCCESS
+		
+	if(user.set_ai_path_to(last_known_loc)) return NODE_RUNNING
+	return NODE_FAILURE
+
+/bt_action/carbon_search_area/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(!ishuman(user) || !user.ai_root) return NODE_FAILURE
+	if(user.ai_root.target) return NODE_SUCCESS
+	
+	if(prob(40))
+		var/turf/T = get_step(user, pick(GLOB.cardinals))
+		if(user.set_ai_path_to(T)) return NODE_RUNNING
+	return NODE_RUNNING
+
+/bt_action/carbon_target_in_range
+	var/range = 1
+/bt_action/carbon_target_in_range/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
+	if(target && get_dist(user, target) <= range) return NODE_SUCCESS
 	return NODE_FAILURE

@@ -854,7 +854,6 @@
 		// Update mates list
 		var/list/mates = squad.members - npc
 		blackboard[AIBLK_SQUAD_MATES] = mates
-		blackboard[AIBLK_SQUAD_SIZE] = length(squad.members)
 
 // SQUAD CLEANUP SERVICE
 // Replaces the goblin_cleanup_squad_state polling action
@@ -877,7 +876,6 @@
 	if(should_cleanup)
 		blackboard -= AIBLK_SQUAD_ROLE
 		blackboard -= AIBLK_SQUAD_MATES
-		blackboard -= AIBLK_SQUAD_SIZE
 		blackboard -= AIBLK_VIOLATION_INTERRUPTED
 		blackboard -= AIBLK_DEFENDING_FROM_INTERRUPT
 		blackboard -= AIBLK_IS_PINNING

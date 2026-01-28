@@ -351,12 +351,6 @@
 /datum/behavior_tree/node/action/carbon_check_monster_bait
 	my_action = /bt_action/carbon_check_monster_bait
 
-/datum/behavior_tree/node/action/carbon_subdue_target
-	my_action = /bt_action/carbon_subdue_target
-
-/datum/behavior_tree/node/action/carbon_violate_target
-	my_action = /bt_action/carbon_violate_target
-
 /datum/behavior_tree/node/action/goblin_attack_check
 	my_action = /bt_action/goblin_attack_check
 

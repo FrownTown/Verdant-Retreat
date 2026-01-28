@@ -145,9 +145,12 @@
  * @param damage_type The blade_class to search for (e.g., BCLASS_BLUNT, BCLASS_CUT, BCLASS_STAB)
  * @return TRUE if a suitable weapon was found and equipped, FALSE otherwise
  */
-/mob/living/carbon/proc/equip_best_weapon_for_damage_type(damage_type)
-	if(!damage_type)
+/mob/living/carbon/proc/equip_best_weapon_for_damage_type(damage_types)
+	if(!damage_types)
 		return FALSE
+
+	if(islist(damage_types))
+		damage_types = list(damage_types)
 
 	var/obj/item/best_weapon = null
 	var/best_damage = 0
@@ -155,27 +158,28 @@
 	// Search through all equipped items and hands
 	var/list/items_to_check = get_equipped_items(include_pockets = TRUE) + held_items
 
+	var/intent_index = 0
 	for(var/obj/item/I in items_to_check)
-		if(!I || !I.possible_item_intents)
+		intent_index = 0
+		if(!I.possible_item_intents)
 			continue
 
 		// Check each intent on this item
-		for(var/intent_path in I.possible_item_intents)
-			var/datum/intent/test_intent = new intent_path(src, I)
 
-			if(test_intent.blade_class == damage_type)
-				// Calculate the effective damage for this intent
-				var/effective_damage = I.force * test_intent.damfactor
-
+		for(var/datum/intent/J in I.possible_item_intents)
+			intent_index++
+			if(J.blade_class in damage_types)
+				var/effective_damage = I.force * J.damfactor
 				if(effective_damage > best_damage)
 					best_damage = effective_damage
 					best_weapon = I
 
-			qdel(test_intent)
-
 	// If we found a suitable weapon, ensure it's in our active hand
 	if(best_weapon)
-		return ensure_in_active_hand(best_weapon)
+		var/result = ensure_in_active_hand(best_weapon)
+		if(result)
+			a_intent_change(intent_index)
+			return result
 
 	return FALSE
 
