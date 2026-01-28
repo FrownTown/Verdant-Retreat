@@ -216,6 +216,12 @@
 // Fired when the mob's health drops below a threshold
 #define COMSIG_AI_LOW_HEALTH "ai_low_health"
 
+// Fired when pain is critical (for fleeing)
+#define COMSIG_AI_PAIN_CRIT "ai_pain_crit"
+
+// Fired when hunger is high (for scavenging)
+#define COMSIG_AI_HUNGRY "ai_hungry"
+
 // Fired when squad state changes (role assigned, squad formed, etc.)
 #define COMSIG_AI_SQUAD_CHANGED "ai_squad_changed"
 
