@@ -1,9 +1,9 @@
 // ==============================================================================
-// ROGUETOWN BEHAVIOR TREES (REFACTORED)
+// ROGUETOWN BEHAVIOR TREES
 // ==============================================================================
 
 // ------------------------------------------------------------------------------
-// NODE WRAPPERS FOR ATOMIZED ACTIONS
+// NODE ACTIONS
 // ------------------------------------------------------------------------------
 
 /datum/behavior_tree/node/action/pick_best_target
@@ -33,12 +33,11 @@
 /datum/behavior_tree/node/action/has_valid_target
 	my_action = /bt_action/has_valid_target
 
-// Legacy Wrappers (Retained/remapped for compatibility)
 /datum/behavior_tree/node/action/has_target_check
-	my_action = /bt_action/has_valid_target // Remapped to new valid check
+	my_action = /bt_action/has_valid_target
 
 /datum/behavior_tree/node/action/find_target
-	my_action = /bt_action/pick_best_target // Remapped
+	my_action = /bt_action/pick_best_target
 
 /datum/behavior_tree/node/action/maintain_distance
 	my_action = /bt_action/maintain_distance
@@ -53,10 +52,10 @@
 	my_action = /bt_action/idle_wander
 
 /datum/behavior_tree/node/action/attack_melee
-	my_action = /bt_action/do_melee_attack // Remapped
+	my_action = /bt_action/do_melee_attack
 
 /datum/behavior_tree/node/action/attack_ranged
-	my_action = /bt_action/do_ranged_attack // Remapped
+	my_action = /bt_action/do_ranged_attack
 
 /datum/behavior_tree/node/action/move_to_target
 	my_action = /bt_action/move_to_target
@@ -74,7 +73,7 @@
 	my_action = /bt_action/check_hunger
 
 // ------------------------------------------------------------------------------
-// SERVICE & OBSERVER WRAPPERS
+// SERVICES & OBSERVERS
 // ------------------------------------------------------------------------------
 
 /datum/behavior_tree/node/decorator/service/target_scanner/hostile
@@ -92,7 +91,7 @@
 /datum/behavior_tree/node/decorator/observer/pain_crit/standard
 
 // ------------------------------------------------------------------------------
-// REFACTORED SUB-TREES (SEQUENCES & SELECTORS)
+// SUB-TREES (SEQUENCES & SELECTORS)
 // ------------------------------------------------------------------------------
 
 // TARGET ACQUISITION
@@ -130,7 +129,6 @@
 		/datum/behavior_tree/node/decorator/timeout/simple_search_area_wrapped
 	)
 
-// Wrappers for legacy/complex actions still used in pursue/search
 /datum/behavior_tree/node/action/simple_animal_pursue_last_known_action
 	my_action = /bt_action/simple_animal_pursue_last_known
 
@@ -323,7 +321,7 @@
 	)
 
 // ------------------------------------------------------------------------------
-// HOSTILE TREE WRAPPERS (SERVICES APPLIED)
+// HOSTILE TREES
 // ------------------------------------------------------------------------------
 
 // GENERIC HOSTILE
@@ -337,13 +335,12 @@
 /datum/behavior_tree/node/selector/generic_hostile_tree_logic
 	my_nodes = list(
 		/datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard/reaction_wrapper,
-		/datum/behavior_tree/node/decorator/observer/pain_crit/standard/flee_wrapper, // Add Pain Fleeing
+		/datum/behavior_tree/node/decorator/observer/pain_crit/standard/flee_wrapper,
 		/datum/behavior_tree/node/sequence/combat,
 		/datum/behavior_tree/node/action/move_to_dest,
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// Dummy Wrappers for Observers (Interrupts logic flow if triggered)
 /datum/behavior_tree/node/decorator/observer/aggressor_reaction/standard/reaction_wrapper
 	child = /datum/behavior_tree/node/action/clear_target // Force re-eval
 
@@ -697,7 +694,7 @@
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// WOLF UNDEAD (Uses deadite_migrate)
+// WOLF UNDEAD
 /datum/behavior_tree/node/selector/wolf_undead_tree
 	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
 	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/wolf_undead_wrapper
@@ -713,7 +710,7 @@
 		/datum/behavior_tree/node/sequence/idle
 	)
 
-// INSANE CLOWN (Just acquire target, rest handled by mob?)
+// INSANE CLOWN
 /datum/behavior_tree/node/selector/insane_clown_tree
 	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile
 	child = /datum/behavior_tree/node/decorator/service/aggressor_manager/standard/clown_wrapper
@@ -728,7 +725,7 @@
 	)
 
 // ------------------------------------------------------------------------------
-// LEFTOVER WRAPPERS / HELPER NODES
+// HELPER NODES
 // ------------------------------------------------------------------------------
 
 /datum/behavior_tree/node/action/simple_animal_check_aggressors_action

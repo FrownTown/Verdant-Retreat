@@ -1,9 +1,9 @@
 // ==============================================================================
-// CARBON/HUMAN BEHAVIOR TREES (REFACTORED)
+// CARBON/HUMAN BEHAVIOR TREES
 // ==============================================================================
 
 // ------------------------------------------------------------------------------
-// NODE WRAPPERS FOR ATOMIZED ACTIONS
+// NODE ACTIONS
 // ------------------------------------------------------------------------------
 
 /datum/behavior_tree/node/action/ensure_blunt_weapon
@@ -84,7 +84,6 @@
 	child = /datum/behavior_tree/node/selector/hostile_humanoid_logic
 
 /datum/behavior_tree/node/selector/hostile_humanoid_tree
-	// Legacy type mapping for init_ai_root
 	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile/hostile_humanoid_tree
 
 /datum/behavior_tree/node/selector/hostile_humanoid_logic
@@ -95,7 +94,6 @@
 		/datum/behavior_tree/node/sequence/humanoid_idle
 	)
 
-// Flee response wrapper for observers
 /datum/behavior_tree/node/decorator/observer/pain_crit/flee_response
 	child = /datum/behavior_tree/node/sequence/humanoid_flee_sequence
 
@@ -111,7 +109,7 @@
 /datum/behavior_tree/node/selector/humanoid_acquire_target
 	my_nodes = list(
 		/datum/behavior_tree/node/decorator/progress_validator/target_persistence/has_target_wrapped,
-		/datum/behavior_tree/node/action/switch_to_aggressor, // Use atomized switch action
+		/datum/behavior_tree/node/action/switch_to_aggressor,
 		/datum/behavior_tree/node/decorator/retry/find_target_wrapped
 	)
 
@@ -122,7 +120,7 @@
 
 // Wrap find_target in retry decorator
 /datum/behavior_tree/node/decorator/retry/find_target_wrapped
-	child = /datum/behavior_tree/node/action/pick_best_target // Use atomized pick action (uses scanner service)
+	child = /datum/behavior_tree/node/action/pick_best_target
 	cooldown = 2 SECONDS
 	max_failures = 1
 
@@ -171,7 +169,6 @@
 	child = /datum/behavior_tree/node/selector/goblin_logic
 
 /datum/behavior_tree/node/selector/goblin_tree
-	// Legacy type mapping
 	parent_type = /datum/behavior_tree/node/decorator/service/target_scanner/hostile/goblin_tree
 
 /datum/behavior_tree/node/selector/goblin_logic
@@ -275,14 +272,14 @@
 		/datum/behavior_tree/node/action/goblin_attack_vitals_action
 	)
 
-// subdue sequence for solo goblins (UPDATED with Atomized Logic)
+// subdue sequence for solo goblins
 /datum/behavior_tree/node/sequence/goblin_subdue_sequence
 	my_nodes = list(
 		/datum/behavior_tree/node/action/carbon_check_monster_bait,
-		/datum/behavior_tree/node/sequence/subdue_logic, // Use new atomized subdue
+		/datum/behavior_tree/node/sequence/subdue_logic,
 		/datum/behavior_tree/node/action/goblin_disarm,
 		/datum/behavior_tree/node/action/goblin_drag_away,
-		/datum/behavior_tree/node/sequence/violate_logic, // Use new atomized violate
+		/datum/behavior_tree/node/sequence/violate_logic,
 		/datum/behavior_tree/node/action/goblin_post_violate
 	)
 
@@ -295,8 +292,8 @@
 /datum/behavior_tree/node/sequence/humanoid_subdue_sequence
 	my_nodes = list(
 		/datum/behavior_tree/node/action/carbon_check_monster_bait,
-		/datum/behavior_tree/node/sequence/subdue_logic, // Use new atomized subdue
-		/datum/behavior_tree/node/sequence/violate_logic  // Use new atomized violate
+		/datum/behavior_tree/node/sequence/subdue_logic,
+		/datum/behavior_tree/node/sequence/violate_logic
 	)
 
 /datum/behavior_tree/node/sequence/humanoid_attack_sequence
@@ -312,7 +309,7 @@
 	)
 
 // ------------------------------------------------------------------------------
-// NODE WRAPPERS FOR CARBON ACTIONS
+// CARBON ACTIONS
 // ------------------------------------------------------------------------------
 
 /datum/behavior_tree/node/action/carbon_has_target
@@ -379,7 +376,7 @@
 	my_action = /bt_action/carbon_search_area
 
 // ------------------------------------------------------------------------------
-// GOBLIN SQUAD TACTICS NODE WRAPPERS
+// GOBLIN SQUAD TACTICS
 // ------------------------------------------------------------------------------
 
 /datum/behavior_tree/node/action/goblin_has_squad_role

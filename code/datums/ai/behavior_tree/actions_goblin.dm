@@ -52,7 +52,7 @@
 					user.ai_root.target = L
 					return NODE_SUCCESS // Handled interrupt
 				else
-					// Violator sticky logic (simplified)
+					// Violator sticky logic
 					user.ai_root.target = L
 					user.ai_root.blackboard[AIBLK_SQUAD_ROLE] = GOB_SQUAD_ROLE_ATTACKER
 					return NODE_SUCCESS
@@ -96,10 +96,6 @@
 		user.ai_root.blackboard[AIBLK_SQUAD_ROLE] = new_role
 
 	return NODE_SUCCESS
-
-// ------------------------------------------------------------------------------
-// RESTRAIN LOGIC (ATOMIZED)
-// ------------------------------------------------------------------------------
 
 /bt_action/goblin_grab_target
 /bt_action/goblin_grab_target/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
@@ -207,10 +203,6 @@
 		
 	return NODE_SUCCESS
 
-// ------------------------------------------------------------------------------
-// SUPPORT ACTIONS (ATOMIZED)
-// ------------------------------------------------------------------------------
-
 /bt_action/goblin_strip_armor
 /bt_action/goblin_strip_armor/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	var/mob/living/carbon/human/victim = target
@@ -288,12 +280,7 @@
 /bt_action/goblin_is_attacker/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	return blackboard[AIBLK_SQUAD_ROLE] == GOB_SQUAD_ROLE_ATTACKER ? NODE_SUCCESS : NODE_FAILURE
 
-// ------------------------------------------------------------------------------
-// Wrappers for complex actions I didn't fully atomize or moved elsewhere
-// ------------------------------------------------------------------------------
-
 /bt_action/goblin_surround_target/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
-	// Simplified surround
 	if(!target) return NODE_FAILURE
 	if(user.Adjacent(target)) return NODE_SUCCESS
 	
@@ -318,7 +305,8 @@
 
 /bt_action/goblin_attack_vitals/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	user.zone_selected = pick(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN)
-	return ..()
+	
+	if(!target) return NODE_FAILURE
 
 /bt_action/goblin_squad_violate
 	parent_type = /bt_action/start_sex
@@ -327,7 +315,6 @@
 	return ..(user, blackboard[AIBLK_MONSTER_BAIT], blackboard)
 
 /bt_action/goblin_drag_away/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
-	// Simplified drag
 	var/mob/living/victim = blackboard[AIBLK_MONSTER_BAIT]
 	if(!victim) return NODE_FAILURE
 	if(get_dist(user, victim) > 1) return NODE_FAILURE

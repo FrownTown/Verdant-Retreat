@@ -1,5 +1,5 @@
 // ==============================================================================
-// ROGUETOWN BEHAVIOR TREE ACTIONS (ATOMIZED & SPECIALIZED)
+// ROGUETOWN BEHAVIOR TREE ACTIONS
 // ==============================================================================
 
 // ------------------------------------------------------------------------------
@@ -74,9 +74,6 @@
 	if(!istype(H)) return NODE_FAILURE
 
 	var/list/valid_targets = list()
-	
-	// Transient helper for filtering (reusing existing logic if possible, or implementing simplified)
-	// We'll implement simplified filtering here for atomicity
 	
 	for(var/atom/A in candidates)
 		// Basic Checks
@@ -238,7 +235,6 @@
 	if(H.ranged_cooldown > world.time)
 		return NODE_FAILURE
 
-	// Fire logic (atomized from original)
 	H.visible_message(span_danger("<b>[H]</b> [H.ranged_message] at [target]!"))
 	if(H.rapid > 1)
 		var/datum/callback/cb = CALLBACK(H, TYPE_PROC_REF(/mob/living/simple_animal/hostile, Shoot), target)
@@ -342,7 +338,7 @@
 
 
 // ==============================================================================
-// LEGACY / WRAPPERS / SPECIALIZED ACTIONS
+// SPECIALIZED ACTIONS
 // ==============================================================================
 
 /bt_action/simple_animal_pursue_last_known/evaluate(mob/living/user, mob/living/target, list/blackboard)
@@ -424,8 +420,6 @@
 
 	H.ranged_cooldown = world.time + H.ranged_cooldown_time
 	return NODE_SUCCESS
-
-// --- Specialized Actions Restored ---
 
 /bt_action/dreamfiend_blink
 	var/blink_range = 5

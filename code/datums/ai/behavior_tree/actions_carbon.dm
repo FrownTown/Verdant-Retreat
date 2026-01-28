@@ -1,5 +1,5 @@
 // ==============================================================================
-// CARBON/HUMAN BEHAVIOR TREE ACTIONS (ATOMIZED)
+// CARBON/HUMAN BEHAVIOR TREE ACTIONS
 // ==============================================================================
 
 // ------------------------------------------------------------------------------
@@ -157,10 +157,6 @@
 		
 	return NODE_FAILURE
 
-// ------------------------------------------------------------------------------
-// VIOLATION LOGIC (ATOMIZED)
-// ------------------------------------------------------------------------------
-
 /bt_action/strip_victim
 /bt_action/strip_victim/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	var/mob/living/carbon/human/victim = target ? target : user.ai_root.blackboard[AIBLK_MONSTER_BAIT]
@@ -287,12 +283,7 @@
 	if(flee_turf && user.set_ai_path_to(flee_turf)) return NODE_RUNNING
 	return NODE_FAILURE
 
-// ------------------------------------------------------------------------------
-// RESTORED ACTIONS
-// ------------------------------------------------------------------------------
-
-/bt_action/carbon_check_aggressors
-	parent_type = /bt_action/switch_to_aggressor
+/bt_action/carbon_check_aggressors/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 
 /bt_action/carbon_pursue_last_known/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	if(!ishuman(user) || !user.ai_root) return NODE_FAILURE
