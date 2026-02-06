@@ -313,8 +313,7 @@
 
 /bt_action/carbon_pursue_last_known/evaluate(mob/living/carbon/human/user, mob/living/target, list/blackboard)
 	if(!ishuman(user) || !user.ai_root) return NODE_FAILURE
-	if(user.ai_root.target) return NODE_FAILURE
-	
+
 	var/turf/last_known_loc = blackboard[AIBLK_LAST_KNOWN_TARGET_LOC]
 	if(!last_known_loc) return NODE_FAILURE
 	

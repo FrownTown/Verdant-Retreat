@@ -297,6 +297,7 @@
 		var/result = running_node.evaluate(npc, target, blackboard)
 		if(result != NODE_RUNNING)
 			running_node = null
+			main_node.evaluate(npc, target, blackboard) // Re-evaluate immediately so we don't lose a tick
 	else
 		main_node.evaluate(npc, target, blackboard)
 

@@ -27,9 +27,12 @@
 		targets = get_nearby_entities(npc, scan_range)
 	else
 		var/list/candidates = get_nearby_entities(npc, scan_range)
-		for(var/mob/living/L in candidates)
-			if(!los_blocked(npc, L))
-				targets += L
+		for(var/atom/A in candidates)
+			if(isliving(A))
+				if(!los_blocked(npc, A))
+					targets += A
+			else if(isobj(A))
+				targets += A
 	
 	blackboard[AIBLK_POSSIBLE_TARGETS] = targets
 
@@ -43,7 +46,7 @@
 	if(!aggressors) return
 
 	for(var/mob/living/L in aggressors)
-		if(QDELETED(L) || L.stat == DEAD || get_dist(npc, L) > npc.client?.view || 7)
+		if(QDELETED(L) || L.stat == DEAD || get_dist(npc, L) > (npc.client?.view || 7))
 			aggressors -= L
 	
 	if(!length(aggressors))
@@ -320,7 +323,7 @@
 	return NODE_SUCCESS
 
 /bt_action/check_hunger
-	var/hunger_key = "next_hunger_check"
+	var/hunger_key = AIBLK_NEXT_HUNGER_CHECK
 /bt_action/check_hunger/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	if(!user.ai_root) return NODE_FAILURE
 	var/next_eat = blackboard[hunger_key]
@@ -355,7 +358,6 @@
 
 /bt_action/simple_animal_pursue_last_known/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	if(!user.ai_root) return NODE_FAILURE
-	if(user.ai_root.target) return NODE_FAILURE // Only pursue if no target
 	var/turf/last_known = blackboard[AIBLK_LAST_KNOWN_TARGET_LOC]
 	if(!last_known) return NODE_FAILURE
 	if(get_turf(user) == last_known)
@@ -523,7 +525,7 @@
 	return NODE_FAILURE
 
 /bt_action/use_ability
-	var/ability_key = "targeted_action"
+	var/ability_key = AIBLK_TARGETED_ACTION
 /bt_action/use_ability/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	if(!user.ai_root) return NODE_FAILURE
 	var/datum/action/cooldown/ability = user.ai_root.blackboard[ability_key]
@@ -572,7 +574,7 @@
 
 /bt_action/follow_target/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	var/atom/movable/follow_target = user.ai_root.blackboard[AIBLK_FOLLOW_TARGET]
-	if(!follow_target || get_dist(user, follow_target) > user.client?.view || 7)
+	if(!follow_target || get_dist(user, follow_target) > (user.client?.view || 7))
 		user.ai_root.blackboard -= AIBLK_FOLLOW_TARGET
 		return NODE_FAILURE
 	if(istype(follow_target, /mob/living) && (follow_target:stat == DEAD))
@@ -662,8 +664,8 @@
 	var/reinforcements_range = 12
 	var/cooldown = 30 SECONDS
 /bt_action/call_reinforcements/evaluate(mob/living/user, mob/living/target, list/blackboard)
-	if(user.ai_root.blackboard[AIBLK_REINFORCEMENTS_COOLDOWN] > world.time) return NODE_FAILURE
-	if(user.ai_root.blackboard[AIBLK_TAMED]) return NODE_FAILURE
+	if(user.ai_root.blackboard[AIBLK_REINFORCEMENTS_COOLDOWN] > world.time) return NODE_SUCCESS // On cooldown — don't block the sequence
+	if(user.ai_root.blackboard[AIBLK_TAMED]) return NODE_SUCCESS // Tamed — skip silently
 	var/atom/current_target = target
 	if(!current_target) return NODE_FAILURE
 	var/call_say = user.ai_root.blackboard[AIBLK_REINFORCEMENTS_SAY]
@@ -731,8 +733,8 @@
 	return NODE_RUNNING
 
 /bt_action/deadite_migrate
-	var/path_key = "deadite_migration_path"
-	var/target_key = "deadite_migration_target"
+	var/path_key = AIBLK_DEADITE_MIGRATION_PATH
+	var/target_key = "deadite_migration_target" // No hash constant defined yet — only used internally by this action
 /bt_action/deadite_migrate/evaluate(mob/living/user, mob/living/target, list/blackboard)
 	var/list/path = blackboard[path_key]
 	if(!length(path)) return NODE_FAILURE

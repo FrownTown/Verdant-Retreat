@@ -803,7 +803,7 @@
 
 /datum/behavior_tree/node/selector/insane_clown_logic
 	my_nodes = list(
-		/datum/behavior_tree/node/selector/acquire_target,
+		/datum/behavior_tree/node/sequence/combat,
 		/datum/behavior_tree/node/sequence/idle
 	)
 
@@ -812,12 +812,6 @@
 // ------------------------------------------------------------------------------
 
 
-
-/datum/behavior_tree/node/action/simple_animal_pursue_last_known_action
-	my_action = /bt_action/simple_animal_pursue_last_known
-
-/datum/behavior_tree/node/action/simple_animal_search_area_action
-	my_action = /bt_action/simple_animal_search_area
 
 /datum/behavior_tree/node/action/minion_follow
 	my_action = /bt_action/minion_follow
