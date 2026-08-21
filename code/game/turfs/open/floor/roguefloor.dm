@@ -177,6 +177,11 @@
 	neighborlay = "lavedge"
 	prettifyturf = TRUE
 
+/turf/open/floor/rogue/volcanic/obsidian
+	name = "obsidian"
+	desc = "Molten stone quenched in an instant, left behind as a sheet of glassy black obsidian."
+	color = "#2a2a33"
+
 
 /obj/effect/decal/mossy
 	name = "mossy brick floor"

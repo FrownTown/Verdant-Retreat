@@ -46,6 +46,13 @@ SUBSYSTEM_DEF(noisemap)
 	var/magnitude = 50*(N.get2((x+offset)*fac,(y+offset)*fac)+1) //sets this to 0-100
 	return magnitude
 
+/datum/controller/subsystem/noisemap/proc/set_seed(key, seed)
+	if(!noisemaps || !noisemaps[key])
+		log_debug("INVALID ACCESS FOR [key], RETURNING")
+		return
+	var/Noise/N = noisemaps[key]
+	N.setSeed(seed)
+
 
 
 

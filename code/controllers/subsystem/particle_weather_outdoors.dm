@@ -332,11 +332,11 @@ SUBSYSTEM_DEF(outdoor_effects)
 		/* check if we are globally affected or not */
 		var/static/datum/lighting_corner/dummy/dummy_lighting_corner = new
 
-		var/list/corners = OE.source_turf.corners
-		var/datum/lighting_corner/cr = corners[3] || dummy_lighting_corner
-		var/datum/lighting_corner/cg = corners[2] || dummy_lighting_corner
-		var/datum/lighting_corner/cb = corners[4] || dummy_lighting_corner
-		var/datum/lighting_corner/ca = corners[1] || dummy_lighting_corner
+		var/list/corners = OE.source_turf.get_corners()
+		var/datum/lighting_corner/cr = (corners && corners[3]) || dummy_lighting_corner
+		var/datum/lighting_corner/cg = (corners && corners[2]) || dummy_lighting_corner
+		var/datum/lighting_corner/cb = (corners && corners[4]) || dummy_lighting_corner
+		var/datum/lighting_corner/ca = (corners && corners[1]) || dummy_lighting_corner
 
 		var/fr = cr.sunFalloff
 		var/fg = cg.sunFalloff

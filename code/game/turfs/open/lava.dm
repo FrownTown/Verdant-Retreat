@@ -144,9 +144,7 @@
 				continue
 
 			if(L)
-				L.adjustFireLoss(100)
-				L.adjust_fire_stacks(100)
-				L.ignite_mob()
+				SSliquid.registry.lava_incinerate(L)
 
 /turf/open/lava/onbite(mob/user)
 	if(isliving(user))

@@ -59,6 +59,11 @@ PROCESSING_SUBSYSTEM_DEF(liquid)
 	var/vn_pending_deltas_left = -1 // deltas left in the head payload; -1 = head not yet opened
 	var/vn_pending_backlog = 0 // fluidsum records across the whole queue
 
+	var/lava_mat_id_cache = 0
+	var/acid_mat_id_cache = 0
+	var/list/lava_cells
+	var/list/acid_cells
+
 /datum/controller/subsystem/processing/liquid/PreInit()
 	if(!registry)
 		registry = new
@@ -87,6 +92,8 @@ PROCESSING_SUBSYSTEM_DEF(liquid)
 	liquid_sinks = new
 	cell_index = new
 	sleeping_cells = new
+	lava_cells = new
+	acid_cells = new
 
 	var/cells_created = 0
 	for(var/turf/T in world) // You can't stop me from doing this. No one can stop me from doing this. Mwahahaha
@@ -484,6 +491,8 @@ PROCESSING_SUBSYSTEM_DEF(liquid)
 			rgb_int = vn_color_rgb(initial(registered.reagent:color))
 		if(rgb_int)
 			vn_check_result(vn_fluid_mat_color(id, rgb_int), "fluid_mat_color")
+		if(registered)
+			vn_check_result(vn_fluid_mat_flow(id, registered.flow_permille), "fluid_mat_flow")
 
 	// vn_fluid_init() wipes engine config, so this must run on every successful init
 	vn_check_result(vn_fluid_config("edge_drain", GLOB.vn_liquid_edge_drain ? 1 : 0), "fluid_config_edge_drain")
@@ -701,6 +710,8 @@ PROCESSING_SUBSYSTEM_DEF(liquid)
 		if(BC && (BC.vis_fluid_level != band || BC.vis_mat != mat || BC.vis_rgb != rgb_int))
 			var/was_surface = BC.vis_fluid_level >= FLUID_FULL
 			var/old_rgb = BC.vis_rgb
+			var/old_mat = BC.vis_mat
+			var/old_band = BC.vis_fluid_level
 			BC.vis_fluid_level = band
 			BC.vis_mat = mat
 			BC.vis_rgb = rgb_int
@@ -711,6 +722,35 @@ PROCESSING_SUBSYSTEM_DEF(liquid)
 				var/turf/above = GetAbove(B)
 				if(above && isopenspace(above))
 					update_cell_image(above)
+			lava_band_check(B, mat, old_mat, old_band)
+
+/datum/controller/subsystem/processing/liquid/proc/lava_band_check(turf/T, mat, old_mat, old_band)
+	if(!lava_mat_id_cache)
+		lava_mat_id_cache = vn_fluid_mat_id(/datum/liquid/lava)
+	if(!acid_mat_id_cache)
+		acid_mat_id_cache = vn_fluid_mat_id(/datum/liquid/acid)
+	if(lava_mat_id_cache && mat == lava_mat_id_cache)
+		if(old_mat == lava_mat_id_cache && old_band > FLUID_EMPTY)
+			return
+		lava_band_crossed(T)
+		return
+	if(acid_mat_id_cache && mat == acid_mat_id_cache)
+		if(old_mat == acid_mat_id_cache && old_band > FLUID_EMPTY)
+			return
+		acid_band_crossed(T)
+
+/datum/controller/subsystem/processing/liquid/proc/lava_band_crossed(turf/T)
+	if(!T)
+		return
+	refresh_cell_types(T)
+	lava_cells[T] = TRUE
+	for(var/obj/O in T.contents.Copy())
+		registry.lava_melt_obj_check(O, T)
+
+/datum/controller/subsystem/processing/liquid/proc/acid_band_crossed(turf/T)
+	if(!T)
+		return
+	acid_cells[T] = TRUE
 
 /datum/controller/subsystem/processing/liquid/proc/convert_fluid_to_reagent(datum/liquid/fluid, amount, atom/container, turf/T)
 	return SSliquid.manager.convert_fluid_to_reagent(fluid, amount, container, T)

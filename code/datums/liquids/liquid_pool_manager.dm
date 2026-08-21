@@ -38,6 +38,8 @@
     /// Rotation cursor into liquid_turfs for sliced reaction sweeps
     var/reaction_cursor = 1
 
+    var/obsidian_dissolve_cost = 20
+
 /datum/pool_manager/New()
     ..()
     liquid_turfs = list()
@@ -178,6 +180,127 @@
 
             // Execute continuous liquid-specific behaviors
             SSliquid.registry.execute_liquid_behavior(fluid.type, "continuous_effect", M, T)
+
+    process_lava_quench()
+    process_acid_dissolution()
+
+/datum/pool_manager/proc/get_quench_fluids(turf/T)
+    var/list/found = list()
+    if(!T?.cell)
+        return found
+    var/static/list/quench_types = list(/datum/liquid/water, /datum/liquid/murk, /datum/liquid/blood)
+    for(var/quench_type in quench_types)
+        var/datum/liquid/fluid = T.cell.get_fluid_datum(quench_type)
+        if(fluid && T.cell.fluid_volume[fluid] >= MIN_FLUID_VOLUME)
+            found[fluid] = T.cell.fluid_volume[fluid]
+    return found
+
+/datum/pool_manager/proc/consume_quench(turf/source, list/fluids, amount, total)
+    if(!source?.cell || !length(fluids) || total <= 0 || amount <= 0)
+        return
+    var/remaining = amount
+    var/n = length(fluids)
+    var/i = 0
+    for(var/datum/liquid/fluid as anything in fluids)
+        i++
+        var/share = (i == n) ? remaining : round(amount * fluids[fluid] / total)
+        remaining -= share
+        if(share > 0)
+            SSliquid.manager.remove_fluid(source, fluid, share)
+
+/datum/pool_manager/proc/solidify_lava(turf/T, datum/liquid/lava_fluid, lava_vol, turf/quench_source, list/quench_fluids, quench_total)
+    consume_quench(quench_source, quench_fluids, lava_vol, quench_total)
+    SSliquid.manager.remove_fluid(T, lava_fluid, lava_vol)
+    SSliquid.clear_cell_fluid(T)
+
+    var/deep = lava_vol >= SUBMERSION_FLUID_THRESHOLD
+    var/target_type = deep ? /turf/closed/mineral/rogue/obsidian : /turf/open/floor/rogue/volcanic/obsidian
+    var/turf/newT = T.ChangeTurf(target_type, null, CHANGETURF_IGNORE_AIR)
+    if(!newT)
+        return
+    var/harden_message = deep ? "The lava hisses violently and hardens into a jagged wall of obsidian!" : "The lava hisses and crusts over into a sheet of black obsidian!"
+    newT.visible_message(span_danger(harden_message))
+    playsound(newT, 'sound/misc/hiss.ogg', 60, TRUE)
+
+/datum/pool_manager/proc/try_quench_lava(turf/T, datum/liquid/lava_fluid, lava_vol)
+    var/list/same_tile = get_quench_fluids(T)
+    var/same_tile_total = 0
+    for(var/datum/liquid/fluid as anything in same_tile)
+        same_tile_total += same_tile[fluid]
+    if(same_tile_total >= lava_vol)
+        solidify_lava(T, lava_fluid, lava_vol, T, same_tile, same_tile_total)
+        return TRUE
+
+    for(var/D in GLOB.cardinals)
+        var/turf/N = get_step(T, D)
+        if(!N?.cell)
+            continue
+        SSliquid.refresh_cell_types(N)
+        var/list/n_fluids = get_quench_fluids(N)
+        var/n_total = 0
+        for(var/datum/liquid/fluid as anything in n_fluids)
+            n_total += n_fluids[fluid]
+        if(n_total >= lava_vol)
+            solidify_lava(T, lava_fluid, lava_vol, N, n_fluids, n_total)
+            return TRUE
+
+    return FALSE
+
+/datum/pool_manager/proc/process_lava_quench()
+    for(var/turf/T as anything in SSliquid.lava_cells.Copy())
+        if(!istype(T) || QDELETED(T) || !T.cell)
+            SSliquid.lava_cells -= T
+            continue
+        SSliquid.refresh_cell_types(T)
+        var/datum/liquid/lava_fluid = T.cell.get_fluid_datum(/datum/liquid/lava)
+        var/lava_vol = lava_fluid ? T.cell.fluid_volume[lava_fluid] : 0
+        if(lava_vol < MIN_FLUID_VOLUME)
+            SSliquid.lava_cells -= T
+            continue
+        if(try_quench_lava(T, lava_fluid, lava_vol))
+            SSliquid.lava_cells -= T
+        CHECK_TICK
+
+/datum/pool_manager/proc/dissolve_obsidian_floor(turf/T, datum/liquid/acid_fluid)
+    SSliquid.manager.remove_fluid(T, acid_fluid, obsidian_dissolve_cost)
+    var/turf/newT = T.ChangeTurf(/turf/open/floor/rogue/naturalstone, null, CHANGETURF_IGNORE_AIR)
+    if(!newT)
+        return
+    newT.visible_message(span_warning("The acid eats away at the obsidian, dissolving it down to bare stone!"))
+    playsound(newT, 'sound/misc/hiss.ogg', 60, TRUE)
+
+/datum/pool_manager/proc/dissolve_obsidian_wall(turf/N, turf/acid_turf, datum/liquid/acid_fluid)
+    SSliquid.manager.remove_fluid(acid_turf, acid_fluid, obsidian_dissolve_cost)
+    var/turf/newN = N.ChangeTurf(/turf/open/floor/rogue/volcanic/obsidian, null, CHANGETURF_IGNORE_AIR)
+    if(!newN)
+        return
+    newN.visible_message(span_warning("The acid eats through the obsidian wall, collapsing it into rubble!"))
+    playsound(newN, 'sound/misc/hiss.ogg', 60, TRUE)
+
+/datum/pool_manager/proc/process_acid_dissolution()
+    for(var/turf/T as anything in SSliquid.acid_cells.Copy())
+        if(!istype(T) || QDELETED(T) || !T.cell)
+            SSliquid.acid_cells -= T
+            continue
+        SSliquid.refresh_cell_types(T)
+        var/datum/liquid/acid_fluid = T.cell.get_fluid_datum(/datum/liquid/acid)
+        var/acid_vol = acid_fluid ? T.cell.fluid_volume[acid_fluid] : 0
+        if(acid_vol < MIN_FLUID_VOLUME)
+            SSliquid.acid_cells -= T
+            continue
+        if(acid_vol < obsidian_dissolve_cost)
+            continue
+        if(istype(T, /turf/open/floor/rogue/volcanic/obsidian))
+            dissolve_obsidian_floor(T, acid_fluid)
+            SSliquid.acid_cells -= T
+            CHECK_TICK
+            continue
+        for(var/D in GLOB.cardinals)
+            var/turf/N = get_step(T, D)
+            if(istype(N, /turf/closed/mineral/rogue/obsidian))
+                dissolve_obsidian_wall(N, T, acid_fluid)
+                break
+        CHECK_TICK
 
 /**
  * Processes chemical reactions on liquid turfs when dynamic liquids are enabled.

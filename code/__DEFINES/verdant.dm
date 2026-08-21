@@ -10,7 +10,7 @@
 // take over. NEVER assume a native call succeeded.
 
 // ABI compatibility number; must match kAbi in the DLL's Exports.cpp.
-#define VERDANT_ABI 6
+#define VERDANT_ABI 7
 
 #ifndef VERDANT_NATIVE
 /* This comment bypasses grep checks */ /var/__verdant_native
@@ -145,6 +145,7 @@ GLOBAL_VAR_INIT(vn_safe_mode, FALSE)
 #define vn_fluid_init call_ext(VERDANT_NATIVE, "byond:vn_fluid_init")
 #define vn_fluid_register_mat(name) call_ext(VERDANT_NATIVE, "byond:vn_fluid_register_mat")(name)
 #define vn_fluid_mat_color(id, rgb) call_ext(VERDANT_NATIVE, "byond:vn_fluid_mat_color")(id, rgb)
+#define vn_fluid_mat_flow(id, permille) call_ext(VERDANT_NATIVE, "byond:vn_fluid_mat_flow")(id, permille)
 /// edits: flat [op,x,y,z,a,b ...]; returns applied count
 #define vn_fluid_edit(edits) call_ext(VERDANT_NATIVE, "byond:vn_fluid_edit")(edits)
 #define vn_fluid_tick_begin call_ext(VERDANT_NATIVE, "byond:vn_fluid_tick_begin")

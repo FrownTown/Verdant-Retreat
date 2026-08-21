@@ -38,7 +38,7 @@
 	fluid_flags = 0
 	for(var/fluid in SSliquid.registry.registered_liquids)
 		var/datum/liquid/newfluid = new fluid
-		if(newfluid.reagent)
+		if(newfluid.reagent && !newfluid.color)
 			newfluid.color = initial(newfluid.reagent:color)
 		fluid_volume[newfluid] = 0
 

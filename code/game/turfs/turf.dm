@@ -459,6 +459,11 @@
 
 /turf/open/Entered(atom/movable/AM)
 	..()
+	if(isliving(AM) && !AM.throwing)
+		SSliquid?.registry?.trigger_behavior_on_enter(AM, src)
+	else if(isobj(AM) && !AM.throwing)
+		if(src.cell && src.cell.fluidsum >= MIN_FLUID_VOLUME)
+			SSliquid?.registry?.lava_melt_obj_check(AM, src)
 	//melting
 	if(isobj(AM) && src.temperature > T0C)
 		var/obj/O = AM
@@ -467,6 +472,11 @@
 	if(!AM.zfalling)
 		zFall(AM)
 	trigger_weather(AM)
+
+/turf/open/hitby(atom/movable/AM, skipcatch, hitpush, blocked, datum/thrownthing/throwingdatum, damage_flag = "blunt")
+	. = ..()
+	if(isobj(AM) && src.cell && src.cell.fluidsum >= MIN_FLUID_VOLUME)
+		SSliquid?.registry?.lava_melt_obj_check(AM, src)
 
 /turf/proc/is_plasteel_floor()
 	return FALSE

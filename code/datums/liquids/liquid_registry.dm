@@ -363,9 +363,14 @@ Main responsibilities include:
 	register_flag_behavior(FLUID_CONDUCTIVE, "conduct_shock", /datum/liquid_registry/proc/conduct_shock)
 	register_flag_behavior(FLUID_FLAMMABLE, "create_fire_hazard", /datum/liquid_registry/proc/flammable_fire_hazard)
 	register_flag_behavior(FLUID_PERMEATING, "apply_touch_effect", /datum/liquid_registry/proc/permeating_touch_effect)
+	register_flag_behavior(FLUID_CORROSIVE, "corrode_mob", /datum/liquid_registry/proc/corrode_mob)
 
 	// Keep some liquid-specific behaviors for special cases
 	register_liquid_behavior(/datum/liquid/fuel, "slip_hazard", /datum/liquid_registry/proc/fuel_slip_hazard)
+	register_liquid_behavior(/datum/liquid/lava, "on_enter", /datum/liquid_registry/proc/lava_burn)
+	register_liquid_behavior(/datum/liquid/lava, "continuous_effect", /datum/liquid_registry/proc/lava_burn)
+	register_liquid_behavior(/datum/liquid/acid, "on_enter", /datum/liquid_registry/proc/corrode_mob)
+	register_liquid_behavior(/datum/liquid/murk, "on_enter", /datum/liquid_registry/proc/murk_leech)
 
 	// Could add more: acid corrosion, poisonous gas emission, freezing, etc.
 	// register_flag_behavior(FLUID_CORROSIVE, "corrode_items", /datum/liquid_registry/proc/corrosive_corrosion)
@@ -383,11 +388,10 @@ Main responsibilities include:
 
 // Apply sophisticated chemical effects based on liquid depth and exposure type
 /datum/liquid_registry/proc/apply_liquid_chemical_effects(mob/living/M, turf/T, datum/liquid/liquid_instance, exposure_type = "shallow")
-	if(!M || !T || !liquid_instance?.reagent)
+	if(!M || !T || !T.cell || !liquid_instance?.reagent)
 		return FALSE
 
-	// Use the liquid manager to safely get the liquid amount
-	var/liquid_amount = GET_FLUID_AMOUNT(T, liquid_instance.type)
+	var/liquid_amount = T.cell.fluid_volume[liquid_instance]
 	if(liquid_amount < MIN_FLUID_VOLUME)
 		return FALSE
 
@@ -544,10 +548,154 @@ Main responsibilities include:
 
 	return FALSE
 
+/datum/liquid_registry/proc/liquid_pool_bridge_clear(turf/T)
+	if(!T)
+		return FALSE
+	var/static/list/lava_safeties_typecache = typecacheof(list(/obj/structure/stone_tile))
+	var/list/found_safeties = typecache_filter_list(T.contents, lava_safeties_typecache)
+	for(var/obj/structure/stone_tile/S in found_safeties)
+		if(S.fallen)
+			LAZYREMOVE(found_safeties, S)
+	return LAZYLEN(found_safeties)
+
+/datum/liquid_registry/proc/lava_would_ignite(atom/movable/thing)
+	if(isobj(thing))
+		var/obj/O = thing
+		if((O.resistance_flags & (LAVA_PROOF|INDESTRUCTIBLE)) || O.throwing)
+			return FALSE
+		return TRUE
+	else if(isliving(thing))
+		var/mob/living/L = thing
+		if(L.movement_type & FLYING)
+			return FALSE
+		if("lava" in L.weather_immunities)
+			return FALSE
+		var/buckle_check = L.buckling
+		if(!buckle_check)
+			buckle_check = L.buckled
+		if(buckle_check && !lava_would_ignite(buckle_check))
+			return FALSE
+		return TRUE
+	return FALSE
+
+/datum/liquid_registry/proc/lava_burn(mob/living/M, turf/T, datum/liquid/fluid = null)
+	if(!M || !T)
+		return FALSE
+	if(liquid_pool_bridge_clear(T))
+		return FALSE
+	if(!fluid)
+		fluid = T.cell?.get_fluid_datum(/datum/liquid/lava)
+	if(!fluid || !T.cell || T.cell.fluid_volume[fluid] < MIN_FLUID_VOLUME)
+		return FALSE
+	if(!lava_would_ignite(M))
+		return FALSE
+	if(iscarbon(M))
+		var/mob/living/carbon/C = M
+		var/obj/item/clothing/S = C.get_item_by_slot(SLOT_ARMOR)
+		var/obj/item/clothing/H = C.get_item_by_slot(SLOT_HEAD)
+		if(S && H && S.clothing_flags & LAVAPROTECT && H.clothing_flags & LAVAPROTECT)
+			return FALSE
+	if(QDELETED(M) || M.stat == DEAD)
+		return FALSE
+	playsound(get_turf(M), 'sound/misc/lava_death.ogg', 100, FALSE)
+	lava_incinerate(M)
+	return TRUE
+
+/datum/liquid_registry/proc/lava_incinerate(mob/living/M)
+	M.visible_message(span_userdanger("[M] is consumed by the lava, burning away to nothing but ash!"), span_userdanger("THE LAVA SWALLOWS YOU WHOLE! YOU AND ALL YOU CARRY BURN AWAY TO ASH!"))
+	M.dust(TRUE, FALSE, TRUE)
+
+/datum/liquid_registry/proc/lava_melt_obj_check(obj/O, turf/T)
+	if(!O || !T)
+		return FALSE
+	if(!T.cell || T.cell.fluidsum < MIN_FLUID_VOLUME)
+		return FALSE
+	var/datum/liquid/lava_fluid = T.cell.get_fluid_datum(/datum/liquid/lava)
+	if(!lava_fluid || T.cell.fluid_volume[lava_fluid] < MIN_FLUID_VOLUME)
+		return FALSE
+	if(O == T.liquid_overlay || istype(O, /obj/effect/liquid) || istype(O, /obj/effect/water/trim))
+		return FALSE
+	if(liquid_pool_bridge_clear(T))
+		return FALSE
+	if(!lava_would_ignite(O))
+		return FALSE
+	T.visible_message(span_danger("[O] melts away in the lava!"))
+	qdel(O)
+	return TRUE
+
+/datum/liquid_registry/proc/corrode_items(mob/living/M)
+	if(!iscarbon(M))
+		return
+	var/mob/living/carbon/C = M
+	for(var/obj/item/clothing/I in C.contents)
+		if(I.resistance_flags & (ACID_PROOF|INDESTRUCTIBLE))
+			continue
+		I.obj_integrity -= I.max_integrity * 0.1
+		if(I.obj_integrity <= 0)
+			to_chat(C, span_danger("Your [I.name] is destroyed by the acid!"))
+			qdel(I)
+
+/datum/liquid_registry/proc/corrode_mob(mob/living/M, turf/T, datum/liquid/fluid = null)
+	if(!M || !T)
+		return FALSE
+	if(liquid_pool_bridge_clear(T))
+		return FALSE
+	if(!fluid)
+		fluid = T.cell?.get_fluid_datum(/datum/liquid/acid)
+	if(!fluid || !T.cell || T.cell.fluid_volume[fluid] < MIN_FLUID_VOLUME)
+		return FALSE
+	if(!lava_would_ignite(M))
+		return FALSE
+	corrode_items(M)
+	M.adjustFireLoss(100)
+	to_chat(M, span_userdanger("THE ACID BURNS!"))
+	return TRUE
+
+/datum/liquid_registry/proc/murk_leech(mob/living/M, turf/T)
+	if(!M || !T)
+		return FALSE
+	if(HAS_TRAIT(M, TRAIT_LEECHIMMUNE))
+		return FALSE
+	if(!ishuman(M))
+		return FALSE
+	var/mob/living/carbon/human/C = M
+	if(C.blood_volume <= 0)
+		return FALSE
+	var/chance = 3
+	if(C.m_intent == MOVE_INTENT_RUN)
+		chance = 6
+	if(C.m_intent == MOVE_INTENT_SNEAK)
+		chance = 1
+	var/deep = T.cell && T.cell.fluidsum >= SUBMERSION_FLUID_THRESHOLD
+	if(deep)
+		chance *= 2
+	if(!prob(chance))
+		return FALSE
+	var/list/zonee = list(BODY_ZONE_R_LEG, BODY_ZONE_L_LEG, BODY_ZONE_CHEST)
+	if(deep)
+		zonee += list(BODY_ZONE_R_ARM, BODY_ZONE_L_ARM)
+	for(var/i = 0, i <= zonee.len, i++)
+		var/zone = pick(zonee)
+		var/obj/item/bodypart/BP = C.get_bodypart(zone)
+		if(!BP)
+			continue
+		if(BP.skeletonized)
+			continue
+		var/obj/item/natural/worms/leech/I = new(C)
+		BP.add_embedded_object(I, silent = TRUE)
+		return TRUE
+	return FALSE
+
 // Trigger behaviors when a mob enters a liquid turf
 /datum/liquid_registry/proc/trigger_behavior_on_enter(mob/living/M, turf/T)
 	if(!M || !T?.cell || T.cell.fluidsum < MIN_FLUID_VOLUME)
 		return
+
+	var/type_sum = 0
+	for(var/datum/liquid/fluid as anything in T.cell.fluid_volume)
+		type_sum += T.cell.fluid_volume[fluid]
+	if(type_sum < T.cell.fluidsum)
+		SSliquid.refresh_cell_types(T)
 
 	// Trigger entry behaviors for each liquid type on this turf
 	for(var/datum/liquid/fluid as anything in T.cell.fluid_volume)

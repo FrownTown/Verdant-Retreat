@@ -433,9 +433,10 @@
 
 /turf/open/water/river/Initialize()
 	. = ..()
+	var/preserved_dir = dir
+	var/turf/below = GetBelow(src)
 
-	if(!GetBelow(src))
-		var/preserved_dir = dir
+	if(!below)
 		var/turf/stream = ChangeTurf(/turf/open/water/stream, null, CHANGETURF_IGNORE_AIR)
 		if(stream)
 			stream.setDir(preserved_dir)
@@ -444,26 +445,32 @@
 			stream.refresh_river_overlay()
 		return
 
+	carve_river_bed(below, preserved_dir)
+
 	var/turf/new_top = ChangeTurf(/turf/open/transparent/openspace, null, CHANGETURF_IGNORE_AIR)
+	new_top.refresh_river_overlay()
 
-	var/turf/below = GetBelow(new_top)
-	if(below)
-		var/turf/river_bottom = below.ChangeTurf(/turf/open/floor/rogue/sand, null, CHANGETURF_IGNORE_AIR)
-		if(!river_bottom.cell)
-			river_bottom.cell = new /cell(river_bottom)
-			river_bottom.cell.InitLiquids()
+/turf/open/water/river/proc/carve_river_bed(turf/below, flow_dir)
+	var/turf/river_bottom = below.ChangeTurf(/turf/open/floor/rogue/sand, null, CHANGETURF_IGNORE_AIR)
+	if(!river_bottom.cell)
+		river_bottom.cell = new /cell(river_bottom)
+		river_bottom.cell.InitLiquids()
 
-		var/datum/liquid/below_water = river_bottom.cell.get_fluid_datum(WATER)
-		if(below_water)
-			river_bottom.cell.fluid_volume[below_water] = 100
+	var/datum/liquid/below_water = river_bottom.cell.get_fluid_datum(WATER)
+	if(below_water)
+		river_bottom.cell.fluid_volume[below_water] = 100
 
-		river_bottom.cell.flow_dir = dir
-		river_bottom.setDir(dir)
+	river_bottom.cell.flow_dir = flow_dir
+	river_bottom.setDir(flow_dir)
 
-		SSliquid.update_fluidsum(river_bottom)
-		SSliquid.cell_index[river_bottom] = TRUE
-		new_top.refresh_river_overlay()
-		SSmapping.register_water_bed(river_bottom)
+	SSliquid.update_fluidsum(river_bottom)
+	SSliquid.cell_index[river_bottom] = TRUE
+	SSmapping.register_water_bed(river_bottom)
+
+/turf/open/water/river/wild
+
+/turf/open/water/river/wild/carve_river_bed(turf/below, flow_dir)
+	below.carve_flow_bed(/turf/open/floor/rogue/riverbot, flow_dir)
 
 /turf/open/floor/rogue/riverbot
 	name = "river bottom"
@@ -514,6 +521,22 @@
 	ensure_liquid_overlay()
 	liquid_overlay.layer = ABOVE_MOB_LAYER
 	liquid_overlay.plane = GAME_PLANE_HIGHEST
+
+/turf/open/floor/rogue/lakebed/procgen
+
+/turf/open/floor/rogue/lakebed/procgen/Initialize()
+	. = ..()
+	cell.remove_liquid_source()
+
+/turf/proc/carve_flow_bed(bed_type, flow_dir = 0)
+	var/turf/bed = ChangeTurf(bed_type, null, CHANGETURF_IGNORE_AIR)
+	if(!bed)
+		return null
+	if(flow_dir && bed.cell)
+		bed.cell.flow_dir = flow_dir
+		bed.setDir(flow_dir)
+	SSmapping.register_water_bed(bed)
+	return bed
 
 /turf/proc/river_flow_cell()
 	if(isopenspace(src))

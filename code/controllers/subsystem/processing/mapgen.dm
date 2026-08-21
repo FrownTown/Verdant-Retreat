@@ -56,6 +56,7 @@ PORTED: 2026-01-17
 #define HOLE 2 // pits and water features
 #define MUD  3
 #define AQUA 4 // aquifers
+#define POOL 5 // hazard liquid pools
 
 GLOBAL_LIST_EMPTY(mapgen_areas)
 
@@ -67,6 +68,7 @@ SUBSYSTEM_DEF(procgen)
 
 	var/list/fluid_cells = new
 	var/list/mimic_turfs = new
+	var/list/overworld_seed_log = list()
 
 /datum/controller/subsystem/procgen/Initialize(start_timeofday)
 	SSliquid.can_fire = 0
@@ -112,6 +114,11 @@ SUBSYSTEM_DEF(procgen)
 	var/list/components = list()
 	var/list/cell_component = list()
 
+	var/multiz_generation = FALSE
+	var/current_gen_z
+	var/list/z_turf_maps = list()
+	var/list/z_generation_maps = list()
+
 	// The bounds of the area to generate, this gets set by iterating inward over turfs on each axis using 3 1D list operations instead of 1 3D list operation
 	var/low_x
 	var/low_y
@@ -125,8 +132,17 @@ SUBSYSTEM_DEF(procgen)
 	var/max_lake_size = 64
 	var/min_lakes = 3
 	var/max_lakes = 6
+	var/lake_bed_type = /turf/open/floor/rogue/lakebed
 
 	var/generate_water = FALSE // Turns on/off generating rivers and lakes, should probably be turned off for any area that doesn't have walls under it. Currently only works for caves
+
+	// Parameters related to hazard liquid pool generation
+	var/pool_bed_type
+	var/generate_pools = FALSE
+	var/min_pools = 1
+	var/max_pools = 3
+	var/min_pool_size = 4
+	var/max_pool_size = 16
 
 // Initialize the area by adding it to the list of mapgen areas, setting its boundaries and filling the generation map with initial values
 
@@ -135,20 +151,59 @@ SUBSYSTEM_DEF(procgen)
 	ADD_SORTED(GLOB.mapgen_areas, src, /proc/cmp_area_z_dsc) // We start generating areas from the top down to avoid placing features on top of each other
 
 /area/procedural_generation/proc/setup_procgen()
-	// Build our boundary first, this lets us do three 1D operations instead of 1 3D operation, which will break early independently upon hitting the area's bounds
+	if(!multiz_generation)
+		// Build our boundary first, this lets us do three 1D operations instead of 1 3D operation, which will break early independently upon hitting the area's bounds
+		low_x = world.maxx
+		low_y = world.maxy
+		low_z = world.maxz
+		high_x = 1
+		high_y = 1
+		high_z = 1 // For future use, in case multiz generation is ever added... for some horrible reason
+
+		var/target_z = src.z
+		var/offlevel_turfs = 0
+		for(var/turf/T in src)
+			if(T.z != target_z)
+				offlevel_turfs++
+				continue
+			if(T.x < low_x)
+				low_x = T.x
+			if(T.y < low_y)
+				low_y = T.y
+			if(T.x > high_x)
+				high_x = T.x
+			if(T.y > high_y)
+				high_y = T.y
+			turf_map["[T.x]-[T.y]"] = TRUE
+
+		low_z = target_z
+		high_z = target_z
+
+		if(offlevel_turfs)
+			log_mapping("[type] occupies [offlevel_turfs] turfs outside z [target_z]; only z [target_z] will be generated.")
+
+		for(var/x = low_x, x <= high_x, x++)
+			for(var/y = low_y, y <= high_y, y++)
+				if(!turf_map["[x]-[y]"])
+					continue
+				var/turf/current_turf = locate(x, y, src.z)
+				if(iswall(current_turf))
+					// We use a string key for uniqueness, we don't need to worry about memory use
+					// Because this will get deallocated immediately after we finish the mapgen
+					generation_map["[x]-[y]"] = TRUE
+
+		current_gen_z = src.z
+		return
+
 	low_x = world.maxx
 	low_y = world.maxy
-	low_z = world.maxz
 	high_x = 1
 	high_y = 1
-	high_z = 1 // For future use, in case multiz generation is ever added... for some horrible reason
+	low_z = world.maxz
+	high_z = 1
+	z_turf_maps = list()
 
-	var/target_z = src.z
-	var/offlevel_turfs = 0
 	for(var/turf/T in src)
-		if(T.z != target_z)
-			offlevel_turfs++
-			continue
 		if(T.x < low_x)
 			low_x = T.x
 		if(T.y < low_y)
@@ -157,23 +212,61 @@ SUBSYSTEM_DEF(procgen)
 			high_x = T.x
 		if(T.y > high_y)
 			high_y = T.y
-		turf_map["[T.x]-[T.y]"] = TRUE
+		if(T.z < low_z)
+			low_z = T.z
+		if(T.z > high_z)
+			high_z = T.z
+		var/zkey = "[T.z]"
+		if(isnull(z_turf_maps[zkey]))
+			z_turf_maps[zkey] = list()
+		z_turf_maps[zkey]["[T.x]-[T.y]"] = TRUE
 
-	low_z = target_z
-	high_z = target_z
+	var/list/missing_z = list()
+	for(var/z = low_z, z <= high_z, z++)
+		if(isnull(z_turf_maps["[z]"]))
+			missing_z += z
+	if(length(missing_z))
+		log_mapping("[type] spans z [low_z]-[high_z] but has no turfs on z [missing_z.Join(", ")]; those layers will not be generated and vertical links will not cross the gap.")
 
-	if(offlevel_turfs)
-		log_mapping("[type] occupies [offlevel_turfs] turfs outside z [target_z]; only z [target_z] will be generated.")
-
-	for(var/x = low_x, x <= high_x, x++)
-		for(var/y = low_y, y <= high_y, y++)
-			if(!turf_map["[x]-[y]"])
-				continue
-			var/turf/current_turf = locate(x, y, src.z)
+	z_generation_maps = list()
+	for(var/zkey in z_turf_maps)
+		var/list/layer_turfs = z_turf_maps[zkey]
+		var/list/layer_generation = list()
+		var/layer_z = text2num(zkey)
+		for(var/key in layer_turfs)
+			var/list/coords = splittext(key, "-")
+			var/x_coord = text2num(coords[1])
+			var/y_coord = text2num(coords[2])
+			var/turf/current_turf = locate(x_coord, y_coord, layer_z)
 			if(iswall(current_turf))
-				// We use a string key for uniqueness, we don't need to worry about memory use
-				// Because this will get deallocated immediately after we finish the mapgen
-				generation_map["[x]-[y]"] = TRUE
+				layer_generation[key] = TRUE
+		z_generation_maps[zkey] = layer_generation
+
+	select_z_layer(low_z)
+
+/area/procedural_generation/proc/select_z_layer(target_z)
+	current_gen_z = target_z
+	var/zkey = "[target_z]"
+	if(isnull(z_turf_maps[zkey]))
+		z_turf_maps[zkey] = list()
+	if(isnull(z_generation_maps[zkey]))
+		z_generation_maps[zkey] = list()
+	turf_map = z_turf_maps[zkey]
+	generation_map = z_generation_maps[zkey]
+	components = list()
+	cell_component = list()
+
+/area/procedural_generation/proc/offset_for_dir(x, y, dir)
+	switch(dir)
+		if(NORTH)
+			return list(x, y + 1)
+		if(SOUTH)
+			return list(x, y - 1)
+		if(EAST)
+			return list(x + 1, y)
+		if(WEST)
+			return list(x - 1, y)
+	return list(x, y)
 
 /area/procedural_generation/proc/in_bounds(check_x, check_y)
 	return check_x >= low_x && check_x <= high_x && check_y >= low_y && check_y <= high_y
@@ -341,7 +434,7 @@ SUBSYSTEM_DEF(procgen)
 		var/x_coord = text2num(coords[1])
 		var/y_coord = text2num(coords[2])
 		if(in_area(x_coord, y_coord))
-			var/turf/destination_turf = locate(x_coord, y_coord, src.z)
+			var/turf/destination_turf = locate(x_coord, y_coord, current_gen_z)
 			if(!destination_turf)
 				continue
 			switch(generation_map[key]) // If the coordinate is set to something other than TRUE (1), it means we've carved out a space there, so we change the turf
@@ -353,12 +446,15 @@ SUBSYSTEM_DEF(procgen)
 					var/turf/destination_turf_below = GetBelow(destination_turf)
 					if(generate_water == TRUE)
 						if(destination_turf_below && iswall(destination_turf_below))
-							destination_turf_below.ChangeTurf(/turf/open/floor/rogue/dirt)
-							SSprocgen.fluid_cells += destination_turf_below
+							var/turf/bed = destination_turf_below.carve_flow_bed(lake_bed_type)
+							if(bed)
+								contain_water(bed)
 					else if(destination_turf_below)
 						destination_turf_below.ChangeTurf(/turf/open/floor/rogue/dirt)
-					destination_turf.ChangeTurf(/turf/open/transparent/openspace)
-					SSprocgen.mimic_turfs += destination_turf
+					var/turf/surface = destination_turf.ChangeTurf(/turf/open/transparent/openspace, null, CHANGETURF_IGNORE_AIR)
+					if(generate_water == TRUE && surface)
+						contain_water(surface)
+					SSprocgen.mimic_turfs += surface
 
 				if(MUD)
 					if(iswall(destination_turf))
@@ -367,6 +463,10 @@ SUBSYSTEM_DEF(procgen)
 				if(AQUA)
 					destination_turf.ChangeTurf(/turf/open/floor/rogue/dirt)
 					SSprocgen.fluid_cells += destination_turf
+
+				if(POOL)
+					if(pool_bed_type)
+						destination_turf.ChangeTurf(pool_bed_type, null, CHANGETURF_IGNORE_AIR)
 
 /area/procedural_generation/proc/update_fluid_amounts(list/fluid_cells)
 
@@ -399,6 +499,7 @@ These notes should help get the map to generate in a shape you want:
 
 /area/procedural_generation/cave
 	var/list/cavern_centers = list()
+	lake_bed_type = /turf/open/floor/rogue/lakebed/procgen
 
 // Various tuning knobs for different things in cave generation
 // Keep in mind that min_counts and max_counts for individual terrain features are not entirely accurate here
@@ -432,32 +533,94 @@ These notes should help get the map to generate in a shape you want:
 	var/max_tunnel_width = 3
 	var/min_tunnel_width = 2
 
+	var/list/z_cavern_centers = list()
+	var/min_links_per_component = 1
+	var/max_links_per_component = 4
+	var/caverns_per_extra_link = 3
+	var/link_search_attempts = 300
+
 /area/procedural_generation/cave/setup_procgen()
 	..()
-	label_components()
-	// Generate separate caverns and winding passages
-	generate_caverns()
-	generate_tunnels()
-	// Ensure there is a path connecting the entrance to every cavern center
-	setup_connections()
-	// Post process to clean up things we don't want or add things we do
-	final_pass()
-	// Actually apply our generation map
-	apply_generation_map()
+	if(!multiz_generation)
+		label_components()
+		// Generate separate caverns and winding passages
+		generate_caverns()
+		generate_tunnels()
+		// Ensure there is a path connecting the entrance to every cavern center
+		setup_connections()
+		// Post process to clean up things we don't want or add things we do
+		final_pass()
+		// Actually apply our generation map
+		apply_generation_map()
 
-	// Empty everything from memory now that we don't need it anymore
-	generation_map.Cut()
-	turf_map.Cut()
+		// Empty everything from memory now that we don't need it anymore
+		generation_map.Cut()
+		turf_map.Cut()
+		cavern_centers.Cut()
+		components.Cut()
+		cell_component.Cut()
+		return
+
+	z_cavern_centers = list()
+	for(var/z = high_z, z >= low_z, z--)
+		var/zkey = "[z]"
+		if(!z_turf_maps[zkey])
+			continue
+		select_z_layer(z)
+		cavern_centers = list()
+		label_components()
+		generate_caverns()
+		generate_tunnels()
+		setup_connections()
+		final_pass()
+		z_cavern_centers[zkey] = cavern_centers.Copy()
+		apply_generation_map()
+	place_vertical_links()
+
+	z_turf_maps.Cut()
+	z_generation_maps.Cut()
+	z_cavern_centers.Cut()
 	cavern_centers.Cut()
 	components.Cut()
 	cell_component.Cut()
+	generation_map = list()
+	turf_map = list()
 
 /area/procedural_generation/cave/final_pass()
+	if(!multiz_generation)
+		if(smooth_edges == TRUE)
+			for(var/i = 1, i <= smooth_amount, i++)
+				for(var/turf/T in src)
+					if(T.z != low_z)
+						continue
+					if(iswall(T))
+						var/ortho_walls = 0
+						var/diag_walls = 0
+						for(var/dir in GLOB.cardinals)
+							var/turf/neighbor = get_turf(get_step(T, dir))
+							if(iswall(neighbor))
+								ortho_walls++
+						for(var/dir in GLOB.diagonals)
+							var/turf/neighbor = get_turf(get_step(T, dir))
+							if(iswall(neighbor))
+								diag_walls++
+						if(ortho_walls == 0 && diag_walls == 1 || ortho_walls == 0 && diag_walls == 0)
+							generation_map["[T.x]-[T.y]"] = FALSE
+
+		if(generate_water == TRUE)
+			generate_water()
+			smooth_lakes()
+			muddy_shorelines()
+		generate_liquid_pools()
+		return
+
 	if(smooth_edges == TRUE)
 		for(var/i = 1, i <= smooth_amount, i++)
-			for(var/turf/T in src)
-				if(T.z != low_z)
-					continue
+			for(var/key in turf_map)
+				var/list/coords = splittext(key, "-")
+				var/x_coord = text2num(coords[1])
+				var/y_coord = text2num(coords[2])
+				var/turf/T = locate(x_coord, y_coord, current_gen_z)
 				if(iswall(T))
 					var/ortho_walls = 0
 					var/diag_walls = 0
@@ -470,12 +633,13 @@ These notes should help get the map to generate in a shape you want:
 						if(iswall(neighbor))
 							diag_walls++
 					if(ortho_walls == 0 && diag_walls == 1 || ortho_walls == 0 && diag_walls == 0)
-						generation_map["[T.x]-[T.y]"] = FALSE
+						generation_map[key] = FALSE
 
-	if(generate_water == TRUE)
+	if(generate_water == TRUE && current_gen_z == low_z)
 		generate_water()
 		smooth_lakes()
 		muddy_shorelines()
+	generate_liquid_pools()
 // Customized drunk-walk algorithm for cavern generation
 /area/procedural_generation/cave/proc/generate_caverns()
 	for(var/component_index in distribute_seeds(max(1, max_caverns - min_caverns + 1)))
@@ -670,6 +834,162 @@ These notes should help get the map to generate in a shape you want:
 	min_lake_size = 16
 	max_lake_size = 32
 
+/area/procedural_generation/cave/lava
+	generate_pools = TRUE
+	pool_bed_type = /turf/open/floor/rogue/pool/lava
+	min_pools = 1
+	max_pools = 2
+	min_pool_size = 6
+	max_pool_size = 20
+
+/area/procedural_generation/cave/underdark_forest
+	name = "underdark cave-forest"
+
+	smooth_edges = TRUE
+
+	min_caverns = 1
+	max_caverns = 8
+	min_cavern_size = 40
+	max_cavern_size = 90
+
+	min_tunnels = 4
+	max_tunnels = 10
+	min_tunnel_width = 2
+	max_tunnel_width = 3
+
+	generate_water = TRUE
+	min_lakes = 1
+	max_lakes = 2
+
+	generate_pools = TRUE
+	pool_bed_type = /turf/open/floor/rogue/pool/murk
+	min_pools = 1
+	max_pools = 2
+	min_pool_size = 4
+	max_pool_size = 10
+
+	var/cavern_dirt_weight = 55
+	var/cavern_mud_weight = 25
+	var/cavern_stone_weight = 20
+
+	var/big_mushroom_density = 12
+	var/small_mushroom_density = 20
+	var/min_mushroom_spacing = 1
+
+/area/procedural_generation/cave/underdark_forest/final_pass()
+	..()
+	convert_cavern_floor_mix()
+	populate_mushrooms()
+
+/area/procedural_generation/cave/underdark_forest/proc/convert_cavern_floor_mix()
+	for(var/key in generation_map)
+		if(generation_map[key] != DIRT)
+			continue
+		var/list/coords = splittext(key, "-")
+		var/x_coord = text2num(coords[1])
+		var/y_coord = text2num(coords[2])
+		if(!in_area(x_coord, y_coord))
+			continue
+		var/turf/T = locate(x_coord, y_coord, current_gen_z)
+		if(!T || !iswall(T))
+			continue
+		var/roll = rand(1, 100)
+		if(roll <= cavern_dirt_weight)
+			T.ChangeTurf(/turf/open/floor/rogue/dirt)
+		else if(roll <= cavern_dirt_weight + cavern_mud_weight)
+			T.ChangeTurf(/turf/open/floor/rogue/dirt/mud)
+		else
+			T.ChangeTurf(/turf/open/floor/rogue/naturalstone)
+
+/area/procedural_generation/cave/underdark_forest/proc/is_cavern_floor(turf/T)
+	return istype(T, /turf/open/floor/rogue/dirt) || istype(T, /turf/open/floor/rogue/naturalstone)
+
+/area/procedural_generation/cave/underdark_forest/proc/populate_mushrooms()
+	var/list/big_planted = list()
+	for(var/key in generation_map)
+		if(generation_map[key] != DIRT)
+			continue
+		var/list/coords = splittext(key, "-")
+		var/x_coord = text2num(coords[1])
+		var/y_coord = text2num(coords[2])
+		var/turf/T = locate(x_coord, y_coord, current_gen_z)
+		if(!is_cavern_floor(T))
+			continue
+		if(locate(/obj/structure) in T)
+			continue
+		if(!prob(big_mushroom_density))
+			continue
+		if(too_close_to_shroom(big_planted, x_coord, y_coord))
+			continue
+		big_planted[key] = TRUE
+		place_big_mushroom(T)
+
+	for(var/key in generation_map)
+		if(generation_map[key] != DIRT)
+			continue
+		if(big_planted[key])
+			continue
+		var/list/coords = splittext(key, "-")
+		var/x_coord = text2num(coords[1])
+		var/y_coord = text2num(coords[2])
+		var/turf/T = locate(x_coord, y_coord, current_gen_z)
+		if(!is_cavern_floor(T))
+			continue
+		if(locate(/obj/structure) in T || locate(/obj/item) in T)
+			continue
+		if(!prob(small_mushroom_density))
+			continue
+		place_small_mushroom(T)
+
+/area/procedural_generation/cave/underdark_forest/proc/too_close_to_shroom(list/planted, center_x, center_y)
+	if(min_mushroom_spacing <= 0)
+		return FALSE
+	for(var/dx = -min_mushroom_spacing, dx <= min_mushroom_spacing, dx++)
+		for(var/dy = -min_mushroom_spacing, dy <= min_mushroom_spacing, dy++)
+			if(planted["[center_x + dx]-[center_y + dy]"])
+				return TRUE
+	return FALSE
+
+/area/procedural_generation/cave/underdark_forest/proc/place_big_mushroom(turf/T)
+	var/i = rand(1, 100)
+	var/mushroom_type
+	switch(i)
+		if(1 to 55)
+			mushroom_type = /obj/structure/flora/rogueshroom
+		if(56 to 80)
+			mushroom_type = /obj/structure/flora/rogueshroom/happy/random
+		if(81 to 100)
+			mushroom_type = /obj/structure/flora/mushroomcluster
+	if(mushroom_type)
+		new mushroom_type(T)
+
+/area/procedural_generation/cave/underdark_forest/proc/place_small_mushroom(turf/T)
+	var/i = rand(1, 100)
+	var/mushroom_type
+	switch(i)
+		if(1 to 40)
+			mushroom_type = /obj/structure/flora/tinymushrooms
+		if(41 to 60)
+			mushroom_type = /obj/item/natural/stone
+		if(61 to 75)
+			mushroom_type = /obj/item/natural/rock
+		if(76 to 90)
+			mushroom_type = /obj/structure/flora/roguegrass
+		if(91 to 98)
+			mushroom_type = /obj/structure/zizo_bane
+		if(99 to 100)
+			mushroom_type = /obj/structure/flora/roguegrass/thorn_bush
+	if(mushroom_type)
+		new mushroom_type(T)
+
+/area/procedural_generation/cave/underdark_forest/test
+	name = "test underdark cave-forest"
+	min_caverns = 1
+	max_caverns = 5
+	min_tunnels = 2
+	max_tunnels = 5
+	max_tunnel_length = 12
+
 /*
   __  __    _     __________ ____
  |  \/  |  / \   |__  / ____/ ___|
@@ -798,6 +1118,14 @@ Notes about water generation:
 
 */
 
+/area/procedural_generation/proc/contain_water(turf/target)
+	if(!target)
+		return
+	if(!target.cell)
+		target.cell = new /cell(target)
+		target.cell.InitLiquids()
+	target.cell.set_contain_max(MAX_FLUID_VOLUME)
+
 /area/procedural_generation/proc/generate_water()
 	return
 
@@ -806,6 +1134,30 @@ Notes about water generation:
 
 /area/procedural_generation/proc/create_lake_at(list/central_point, lake_size)
 	return
+
+/area/procedural_generation/proc/generate_liquid_pools()
+	if(!generate_pools || !pool_bed_type)
+		return
+	var/pools = rand(min_pools, max_pools)
+	for(var/i in 1 to pools)
+		var/list/seed_coords = random_area_cell()
+		if(!seed_coords)
+			continue
+		var/pool_size = rand(min_pool_size, max_pool_size)
+		var/current_x = seed_coords[1]
+		var/current_y = seed_coords[2]
+		for(var/j in 1 to pool_size)
+			for(var/rx in -1 to 1)
+				for(var/ry in -1 to 1)
+					if(!in_area(current_x + rx, current_y + ry))
+						continue
+					var/key = "[current_x + rx]-[current_y + ry]"
+					if(generation_map[key] == HOLE || generation_map[key] == AQUA)
+						continue
+					carve_cell(current_x + rx, current_y + ry, POOL)
+			var/list/step = wander_step(current_x, current_y, 2)
+			current_x = step[1]
+			current_y = step[2]
 
 /area/procedural_generation/cave/generate_water()
 	var/list/pick_from_caverns = cavern_centers.Copy()
@@ -833,7 +1185,7 @@ Notes about water generation:
 			if(!in_area(cx + dx, cy + dy))
 				return FALSE
 
-			var/turf/below_turf = GetBelow(locate(cx + dx, cy + dy, low_z))
+			var/turf/below_turf = GetBelow(locate(cx + dx, cy + dy, current_gen_z))
 			if(!below_turf || !iswall(below_turf)) // Check if below turf is a wall and exists
 				return FALSE
 
@@ -905,6 +1257,119 @@ Notes about water generation:
 
 	if(!lake_generated)
 		log_debug("Failed to generate a lake after [max_attempts] attempts.")
+
+/area/procedural_generation/cave/proc/z_pair_linked(z, next_z)
+	if(z > length(SSmapping.multiz_levels) || next_z > length(SSmapping.multiz_levels))
+		return FALSE
+	var/list/lower_level = SSmapping.multiz_levels[z]
+	var/list/upper_level = SSmapping.multiz_levels[next_z]
+	if(!lower_level || !upper_level)
+		return FALSE
+	return lower_level[Z_LEVEL_UP] && upper_level[Z_LEVEL_DOWN]
+
+/area/procedural_generation/cave/proc/place_vertical_links()
+	if(high_z <= low_z)
+		return
+	for(var/z = low_z, z < high_z, z++)
+		link_z_pair(z, z + 1)
+
+/area/procedural_generation/cave/proc/link_z_pair(z, next_z)
+	if(!z_pair_linked(z, next_z))
+		log_mapping("[type] could not link z [z] to z [next_z]; the z-levels are not connected by ZTRAIT_UP/ZTRAIT_DOWN, so no climb shafts will be generated between them.")
+		return
+	if(!z_turf_maps["[z]"] || !z_turf_maps["[next_z]"])
+		return
+	select_z_layer(z)
+	label_components()
+	var/list/lower_components = components.Copy()
+	var/list/lower_cavern_centers = z_cavern_centers["[z]"] || list()
+	for(var/index in 1 to length(lower_components))
+		var/list/cells = lower_components[index]
+		var/caverns_here = 0
+		for(var/list/center as anything in lower_cavern_centers)
+			if(center[3] == index)
+				caverns_here++
+		var/target_links = clamp(max(min_links_per_component, round(caverns_here / caverns_per_extra_link)), min_links_per_component, max_links_per_component)
+		place_links_for_component(z, next_z, cells, target_links)
+
+/area/procedural_generation/cave/proc/place_links_for_component(z, next_z, list/cells, target_links)
+	var/list/shuffled_cells = shuffle(cells)
+	var/placed = 0
+	var/attempts = 0
+	for(var/key in shuffled_cells)
+		if(placed >= target_links || attempts >= link_search_attempts)
+			break
+		attempts++
+		var/list/coords = splittext(key, "-")
+		var/x_coord = text2num(coords[1])
+		var/y_coord = text2num(coords[2])
+		if(try_place_climb_shaft(x_coord, y_coord, z, next_z))
+			placed++
+	if(!placed)
+		log_mapping("[type] placed 0 climb shafts for a [length(cells)]-cell component on z [z]; it will have no vertical connection to z [next_z].")
+
+/area/procedural_generation/cave/proc/try_place_climb_shaft(x, y, z, next_z)
+	var/list/lower_gen = z_generation_maps["[z]"]
+	var/list/lower_turf_map = z_turf_maps["[z]"]
+	var/list/upper_gen = z_generation_maps["[next_z]"]
+	var/list/upper_turf_map = z_turf_maps["[next_z]"]
+	var/key = "[x]-[y]"
+	var/lower_state = lower_gen[key]
+	if(isnull(lower_state) || lower_state == TRUE || lower_state == HOLE)
+		return FALSE
+	if(!upper_turf_map[key] || upper_gen[key] != TRUE)
+		return FALSE
+	var/turf/upper_turf = locate(x, y, next_z)
+	if(!istype(upper_turf, /turf/closed))
+		return FALSE
+
+	var/found_lower_wall = FALSE
+	for(var/dir in GLOB.cardinals)
+		var/list/offset = offset_for_dir(x, y, dir)
+		var/neighbor_key = "[offset[1]]-[offset[2]]"
+		if(isnull(lower_turf_map[neighbor_key]) || lower_gen[neighbor_key] != TRUE)
+			continue
+		var/turf/closed/candidate = locate(offset[1], offset[2], z)
+		if(istype(candidate) && candidate.wallclimb)
+			found_lower_wall = TRUE
+			break
+	if(!found_lower_wall)
+		return FALSE
+
+	var/found_upper_exit = FALSE
+	for(var/dir in GLOB.cardinals)
+		var/list/offset = offset_for_dir(x, y, dir)
+		var/wkey = "[offset[1]]-[offset[2]]"
+		if(isnull(upper_turf_map[wkey]))
+			continue
+		var/state = upper_gen[wkey]
+		if(!isnull(state) && state != TRUE && state != HOLE)
+			found_upper_exit = TRUE
+			break
+		if(state == TRUE)
+			var/turf/closed/candidate = locate(offset[1], offset[2], next_z)
+			if(istype(candidate) && candidate.wallclimb)
+				found_upper_exit = TRUE
+				break
+	if(!found_upper_exit)
+		return FALSE
+
+	var/turf/new_upper = upper_turf.ChangeTurf(/turf/open/transparent/openspace, null, CHANGETURF_IGNORE_AIR)
+	SSprocgen.mimic_turfs += new_upper
+	upper_gen[key] = HOLE
+	return TRUE
+
+/area/procedural_generation/cave/multiz
+	multiz_generation = TRUE
+
+/area/procedural_generation/cave/multiz/test
+	name = "test multiz cave"
+	max_caverns = 4
+	min_cavern_size = 6
+	max_cavern_size = 10
+	min_tunnels = 3
+	max_tunnels = 6
+	max_tunnel_length = 8
 
 /area/procedural_generation/proc/muddy_shorelines()
 	for(var/key in generation_map)
@@ -1292,6 +1757,9 @@ Forests are generated using cellular automata with the Moore neighborhood:
 			if(locate(/obj/structure) in current_turf)
 				continue
 
+			if(current_turf.type == /turf/open/floor/rogue/dirt)
+				current_turf = current_turf.ChangeTurf(/turf/open/floor/rogue/grass)
+
 			planted[key] = TRUE
 			if(istype(get_step_multiz(current_turf, UP), /turf/open/transparent/openspace))
 				canopy_cells++
@@ -1364,6 +1832,8 @@ Forests are generated using cellular automata with the Moore neighborhood:
 						flora_type = /obj/structure/closet/dirthole/closed/loot
 				
 				if(flora_type)
+					if(ispath(flora_type, /obj/structure/flora) && current_turf.type == /turf/open/floor/rogue/dirt)
+						current_turf = current_turf.ChangeTurf(/turf/open/floor/rogue/grass)
 					new flora_type(current_turf)
 
 // Place water features
@@ -1377,14 +1847,6 @@ Forests are generated using cellular automata with the Moore neighborhood:
 				place_lake_tile(x, y)
 			else if(tile_type == RIVER)
 				place_river_tile(x, y, river_flow_map[key] || river_primary)
-
-/area/procedural_generation/forest/proc/contain_water(turf/target)
-	if(!target)
-		return
-	if(!target.cell)
-		target.cell = new /cell(target)
-		target.cell.InitLiquids()
-	target.cell.set_contain_max(MAX_FLUID_VOLUME)
 
 /area/procedural_generation/forest/proc/clear_flora(turf/target)
 	if(!target)
@@ -1405,8 +1867,7 @@ Forests are generated using cellular automata with the Moore neighborhood:
 	// Bottom turf: lakebed. This has to happen first, a hole cannot open over a closed turf
 	var/turf/below = GetBelow(current_turf)
 	if(below)
-		var/turf/lake_bottom = below.ChangeTurf(/turf/open/floor/rogue/lakebed, null, CHANGETURF_IGNORE_AIR)
-		SSmapping.register_water_bed(lake_bottom)
+		var/turf/lake_bottom = below.carve_flow_bed(/turf/open/floor/rogue/lakebed)
 		contain_water(lake_bottom)
 
 	// Top turf: open space, surface overlay and sink are managed by update_cell_image
@@ -1428,12 +1889,7 @@ Forests are generated using cellular automata with the Moore neighborhood:
 	if(!below)
 		return
 
-	var/turf/riverbot = below.ChangeTurf(/turf/open/floor/rogue/riverbot, null, CHANGETURF_IGNORE_AIR)
-	if(riverbot.cell)
-		riverbot.cell.flow_dir = flow_dir
-	riverbot.setDir(flow_dir)
-	SSmapping.register_water_bed(riverbot)
-
+	var/turf/riverbot = below.carve_flow_bed(/turf/open/floor/rogue/riverbot, flow_dir)
 	contain_water(riverbot)
 
 	// Top turf: open space, surface overlay and sink are managed by update_cell_image
@@ -1721,3 +2177,4 @@ Forests are generated using cellular automata with the Moore neighborhood:
 #undef HOLE
 #undef MUD
 #undef AQUA
+#undef POOL

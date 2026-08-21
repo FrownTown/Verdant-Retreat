@@ -1,0 +1,22 @@
+/datum/unit_test/liquid_hazard_types/Run()
+	TEST_ASSERT(SSliquid.registry.has_liquid_type(/datum/liquid/lava), "lava must be registered as a liquid type")
+	TEST_ASSERT(SSliquid.registry.has_liquid_type(/datum/liquid/acid), "acid must be registered as a liquid type")
+	TEST_ASSERT(SSliquid.registry.has_liquid_type(/datum/liquid/blood), "blood must be registered as a liquid type")
+	TEST_ASSERT(SSliquid.registry.has_liquid_type(/datum/liquid/murk), "murk must be registered as a liquid type")
+
+	var/datum/liquid/lava_instance = SSliquid.registry.get_liquid_instance(/datum/liquid/lava)
+	var/datum/liquid/acid_instance = SSliquid.registry.get_liquid_instance(/datum/liquid/acid)
+	var/datum/liquid/blood_instance = SSliquid.registry.get_liquid_instance(/datum/liquid/blood)
+	var/datum/liquid/murk_instance = SSliquid.registry.get_liquid_instance(/datum/liquid/murk)
+	TEST_ASSERT_NOTNULL(lava_instance, "lava must have a registered instance")
+	TEST_ASSERT_NOTNULL(acid_instance, "acid must have a registered instance")
+	TEST_ASSERT_NOTNULL(blood_instance, "blood must have a registered instance")
+	TEST_ASSERT_NOTNULL(murk_instance, "murk must have a registered instance")
+
+	TEST_ASSERT_EQUAL(lava_instance.fluid_flags, 0, "lava must carry no fluid flags")
+	TEST_ASSERT_EQUAL(acid_instance.fluid_flags, FLUID_CORROSIVE, "acid must carry FLUID_CORROSIVE")
+	TEST_ASSERT_EQUAL(blood_instance.fluid_flags, FLUID_PERMEATING, "blood must carry FLUID_PERMEATING")
+	TEST_ASSERT_EQUAL(murk_instance.fluid_flags, FLUID_PERMEATING, "murk must carry FLUID_PERMEATING")
+
+	TEST_ASSERT_EQUAL(SSliquid.registry.get_liquid_from_reagent(/datum/reagent/blood), /datum/liquid/blood, "the blood reagent must map to the blood liquid type")
+	TEST_ASSERT_EQUAL(SSliquid.registry.get_liquid_from_reagent(/datum/reagent/water/gross), /datum/liquid/murk, "the gross water reagent must map to the murk liquid type")

@@ -368,3 +368,8 @@
 	name = "damp rock"
 	desc = "Water seeps through veins in this stone."
 	baseturfs = /turf/open/floor/rogue/naturalstone/aquifer
+
+/turf/closed/mineral/rogue/obsidian
+	name = "obsidian"
+	desc = "Molten stone quenched in an instant, left behind as a jagged wall of glassy black obsidian."
+	color = "#1c1c22"
