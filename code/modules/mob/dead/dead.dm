@@ -37,14 +37,14 @@ INITIALIZE_IMMEDIATE(/mob/dead)
 /mob/dead/ConveyorMove()	//lol
 	return
 
-/mob/dead/forceMove(atom/destination)
+/mob/dead/forceMove(atom/destination, force_dir = NONE)
 	var/turf/old_turf = get_turf(src)
 	var/turf/new_turf = get_turf(destination)
 	if (old_turf?.z != new_turf?.z)
 		onTransitZ(old_turf?.z, new_turf?.z)
 	var/oldloc = loc
 	loc = destination
-	Moved(oldloc, NONE, TRUE)
+	Moved(oldloc, force_dir, TRUE)
 
 /mob/dead/new_player/proc/lobby_refresh()
 	set waitfor = 0

@@ -624,7 +624,6 @@
 					continue
 				AM.Crossed(src, oldloc)
 
-		Moved(oldloc, NONE, TRUE)
 		. = TRUE
 
 	//If no destination, move the atom into nullspace (don't do this unless you know what you're doing)
@@ -635,7 +634,6 @@
 			oldloc.Exited(src, null)
 			if(old_area)
 				old_area.Exited(src, null)
-			Moved(oldloc, NONE, TRUE)
 		loc = null
 	RESOLVE_ACTIVE_MOVEMENT
 

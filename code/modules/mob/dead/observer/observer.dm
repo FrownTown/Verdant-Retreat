@@ -59,6 +59,7 @@ GLOBAL_VAR_INIT(observer_default_invisibility, INVISIBILITY_OBSERVER)
 	var/deadchat_name
 	var/datum/spawners_menu/spawners_menu
 	var/ghostize_time = 0
+	var/ghost_move_delay = 0
 	move_resist = INFINITY
 
 	flying = TRUE
@@ -70,6 +71,7 @@ GLOBAL_VAR_INIT(observer_default_invisibility, INVISIBILITY_OBSERVER)
 	var/next_gmove
 	var/misting = 0
 	draw_icon = TRUE
+	ghost_move_delay = 2
 
 /mob/dead/observer/admin
 	hud_type = /datum/hud/adminghost
@@ -83,7 +85,7 @@ GLOBAL_VAR_INIT(observer_default_invisibility, INVISIBILITY_OBSERVER)
 /mob/dead/observer/rogue/Move(n, direct)
 	if(world.time < next_gmove)
 		return
-	next_gmove = world.time + 2
+	next_gmove = world.time + ghost_move_delay
 
 	setDir(direct)
 
@@ -448,15 +450,18 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	ghostize(0)
 
 /mob/dead/observer/Move(NewLoc, direct)
+	if(updating_glide_size)
+		var/ghost_glide = DELAY_TO_GLIDE_SIZE(max(ghost_move_delay, world.tick_lag))
+		if(glide_size != ghost_glide)
+			set_glide_size(ghost_glide)
 	if(updatedir)
-		setDir(direct)//only update dir if we actually need it, so overlays won't spin on base sprites that don't have directions of their own
+		setDir(direct)
 	var/oldloc = loc
 
 	if(NewLoc)
-		forceMove(NewLoc)
-		update_parallax_contents()
+		forceMove(NewLoc, direct)
 	else
-		forceMove(get_turf(src))  //Get out of closets and such as a ghost
+		forceMove(get_turf(src))
 		if((direct & NORTH) && y < world.maxy)
 			y++
 		else if((direct & SOUTH) && y > 1)
@@ -465,8 +470,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 			x++
 		else if((direct & WEST) && x > 1)
 			x--
-
-	Moved(oldloc, direct)
+		Moved(oldloc, direct)
 
 /mob/dead/observer/proc/reenter_corpse()
 	set category = "Ghost"
